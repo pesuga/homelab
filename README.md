@@ -1,2 +1,0 @@
-# homelab
-Pesu's homelab
