@@ -5,5 +5,5 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1h
-  url: https://github.com/8gears/n8n-helm-chart/blob/main/charts/n8n/Chart.yaml
+  url: https://community-charts.github.io/helm-charts
   timeout: 3m

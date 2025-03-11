@@ -7,10 +7,11 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: ./charts/n8n
+      chart: n8n
+      version: "1.1.0"
       sourceRef:
-        kind: GitRepository
-        name: flux-system
+        kind: HelmRepository
+        name: n8n
         namespace: flux-system
       interval: 1m
   install:
@@ -25,27 +26,23 @@ spec:
     image:
       repository: n8nio/n8n
       tag: latest
-    # Database configuration
+    
+    # Database configuration - using external PostgreSQL
     postgresql:
       enabled: false
-      externalDatabase:
-        host: postgres.postgres.svc.cluster.local
-        port: 5432
-        user: postgres
-        database: n8n
-        existingSecret: n8n-db-auth
-        existingSecretPasswordKey: DB_POSTGRESDB_PASSWORD
     
-    # Disable Prometheus integration as the CRDs are not installed
-    prometheus:
-      enabled: false
-      serviceMonitor:
-        enabled: false
+    externalDatabase:
+      host: postgres.postgres.svc.cluster.local
+      port: 5432
+      user: postgres
+      database: n8n
+      existingSecret: n8n-db-auth
+      existingSecretPasswordKey: DB_POSTGRESDB_PASSWORD
     
-    # These values should match our local chart schema
+    # These values are adapted for the community chart
     ingress:
       enabled: true
-      className: nginx
+      ingressClassName: nginx
       hosts:
         - host: n8n.local
           paths:
@@ -65,12 +62,11 @@ spec:
       prometheus.io/path: "/metrics"
       prometheus.io/port: "5678"
     
-    env:
-      N8N_PORT: 5678
-      NODE_ENV: production
-      N8N_METRICS: "true"
-      N8N_METRICS_PREFIX: "n8n_"
+    n8n:
+      metrics:
+        enabled: true
+        prefix: "n8n_"
     
-    # Option 1: Make persistence optional if you don't need persistent data
+    # Disable persistence to avoid PVC binding issues
     persistence:
       enabled: false
