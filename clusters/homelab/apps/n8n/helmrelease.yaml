@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: n8n
-      version: "0.9.0"  # Specify exact version for stability
+      version: "1.1.0"  # Latest stable version from community charts
       sourceRef:
         kind: HelmRepository
         name: n8n
@@ -31,7 +31,7 @@ spec:
     
     ingress:
       enabled: true
-      className: nginx  # Updated from annotations
+      className: nginx
       hosts:
         - host: n8n.local
           paths:
@@ -49,7 +49,7 @@ spec:
     monitoring:
       enabled: true
       serviceMonitor:
-        enabled: true  # Prometheus integration
+        enabled: true
     
     # Database configuration
     postgresql:
@@ -60,3 +60,13 @@ spec:
       DB_POSTGRESDB_HOST: postgres.postgres.svc.cluster.local
       DB_POSTGRESDB_PORT: "5432"
       DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-db-auth
+            key: DB_POSTGRESDB_USER
+      DB_POSTGRESDB_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-db-auth
+            key: DB_POSTGRESDB_PASSWORD
