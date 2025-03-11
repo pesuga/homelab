@@ -7,13 +7,12 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: n8n
+      chart: clusters/homelab/charts/n8n
       sourceRef:
         kind: GitRepository
         name: flux-system
         namespace: flux-system
       interval: 1m
-      path: ./clusters/homelab/charts/n8n
   install:
     remediation:
       retries: 3
@@ -25,10 +24,11 @@ spec:
       repository: n8nio/n8n
       tag: latest
     
-    persistence:
-      enabled: true
-      size: 10Gi
+    # Database configuration
+    postgresql:
+      enabled: false
     
+    # These values should match our local chart schema
     ingress:
       enabled: true
       className: nginx
@@ -46,18 +46,25 @@ spec:
         memory: "1Gi"
         cpu: "1000m"
     
-    monitoring:
-      enabled: true
-      serviceMonitor:
-        enabled: true
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/path: "/metrics"
+      prometheus.io/port: "5678"
     
-    # Database configuration
-    postgresql:
-      enabled: false
-      externalDatabase:
-        host: postgres.postgres.svc.cluster.local
-        port: 5432
-        user: postgres
-        database: n8n
-        existingSecret: n8n-db-auth
-        existingSecretPasswordKey: DB_POSTGRESDB_PASSWORD
+    env:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres.postgres.svc.cluster.local
+      DB_POSTGRESDB_PORT: "5432"
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: postgres
+      DB_POSTGRESDB_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-db-auth
+            key: DB_POSTGRESDB_PASSWORD
+      N8N_METRICS: "true"
+      N8N_METRICS_PREFIX: "n8n_"
+    
+    persistence:
+      enabled: true
+      size: 10Gi
