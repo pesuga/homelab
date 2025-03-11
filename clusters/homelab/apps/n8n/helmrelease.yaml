@@ -7,7 +7,7 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: clusters/homelab/charts/n8n
+      chart: ./charts/n8n
       sourceRef:
         kind: GitRepository
         name: flux-system
@@ -74,9 +74,3 @@ spec:
     # Option 1: Make persistence optional if you don't need persistent data
     persistence:
       enabled: false
-      
-    # Option 2 (comment out Option 1 and uncomment this if you have a StorageClass):
-    # persistence:
-    #   enabled: true
-    #   size: 10Gi
-    #   storageClass: "your-storage-class-name"
