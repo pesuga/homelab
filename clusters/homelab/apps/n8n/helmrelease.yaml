@@ -7,11 +7,10 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: n8n
-      version: "1.1.0"
+      chart: ./charts/n8n
       sourceRef:
-        kind: HelmRepository
-        name: n8n
+        kind: GitRepository
+        name: flux-system
         namespace: flux-system
       interval: 1m
   install:
@@ -28,30 +27,26 @@ spec:
       tag: latest
     
     # Database configuration
-    # Disable built-in PostgreSQL
-    config:
-      database:
-        type: postgresdb
-        postgresdb:
-          host: postgres.postgres.svc.cluster.local
-          port: 5432
-          database: n8n
-          user: postgres
-          password:
-            valueFrom:
-              secretKeyRef:
-                name: n8n-db-auth
-                key: DB_POSTGRESDB_PASSWORD
+    postgresql:
+      enabled: false
+      externalDatabase:
+        host: postgres.postgres.svc.cluster.local
+        port: 5432
+        user: postgres
+        database: n8n
+        existingSecret: n8n-db-auth
+        existingSecretPasswordKey: DB_POSTGRESDB_PASSWORD
     
-    # Storage configuration - disable persistence
-    volumes: []
-    volumeMounts: []
+    # Disable Prometheus integration
+    prometheus:
+      enabled: false
+      serviceMonitor:
+        enabled: false
     
     # Ingress configuration
     ingress:
       enabled: true
-      annotations:
-        kubernetes.io/ingress.class: nginx
+      className: nginx
       hosts:
         - host: n8n.local
           paths:
@@ -71,8 +66,12 @@ spec:
       prometheus.io/path: "/metrics"
       prometheus.io/port: "5678"
     
-    extraEnv:
-      - name: N8N_METRICS
-        value: "true"
-      - name: N8N_METRICS_PREFIX
-        value: "n8n_"
+    env:
+      N8N_PORT: 5678
+      NODE_ENV: production
+      N8N_METRICS: "true"
+      N8N_METRICS_PREFIX: "n8n_"
+    
+    # Disable persistence to avoid PVC binding issues
+    persistence:
+      enabled: false
