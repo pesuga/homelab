@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: n8n
+
+resources:
+  - namespace.yaml
+  - helmrelease.yaml
+  - secrets/sealed-secrets.yaml
+
+configMapGenerator:
+  - name: n8n-config
+    literals:
+      - WEBHOOK_URL=http://n8n.local
+      - NODE_ENV=production
+
+patches:
+  - target:
+      kind: HelmRelease
+      name: n8n
+    patch: |-
+      - op: add
+        path: /spec/values/extraEnvVars
+        value:
+          - name: N8N_METRICS
+            value: "true"
+          - name: N8N_METRICS_PREFIX
+            value: "n8n_"
