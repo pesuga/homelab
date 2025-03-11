@@ -1,4 +1,4 @@
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: n8n
@@ -8,12 +8,18 @@ spec:
   chart:
     spec:
       chart: n8n
-      version: ">=0.9.0"
+      version: "0.9.0"  # Specify exact version for stability
       sourceRef:
         kind: HelmRepository
         name: n8n
         namespace: flux-system
       interval: 1m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
   values:
     image:
       repository: n8nio/n8n
@@ -25,9 +31,13 @@ spec:
     
     ingress:
       enabled: true
-      annotations:
-        kubernetes.io/ingress.class: nginx
-      
+      className: nginx  # Updated from annotations
+      hosts:
+        - host: n8n.local
+          paths:
+            - path: /
+              pathType: Prefix
+    
     resources:
       requests:
         memory: "512Mi"
@@ -40,3 +50,13 @@ spec:
       enabled: true
       serviceMonitor:
         enabled: true  # Prometheus integration
+    
+    # Database configuration
+    postgresql:
+      enabled: false  # We're using external PostgreSQL
+    
+    env:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres.postgres.svc.cluster.local
+      DB_POSTGRESDB_PORT: "5432"
+      DB_POSTGRESDB_DATABASE: n8n
