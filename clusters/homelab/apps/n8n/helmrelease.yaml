@@ -8,12 +8,12 @@ spec:
   chart:
     spec:
       chart: n8n
-      version: "1.1.0"  # Latest stable version from community charts
       sourceRef:
-        kind: HelmRepository
-        name: n8n
+        kind: GitRepository
+        name: flux-system
         namespace: flux-system
       interval: 1m
+      path: ./clusters/homelab/charts/n8n
   install:
     remediation:
       retries: 3
@@ -23,7 +23,7 @@ spec:
   values:
     image:
       repository: n8nio/n8n
-      tag: latest  # Will be updated by Flux image automation
+      tag: latest
     
     persistence:
       enabled: true
@@ -53,20 +53,11 @@ spec:
     
     # Database configuration
     postgresql:
-      enabled: false  # We're using external PostgreSQL
-    
-    env:
-      DB_TYPE: postgresdb
-      DB_POSTGRESDB_HOST: postgres.postgres.svc.cluster.local
-      DB_POSTGRESDB_PORT: "5432"
-      DB_POSTGRESDB_DATABASE: n8n
-      DB_POSTGRESDB_USER:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-db-auth
-            key: DB_POSTGRESDB_USER
-      DB_POSTGRESDB_PASSWORD:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-db-auth
-            key: DB_POSTGRESDB_PASSWORD
+      enabled: false
+      externalDatabase:
+        host: postgres.postgres.svc.cluster.local
+        port: 5432
+        user: postgres
+        database: n8n
+        existingSecret: n8n-db-auth
+        existingSecretPasswordKey: DB_POSTGRESDB_PASSWORD

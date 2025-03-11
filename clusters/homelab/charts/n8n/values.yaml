@@ -1,0 +1,80 @@
+replicaCount: 1
+
+image:
+  repository: n8nio/n8n
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 5678
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: n8n.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ""
+  accessMode: ReadWriteOnce
+
+postgresql:
+  enabled: false
+  # External database configuration
+  externalDatabase:
+    host: postgres.postgres.svc.cluster.local
+    port: 5432
+    user: postgres
+    database: n8n
+    existingSecret: n8n-db-auth
+    existingSecretPasswordKey: DB_POSTGRESDB_PASSWORD
+
+env:
+  # n8n environment variables
+  N8N_PORT: 5678
+  NODE_ENV: production
+  N8N_METRICS: "true"
+  N8N_METRICS_PREFIX: "n8n_"
+  
+  # Database connection - pulls from existingSecret if postgresql.enabled is false
+  DB_TYPE: postgresdb
+  DB_POSTGRESDB_HOST: "{{ .Values.postgresql.externalDatabase.host }}"
+  DB_POSTGRESDB_PORT: "{{ .Values.postgresql.externalDatabase.port }}"
+  DB_POSTGRESDB_DATABASE: "{{ .Values.postgresql.externalDatabase.database }}"
+  DB_POSTGRESDB_USER: "{{ .Values.postgresql.externalDatabase.user }}"
+
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
