@@ -5,7 +5,6 @@ namespace: n8n
 resources:
   - namespace.yaml
   - helmrelease.yaml
-  - secrets/sealed-secrets.yaml
 
 configMapGenerator:
   - name: n8n-config
