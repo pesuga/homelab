@@ -59,6 +59,13 @@ postgresql:
     existingSecret: n8n-db-auth
     existingSecretPasswordKey: DB_POSTGRESDB_PASSWORD
 
+# Prometheus integration
+prometheus:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+
 env:
   # n8n environment variables
   N8N_PORT: 5678
@@ -66,15 +73,9 @@ env:
   N8N_METRICS: "true"
   N8N_METRICS_PREFIX: "n8n_"
   
-  # Database connection - pulls from existingSecret if postgresql.enabled is false
+  # Database connection
   DB_TYPE: postgresdb
   DB_POSTGRESDB_HOST: "{{ .Values.postgresql.externalDatabase.host }}"
   DB_POSTGRESDB_PORT: "{{ .Values.postgresql.externalDatabase.port }}"
   DB_POSTGRESDB_DATABASE: "{{ .Values.postgresql.externalDatabase.database }}"
   DB_POSTGRESDB_USER: "{{ .Values.postgresql.externalDatabase.user }}"
-
-monitoring:
-  enabled: true
-  serviceMonitor:
-    enabled: true
-    interval: 30s

@@ -27,6 +27,19 @@ spec:
     # Database configuration
     postgresql:
       enabled: false
+      externalDatabase:
+        host: postgres.postgres.svc.cluster.local
+        port: 5432
+        user: postgres
+        database: n8n
+        existingSecret: n8n-db-auth
+        existingSecretPasswordKey: DB_POSTGRESDB_PASSWORD
+    
+    # Disable Prometheus integration as the CRDs are not installed
+    prometheus:
+      enabled: false
+      serviceMonitor:
+        enabled: false
     
     # These values should match our local chart schema
     ingress:
@@ -52,16 +65,8 @@ spec:
       prometheus.io/port: "5678"
     
     env:
-      DB_TYPE: postgresdb
-      DB_POSTGRESDB_HOST: postgres.postgres.svc.cluster.local
-      DB_POSTGRESDB_PORT: "5432"
-      DB_POSTGRESDB_DATABASE: n8n
-      DB_POSTGRESDB_USER: postgres
-      DB_POSTGRESDB_PASSWORD:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-db-auth
-            key: DB_POSTGRESDB_PASSWORD
+      N8N_PORT: 5678
+      NODE_ENV: production
       N8N_METRICS: "true"
       N8N_METRICS_PREFIX: "n8n_"
     

@@ -1,4 +1,4 @@
-{{- if and .Values.monitoring.enabled .Values.monitoring.serviceMonitor.enabled -}}
+{{- if and .Values.prometheus.enabled .Values.prometheus.serviceMonitor.enabled -}}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -11,7 +11,7 @@ spec:
       {{- include "n8n.selectorLabels" . | nindent 6 }}
   endpoints:
     - port: http
-      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+      interval: {{ .Values.prometheus.serviceMonitor.interval }}
       path: /metrics
   namespaceSelector:
     matchNames:
