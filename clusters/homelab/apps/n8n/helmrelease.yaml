@@ -27,22 +27,31 @@ spec:
       repository: n8nio/n8n
       tag: latest
     
-    # Database configuration - using external PostgreSQL
-    postgresql:
-      enabled: false
+    # Database configuration
+    # Disable built-in PostgreSQL
+    config:
+      database:
+        type: postgresdb
+        postgresdb:
+          host: postgres.postgres.svc.cluster.local
+          port: 5432
+          database: n8n
+          user: postgres
+          password:
+            valueFrom:
+              secretKeyRef:
+                name: n8n-db-auth
+                key: DB_POSTGRESDB_PASSWORD
     
-    externalDatabase:
-      host: postgres.postgres.svc.cluster.local
-      port: 5432
-      user: postgres
-      database: n8n
-      existingSecret: n8n-db-auth
-      existingSecretPasswordKey: DB_POSTGRESDB_PASSWORD
+    # Storage configuration - disable persistence
+    volumes: []
+    volumeMounts: []
     
-    # These values are adapted for the community chart
+    # Ingress configuration
     ingress:
       enabled: true
-      ingressClassName: nginx
+      annotations:
+        kubernetes.io/ingress.class: nginx
       hosts:
         - host: n8n.local
           paths:
@@ -62,11 +71,8 @@ spec:
       prometheus.io/path: "/metrics"
       prometheus.io/port: "5678"
     
-    n8n:
-      metrics:
-        enabled: true
-        prefix: "n8n_"
-    
-    # Disable persistence to avoid PVC binding issues
-    persistence:
-      enabled: false
+    extraEnv:
+      - name: N8N_METRICS
+        value: "true"
+      - name: N8N_METRICS_PREFIX
+        value: "n8n_"
