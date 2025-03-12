@@ -1,22 +1,35 @@
-# Homelab Setup Guide
+# Homelab GitOps Setup Guide
+
+This guide walks through setting up Flux CD for your home Kubernetes cluster.
 
 ## Prerequisites
 
-1. MicroK8s Installation
+- A running Kubernetes cluster
+- kubectl configured to communicate with your cluster
+- GitHub account with a personal access token
+- Git installed on your local machine
+
+## Bootstrap Steps
+
+### Step 1: Install Flux CLI [CRITICAL]
+
 ```bash
-sudo snap install microk8s --classic
-microk8s enable dns ingress storage metrics-server registry
+# Install Flux CLI
+curl -s https://fluxcd.io/install.sh | bash
 ```
 
-2. Install Flux CLI
+### Step 2: Export GitHub credentials [CRITICAL]
+
 ```bash
-brew install fluxcd/tap/flux
+# Set your GitHub personal access token
+export GITHUB_TOKEN=<your-github-token>
+export GITHUB_USER=<your-github-username>
 ```
 
-## Initial Setup
+### Step 3: Bootstrap Flux [CRITICAL]
 
-1. Bootstrap FluxCD:
 ```bash
+# Bootstrap Flux with your GitHub repository
 flux bootstrap github \
   --owner=$GITHUB_USER \
   --repository=homelab \
@@ -25,125 +38,87 @@ flux bootstrap github \
   --personal
 ```
 
-2. Install SealedSecrets Controller:
+### Step 4: Verify the installation [IMPORTANT]
+
 ```bash
-kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.19.0/controller.yaml
+# Check Flux components
+k get pods -n flux-system
+
+# Check GitRepository status
+flux get sources git
+
+# Check kustomization status
+flux get kustomizations
 ```
 
-3. Configure Registry Access:
+### Step 5: Create secrets [IMPORTANT]
 
-Option 1 - GitHub Container Registry:
+For the Grafana admin credentials:
+
 ```bash
-kubectl create secret docker-registry regcred \
-  --namespace=n8n \
-  --docker-server=ghcr.io \
-  --docker-username=$GITHUB_USER \
-  --docker-password=$GITHUB_TOKEN
-
-# Copy the secret to postgres namespace
-kubectl get secret regcred --namespace=n8n -o yaml | \
-  sed 's/namespace: n8n/namespace: postgres/' | \
-  kubectl apply -f -
+# Create secret for Grafana admin
+k create secret generic -n monitoring grafana-admin-credentials \
+  --from-literal=admin-user=admin \
+  --from-literal=admin-password=YOUR_SECURE_PASSWORD
 ```
 
-Option 2 - MicroK8s Local Registry:
+For the n8n database credentials:
+
 ```bash
-# Registry is available at localhost:32000
-# No credentials needed
+# Create secret for n8n database
+k create secret generic -n n8n n8n-db-auth \
+  --from-literal=DB_POSTGRESDB_PASSWORD=YOUR_DB_PASSWORD
 ```
 
-4. Create Required Secrets:
+## Maintenance Commands
+
+### View Flux logs [USEFUL]
+
 ```bash
-# Create PostgreSQL secret
-kubectl create secret generic postgres-secret \
-  --namespace=postgres \
-  --from-literal=password=$(openssl rand -base64 20)
-
-# Save the password for n8n configuration
-POSTGRES_PASSWORD=$(kubectl get secret postgres-secret -n postgres \
-  -o jsonpath="{.data.password}" | base64 --decode)
-```
-
-## Application Deployment
-
-1. Deploy PostgreSQL Database:
-```bash
-# Create namespace and deploy PostgreSQL
-kubectl apply -k clusters/homelab/apps/postgres
-
-# Verify deployment
-kubectl -n postgres get pods
-kubectl -n postgres get pvc
-```
-
-2. Deploy n8n:
-```bash
-# Create namespace and deploy n8n
-kubectl apply -k clusters/homelab/apps/n8n
-
-# Verify deployment
-kubectl -n n8n get pods
-kubectl -n n8n get ingress
-```
-
-3. Deploy Monitoring Stack:
-```bash
-# Deploy Prometheus and Grafana
-kubectl apply -k clusters/homelab/infrastructure/monitoring
-
-# Verify deployments
-kubectl -n monitoring get pods
-```
-
-## Access Services
-
-Services will be available at:
-- n8n: http://n8n.local
-- Grafana: http://grafana.local
-- Prometheus: http://prometheus.local
-
-Add these to your `/etc/hosts` file:
-```bash
-echo "127.0.0.1 n8n.local grafana.local prometheus.local" | sudo tee -a /etc/hosts
-```
-
-## Troubleshooting
-
-1. Check Flux status:
-```bash
-flux get all
-flux get helmreleases -A
-```
-
-2. View reconciliation logs:
-```bash
+# View logs from Flux controllers
 flux logs --all-namespaces
+
+# View logs for a specific HelmRelease
+flux logs --kind=HelmRelease --name=n8n -n n8n
 ```
 
-3. Check application status:
+### Reconcile resources [USEFUL]
+
 ```bash
-# PostgreSQL
-kubectl -n postgres describe pod -l app=postgres
-kubectl -n postgres logs -l app=postgres
+# Trigger reconciliation for all resources
+flux reconcile source git flux-system
 
-# n8n
-kubectl -n n8n describe pod -l app=n8n
-kubectl -n n8n logs -l app=n8n
+# Reconcile a specific HelmRelease
+flux reconcile helmrelease n8n -n n8n
 ```
 
-## Security Best Practices
+### Suspend/Resume resources [OPTIONAL]
 
-1. Rotate secrets periodically:
-   - PostgreSQL password
-   - Registry credentials
-   - SealedSecrets key
-
-2. Enable network policies:
 ```bash
-microk8s enable network-policy
+# Suspend a HelmRelease (prevent reconciliation)
+flux suspend helmrelease n8n -n n8n
+
+# Resume a suspended HelmRelease
+flux resume helmrelease n8n -n n8n
 ```
 
-3. Regular maintenance:
-   - Keep MicroK8s updated: `sudo snap refresh microk8s`
-   - Update Flux: `brew upgrade fluxcd/tap/flux`
-   - Run security scans: `kubectl exec -n security trivy-operator -- trivy image <image>`
+## Adding New Applications
+
+To add new applications to your GitOps workflow:
+
+1. Create a new directory under `clusters/homelab/apps/`
+2. Add the necessary HelmRepository, HelmRelease, and other resources
+3. Create a kustomization.yaml file in the application directory
+4. Add the application to the root kustomization.yaml file
+5. Commit and push the changes to your Git repository
+
+Flux will automatically detect the changes and apply them to your cluster.
+
+## Backup Recommendations [IMPORTANT]
+
+1. Backup your Kubernetes etcd data regularly
+2. Save a copy of the SealedSecrets controller key:
+   ```bash
+   k get secret -n kube-system sealed-secrets-key -o yaml > sealed-secrets-key.yaml
+   ```
+3. Keep your Git repository backed up as it contains all your infrastructure definitions

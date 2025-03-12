@@ -1,4 +1,4 @@
-apiVersion: helm.toolkit.fluxcd.io/v2
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: n8n
@@ -7,11 +7,12 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: ./charts/n8n
+      chart: n8n
+      version: "0.15.0"
       sourceRef:
-        kind: GitRepository
-        name: flux-system
-        namespace: flux-system
+        kind: HelmRepository
+        name: n8n
+        namespace: n8n
       interval: 1m
   install:
     remediation:
@@ -21,12 +22,14 @@ spec:
     remediation:
       retries: 3
     timeout: 10m
+    cleanupOnFail: true
   values:
+    # Image configuration
     image:
       repository: n8nio/n8n
       tag: latest
     
-    # Database configuration
+    # Database configuration - using PostgreSQL
     postgresql:
       enabled: false
       externalDatabase:
@@ -37,11 +40,14 @@ spec:
         existingSecret: n8n-db-auth
         existingSecretPasswordKey: DB_POSTGRESDB_PASSWORD
     
-    # Disable Prometheus integration
-    prometheus:
-      enabled: false
-      serviceMonitor:
-        enabled: false
+    # Optimized for ARM64 low-power hardware
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
     
     # Ingress configuration
     ingress:
@@ -53,25 +59,17 @@ spec:
             - path: /
               pathType: Prefix
     
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "250m"
-      limits:
-        memory: "1Gi"
-        cpu: "1000m"
-    
+    # Pod annotations for monitoring
     podAnnotations:
       prometheus.io/scrape: "true"
       prometheus.io/path: "/metrics"
       prometheus.io/port: "5678"
     
+    # Environment variables for n8n
     env:
       N8N_PORT: 5678
       NODE_ENV: production
-      N8N_METRICS: "true"
-      N8N_METRICS_PREFIX: "n8n_"
-    
-    # Disable persistence to avoid PVC binding issues
+      
+    # Disable persistence initially to avoid PVC binding issues
     persistence:
       enabled: false
