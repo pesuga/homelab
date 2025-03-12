@@ -49,7 +49,7 @@ database:
     enabled: true
     auth:
       username: n8n
-      password: n8npassword
+      password: asunan8n
       database: n8n
     primary:
       persistence:
