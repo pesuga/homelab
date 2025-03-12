@@ -1,0 +1,62 @@
+# Default values for n8n
+replicaCount: 1
+
+image:
+  repository: n8nio/n8n
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 5678
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: n8n.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+# Database configuration
+database:
+  type: postgresdb
+  postgresdb:
+    enabled: true
+    auth:
+      username: n8n
+      password: n8npassword
+      database: n8n
+    primary:
+      persistence:
+        enabled: true
+        size: 1Gi
+
+# n8n specific configuration
+n8n:
+  encryption:
+    key: changeMe
