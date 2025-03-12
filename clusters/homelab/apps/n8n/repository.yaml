@@ -6,3 +6,5 @@ metadata:
 spec:
   interval: 1h
   url: https://8gears.container-registry.com/chartrepo/library/
+
+  
