@@ -25,13 +25,13 @@ spec:
         - name: N8N_PORT
           value: "5678"
         - name: N8N_PROTOCOL
-          value: "http"
+          value: "https"
         - name: N8N_PATH
           value: "/n8n"
         - name: N8N_HOST
           value: "asuna.chimp-ulmer.ts.net"
         - name: WEBHOOK_URL
-          value: "http://asuna.chimp-ulmer.ts.net/n8n"
+          value: "https://asuna.chimp-ulmer.ts.net/n8n"
         - name: N8N_DIAGNOSTICS_ENABLED
           value: "true"
         - name: N8N_SECURE_COOKIE
