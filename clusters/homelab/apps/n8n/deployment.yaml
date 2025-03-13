@@ -50,6 +50,10 @@ spec:
           value: "n8n"
         - name: DB_POSTGRESDB_PASSWORD
           value: "asunan8n"
+        - name: DB_POSTGRESDB_SCHEMA
+          value: "public"
+        - name: N8N_AUTO_MIGRATE_DATABASE
+          value: "true"
         - name: N8N_ENCRYPTION_KEY
           value: "ChangeThisToARandomString"
         resources:
