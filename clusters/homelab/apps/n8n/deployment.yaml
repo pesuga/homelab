@@ -26,6 +26,10 @@ spec:
           value: "5678"
         - name: N8N_PROTOCOL
           value: "http"
+        - name: N8N_PATH
+          value: "/n8n"
+        - name: WEBHOOK_URL
+          value: "http://asuna.chimp-ulmer.ts.net/n8n"
         - name: DB_TYPE
           value: "postgresdb"
         - name: DB_POSTGRESDB_HOST
