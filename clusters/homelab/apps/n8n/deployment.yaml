@@ -34,6 +34,10 @@ spec:
           value: "http://asuna.chimp-ulmer.ts.net/n8n"
         - name: N8N_DIAGNOSTICS_ENABLED
           value: "true"
+        - name: N8N_SECURE_COOKIE
+          value: "false"
+        - name: N8N_RUNNERS_ENABLED
+          value: "true"
         - name: DB_TYPE
           value: "postgresdb"
         - name: DB_POSTGRESDB_HOST
