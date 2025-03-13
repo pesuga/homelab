@@ -1,4 +1,4 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - helm-repositories.yaml
+resources: []
+# We're now using plain Kubernetes manifests, no Helm charts needed
