@@ -3,8 +3,6 @@ kind: Ingress
 metadata:
   name: n8n
   namespace: n8n
-  annotations:
-    traefik.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
   - host: asuna.chimp-ulmer.ts.net
