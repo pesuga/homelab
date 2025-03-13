@@ -4,14 +4,13 @@ metadata:
   name: n8n
   namespace: n8n
   annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "64m"
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    traefik.ingress.kubernetes.io/router.middlewares: n8n-stripprefix@kubernetescrd
 spec:
   rules:
   - host: asuna.chimp-ulmer.ts.net
     http:
       paths:
-      - path: /n8n(/|$)(.*)
+      - path: /n8n
         pathType: Prefix
         backend:
           service:

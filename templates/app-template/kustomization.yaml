@@ -5,6 +5,7 @@ resources:
   - deployment.yaml
   - service.yaml
   - ingress.yaml
+  - middleware.yaml
   # Add any other resources your app needs
   # - pvc.yaml
   # - configmap.yaml

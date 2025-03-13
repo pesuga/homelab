@@ -1,0 +1,9 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: n8n-stripprefix
+  namespace: n8n
+spec:
+  stripPrefix:
+    prefixes:
+      - /n8n
