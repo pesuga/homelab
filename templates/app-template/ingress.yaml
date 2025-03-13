@@ -6,12 +6,13 @@ metadata:
   annotations:
     # Add app-specific annotations here
     # nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
-  - host: APP_NAME.asuna.chimp-ulmer.ts.net
+  - host: asuna.chimp-ulmer.ts.net
     http:
       paths:
-      - path: /
+      - path: /APP_NAME(/|$)(.*)
         pathType: Prefix
         backend:
           service:

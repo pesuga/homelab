@@ -5,12 +5,13 @@ metadata:
   namespace: n8n
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
-  - host: n8n.asuna.chimp-ulmer.ts.net
+  - host: asuna.chimp-ulmer.ts.net
     http:
       paths:
-      - path: /
+      - path: /n8n(/|$)(.*)
         pathType: Prefix
         backend:
           service:

@@ -36,16 +36,16 @@ To deploy a new application:
    git push
    ```
 
-6. Access your application at: `https://your-app-name.asuna.chimp-ulmer.ts.net`
+6. Access your application at: `http://asuna.chimp-ulmer.ts.net/your-app-name/`
 
-## Subdomain Configuration
+## Path-Based Routing Configuration
 
-All applications use the following domain pattern:
+All applications use the following URL pattern:
 ```
-app-name.asuna.chimp-ulmer.ts.net
+http://asuna.chimp-ulmer.ts.net/app-name/
 ```
 
-This pattern works with Tailscale DNS and makes it easy to reach all your applications through memorable URLs.
+This pattern works with Tailscale DNS and makes it easy to reach all your applications through a common URL.
 
 ## Template Customization
 
