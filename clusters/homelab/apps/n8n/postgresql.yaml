@@ -1,11 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: n8n-postgresql
   namespace: n8n
   labels:
     app: n8n-postgresql
 spec:
+  serviceName: n8n-postgresql
   replicas: 1
   selector:
     matchLabels:
@@ -28,6 +29,8 @@ spec:
           value: "asunan8n"
         - name: POSTGRES_DB
           value: "n8n"
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
         resources:
           limits:
             cpu: 500m
@@ -38,10 +41,31 @@ spec:
         volumeMounts:
         - name: postgresql-data
           mountPath: /var/lib/postgresql/data
-      volumes:
-      - name: postgresql-data
-        persistentVolumeClaim:
-          claimName: postgresql-data
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - n8n
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - n8n
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+  volumeClaimTemplates:
+  - metadata:
+      name: postgresql-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
 ---
 apiVersion: v1
 kind: Service
@@ -58,15 +82,3 @@ spec:
     name: postgresql
   selector:
     app: n8n-postgresql
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgresql-data
-  namespace: n8n
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
