@@ -1,124 +1,206 @@
-# Homelab GitOps Setup Guide
+# Homelab GitOps Setup Guide with K3s and Flux
 
-This guide walks through setting up Flux CD for your home Kubernetes cluster.
+This guide walks through setting up a K3s cluster with Flux CD for GitOps-based management using plain Kubernetes manifests.
 
 ## Prerequisites
 
-- A running Kubernetes cluster
-- kubectl configured to communicate with your cluster
+- A server for running K3s (Raspberry Pi 4 or similar ARM device works great)
+- A workstation with Git installed
 - GitHub account with a personal access token
-- Git installed on your local machine
+- Basic knowledge of Kubernetes and YAML
 
-## Bootstrap Steps
+## Setup Checklist
 
-### Step 1: Install Flux CLI [CRITICAL]
+- [ ] 1. Server OS Installation
+- [ ] 2. K3s Installation
+- [ ] 3. Repository Structure Setup
+- [ ] 4. Flux Installation and Bootstrap
+- [ ] 5. Application Deployment (n8n)
+- [ ] 6. Verify End-to-End GitOps Flow
+
+## 1. Server OS Installation
+
+1. Install your preferred Linux distribution (Ubuntu Server recommended)
+2. Configure networking (static IP recommended)
+3. Update system packages:
 
 ```bash
-# Install Flux CLI
-curl -s https://fluxcd.io/install.sh | bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y git curl vim
 ```
 
-### Step 2: Export GitHub credentials [CRITICAL]
+## 2. K3s Installation
+
+K3s is a lightweight Kubernetes distribution perfect for home labs.
 
 ```bash
-# Set your GitHub personal access token
+# Install K3s as a server (master)
+curl -sfL https://get.k3s.io | sh -
+
+# Verify the installation
+sudo systemctl status k3s
+sudo k3s kubectl get nodes
+```
+
+### Set Up Remote Access to K3s
+
+To manage your K3s cluster from your workstation:
+
+```bash
+# On the server, copy the kubeconfig content
+sudo cat /etc/rancher/k3s/k3s.yaml
+
+# On your workstation, create ~/.kube/config
+# Replace SERVER_IP with your server's IP address
+mkdir -p ~/.kube
+vim ~/.kube/config
+# Paste the content and change 127.0.0.1 to your server's IP
+```
+
+Test the connection:
+
+```bash
+k get nodes
+```
+
+## 3. Repository Structure Setup
+
+Create your GitOps repository structure:
+
+```bash
+# Clone your repository (or create a new one)
+git clone https://github.com/yourusername/homelab.git
+cd homelab
+
+# Create directory structure
+mkdir -p clusters/homelab/infrastructure
+mkdir -p clusters/homelab/apps/n8n
+mkdir -p docs
+
+# Create the main kustomization file
+cat > clusters/homelab/kustomization.yaml << EOF
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - infrastructure
+  - apps/n8n
+EOF
+```
+
+## 4. Flux Installation and Bootstrap
+
+Install the Flux CLI on your workstation:
+
+```bash
+# For macOS with Homebrew
+brew install fluxcd/tap/flux
+
+# For Linux
+curl -s https://fluxcd.io/install.sh | sudo bash
+```
+
+Check if your cluster is ready for Flux:
+
+```bash
+flux check --pre
+```
+
+Bootstrap Flux onto your cluster:
+
+```bash
+# Create a GitHub personal access token
 export GITHUB_TOKEN=<your-github-token>
 export GITHUB_USER=<your-github-username>
-```
 
-### Step 3: Bootstrap Flux [CRITICAL]
-
-```bash
-# Bootstrap Flux with your GitHub repository
+# Bootstrap Flux
 flux bootstrap github \
   --owner=$GITHUB_USER \
   --repository=homelab \
   --branch=main \
-  --path=clusters/homelab \
+  --path=./clusters/homelab \
   --personal
 ```
 
-### Step 4: Verify the installation [IMPORTANT]
+## 5. Application Deployment (n8n)
 
+Create the necessary manifests for n8n:
+
+1. Create namespace:
 ```bash
-# Check Flux components
-k get pods -n flux-system
-
-# Check GitRepository status
-flux get sources git
-
-# Check kustomization status
-flux get kustomizations
+cat > clusters/homelab/apps/n8n/namespace.yaml << EOF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: n8n
+EOF
 ```
 
-### Step 5: Create secrets [IMPORTANT]
-
-For the Grafana admin credentials:
-
+2. Create kustomization file:
 ```bash
-# Create secret for Grafana admin
-k create secret generic -n monitoring grafana-admin-credentials \
-  --from-literal=admin-user=admin \
-  --from-literal=admin-password=YOUR_SECURE_PASSWORD
+cat > clusters/homelab/apps/n8n/kustomization.yaml << EOF
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - postgresql.yaml
+  - pvc.yaml
+EOF
 ```
 
-For the n8n database credentials:
+3. Create deployment, service, and other manifests as needed (see examples in the repository)
 
+4. Commit and push your changes:
 ```bash
-# Create secret for n8n database
-k create secret generic -n n8n n8n-db-auth \
-  --from-literal=DB_POSTGRESDB_PASSWORD=YOUR_DB_PASSWORD
+git add .
+git commit -m "Add n8n application manifests"
+git push
 ```
 
-## Maintenance Commands
+## 6. Verify the GitOps Flow
 
-### View Flux logs [USEFUL]
-
-```bash
-# View logs from Flux controllers
-flux logs --all-namespaces
-
-# View logs for a specific HelmRelease
-flux logs --kind=HelmRelease --name=n8n -n n8n
-```
-
-### Reconcile resources [USEFUL]
+Once your manifests are pushed to the repository, Flux will automatically deploy them to your cluster:
 
 ```bash
-# Trigger reconciliation for all resources
+# Check Flux status
+flux get all -A
+
+# Check n8n deployment
+k -n n8n get pods,svc,ingress
+
+# Force reconciliation if needed
 flux reconcile source git flux-system
-
-# Reconcile a specific HelmRelease
-flux reconcile helmrelease n8n -n n8n
+flux reconcile kustomization flux-system
 ```
 
-### Suspend/Resume resources [OPTIONAL]
+## Troubleshooting
 
+If you encounter issues:
+
+1. Check Flux logs:
 ```bash
-# Suspend a HelmRelease (prevent reconciliation)
-flux suspend helmrelease n8n -n n8n
-
-# Resume a suspended HelmRelease
-flux resume helmrelease n8n -n n8n
+flux logs
 ```
 
-## Adding New Applications
+2. Check pod logs:
+```bash
+k -n n8n logs -l app=n8n
+```
 
-To add new applications to your GitOps workflow:
+3. Check Flux components:
+```bash
+k -n flux-system get pods
+```
 
-1. Create a new directory under `clusters/homelab/apps/`
-2. Add the necessary HelmRepository, HelmRelease, and other resources
-3. Create a kustomization.yaml file in the application directory
-4. Add the application to the root kustomization.yaml file
-5. Commit and push the changes to your Git repository
+## Next Steps
 
-Flux will automatically detect the changes and apply them to your cluster.
+- Add monitoring (Prometheus/Grafana)
+- Set up secure ingress with cert-manager
+- Add more applications
+- Configure backups
 
-## Backup Recommendations [IMPORTANT]
-
-1. Backup your Kubernetes etcd data regularly
-2. Save a copy of the SealedSecrets controller key:
-   ```bash
-   k get secret -n kube-system sealed-secrets-key -o yaml > sealed-secrets-key.yaml
-   ```
-3. Keep your Git repository backed up as it contains all your infrastructure definitions
+For detailed specifics on K3s and Flux, refer to:
+- K3s documentation: https://docs.k3s.io/
+- Flux documentation: https://fluxcd.io/docs/
