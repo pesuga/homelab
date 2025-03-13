@@ -1,19 +1,20 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: n8n
-  namespace: n8n
+  name: APP_NAME
+  namespace: APP_NAME
   annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+    # Add app-specific annotations here
+    # nginx.ingress.kubernetes.io/proxy-body-size: "64m"
 spec:
   rules:
-  - host: n8n.asuna.chimp-ulmer.ts.net
+  - host: APP_NAME.asuna.chimp-ulmer.ts.net
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: n8n
+            name: APP_NAME
             port:
               number: 80

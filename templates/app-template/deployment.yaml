@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: APP_NAME
+  namespace: APP_NAME
+  labels:
+    app: APP_NAME
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: APP_NAME
+  template:
+    metadata:
+      labels:
+        app: APP_NAME
+    spec:
+      containers:
+      - name: APP_NAME
+        image: APP_IMAGE:APP_VERSION
+        ports:
+        - containerPort: 8080  # Change this to your app's actual port
+          name: http
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        # Uncomment if your app needs a volume
+        # volumeMounts:
+        # - name: data
+        #   mountPath: /app/data
+      # Uncomment if your app needs a volume
+      # volumes:
+      # - name: data
+      #   persistentVolumeClaim:
+      #     claimName: APP_NAME-data
