@@ -22,7 +22,6 @@ data:
         - 172.16.0.0/12
         - 192.168.0.0/16
         - 10.42.0.0/16
-      ip_ban_enabled: false
       use_x_forwarded_host: true
       server_host: 0.0.0.0
       server_port: 8123
