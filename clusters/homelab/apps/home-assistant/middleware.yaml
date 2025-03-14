@@ -20,3 +20,15 @@ spec:
     # when being accessed through the /home-assistant path
     customResponseHeaders:
       X-Forwarded-Prefix: "/home-assistant"
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: home-assistant-redirect-handler
+  namespace: home-assistant
+spec:
+  redirectRegex:
+    regex: "^https?://([^/]+)/onboarding.html"
+    replacement: "https://$1/home-assistant/onboarding.html"
+    permanent: false
