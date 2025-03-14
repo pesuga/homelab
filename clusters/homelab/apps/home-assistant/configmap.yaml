@@ -19,11 +19,14 @@ data:
         - 10.0.0.0/8
         - 172.16.0.0/12
         - 192.168.0.0/16
-        - 127.0.0.1
+        - fd00::/8
         - ::1
+        - 127.0.0.1
+      ip_ban_enabled: false
       use_x_forwarded_host: true
-      # This is vital for subpath configuration
       base_url: /home-assistant
+      server_host: 0.0.0.0
+      server_port: 8123
 
     automation: !include automations.yaml
     script: !include scripts.yaml
