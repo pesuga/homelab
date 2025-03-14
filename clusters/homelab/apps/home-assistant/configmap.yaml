@@ -12,11 +12,8 @@ data:
     tts:
       - platform: google_translate
 
-    # Configure HTTP settings for reverse proxy - minimal version
+    # Configure HTTP settings for reverse proxy - correct parameters
     http:
-      server_host: 0.0.0.0
-      server_port: 8123
-      root_path: /home-assistant
       use_x_forwarded_for: true
       trusted_proxies:
         - 127.0.0.1
@@ -26,6 +23,11 @@ data:
         - 192.168.0.0/16
         - fd00::/8
         - 10.42.0.0/16
+      ip_ban_enabled: false
+      server_host: 0.0.0.0
+      server_port: 8123
+      # Home Assistant doesn't support root_path parameter
+      # For path-based routing with Traefik, we rely on the middleware stripping
 
     automation: !include automations.yaml
     script: !include scripts.yaml
