@@ -13,12 +13,15 @@ spec:
       labels:
         app: tailscale
     spec:
+      serviceAccountName: tailscale
       containers:
       - name: tailscale
         image: tailscale/tailscale:v1.58.2
         # Instead of using a Secret from the repo, we'll set this 
         # manually after deployment with a kubectl patch command
         env:
+        - name: TS_KUBE_SECRET
+          value: "tailscale"
         - name: TS_USERSPACE
           value: "true"
         - name: TS_HOSTNAME
