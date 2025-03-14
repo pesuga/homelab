@@ -4,29 +4,6 @@ metadata:
   name: home-assistant-strip-prefix
   namespace: home-assistant
 spec:
-  chain:
-    middlewares:
-      - name: home-assistant-prefix-stripper
-      - name: home-assistant-header-rewriter
-
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: home-assistant-prefix-stripper
-  namespace: home-assistant
-spec:
   stripPrefix:
     prefixes:
       - /home-assistant
-
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: home-assistant-header-rewriter
-  namespace: home-assistant
-spec:
-  headers:
-    customResponseHeaders:
-      Location: "/home-assistant{path};"
