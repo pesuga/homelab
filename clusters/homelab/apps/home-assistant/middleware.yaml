@@ -1,0 +1,9 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: home-assistant-strip-prefix
+  namespace: home-assistant
+spec:
+  stripPrefix:
+    prefixes:
+      - /home-assistant

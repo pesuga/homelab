@@ -4,18 +4,20 @@ metadata:
   name: home-assistant
   namespace: home-assistant
   annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+    traefik.ingress.kubernetes.io/router.middlewares: "home-assistant-home-assistant-strip-prefix@kubernetescrd"
     cert-manager.io/cluster-issuer: "selfsigned-issuer"
-    kubernetes.io/ingress.class: "nginx"
 spec:
   tls:
   - hosts:
-    - home-assistant.local
+    - asuna.chimp-ulmer.ts.net
     secretName: home-assistant-tls
   rules:
-  - host: home-assistant.local
+  - host: asuna.chimp-ulmer.ts.net
     http:
       paths:
-      - path: /
+      - path: /home-assistant
         pathType: Prefix
         backend:
           service:
