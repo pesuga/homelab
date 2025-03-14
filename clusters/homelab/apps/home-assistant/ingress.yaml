@@ -6,17 +6,18 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: home-assistant-home-assistant-strip-prefix@kubernetescrd
     cert-manager.io/cluster-issuer: selfsigned-issuer
 spec:
   tls:
   - hosts:
-    - ha.chimp-ulmer.ts.net
+    - asuna.chimp-ulmer.ts.net
     secretName: home-assistant-tls
   rules:
-  - host: ha.chimp-ulmer.ts.net
+  - host: asuna.chimp-ulmer.ts.net
     http:
       paths:
-      - path: /
+      - path: /home-assistant
         pathType: Prefix
         backend:
           service:

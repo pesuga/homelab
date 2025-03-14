@@ -26,6 +26,8 @@ data:
       use_x_forwarded_host: true
       server_host: 0.0.0.0
       server_port: 8123
+      # Explicitly configure for use with subpath
+      root_path: /home-assistant
 
     automation: !include automations.yaml
     script: !include scripts.yaml
