@@ -24,6 +24,10 @@ spec:
         env:
         - name: TZ
           value: "America/Argentina/Buenos_Aires"
+        - name: HASS_EXTRA_ARGS
+          value: "--skip-pip-packages check-manifest pylint,pytest,pytest-cov,pytest-asyncio,black,blacken-docs"
+        - name: DISABLE_JEMALLOC
+          value: "true"
         volumeMounts:
         - name: config
           mountPath: /config
