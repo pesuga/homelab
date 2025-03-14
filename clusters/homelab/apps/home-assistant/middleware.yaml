@@ -7,3 +7,16 @@ spec:
   stripPrefix:
     prefixes:
       - /home-assistant
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: home-assistant-add-prefix-for-redirects
+  namespace: home-assistant
+spec:
+  headers:
+    # This configuration ensures that redirects from Home Assistant will work correctly
+    # when being accessed through the /home-assistant path
+    customResponseHeaders:
+      X-Forwarded-Prefix: "/home-assistant"
