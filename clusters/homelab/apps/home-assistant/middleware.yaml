@@ -7,6 +7,7 @@ spec:
   stripPrefix:
     prefixes:
       - /home-assistant
+    forceSlash: true
 
 ---
 apiVersion: traefik.containo.us/v1alpha1
@@ -20,6 +21,19 @@ spec:
     # when being accessed through the /home-assistant path
     customResponseHeaders:
       X-Forwarded-Prefix: "/home-assistant"
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: home-assistant-replace-location
+  namespace: home-assistant
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Prefix: "/home-assistant"
+    customResponseHeaders:
+      Location: "/home-assistant/onboarding.html"
 
 ---
 apiVersion: traefik.containo.us/v1alpha1

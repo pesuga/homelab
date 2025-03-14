@@ -6,7 +6,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.middlewares: home-assistant-home-assistant-strip-prefix@kubernetescrd,home-assistant-home-assistant-add-prefix-for-redirects@kubernetescrd,home-assistant-home-assistant-redirect-handler@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: home-assistant-home-assistant-strip-prefix@kubernetescrd,home-assistant-home-assistant-add-prefix-for-redirects@kubernetescrd,home-assistant-home-assistant-replace-location@kubernetescrd
     cert-manager.io/cluster-issuer: selfsigned-issuer
 spec:
   tls:
