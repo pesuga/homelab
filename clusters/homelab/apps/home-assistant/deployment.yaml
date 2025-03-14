@@ -28,6 +28,8 @@ spec:
           value: "--skip-pip-packages check-manifest pylint,pytest,pytest-cov,pytest-asyncio,black,blacken-docs"
         - name: DISABLE_JEMALLOC
           value: "true"
+        - name: HOME_ASSISTANT_TRUSTED_PROXIES
+          value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fd00::/8,10.42.0.0/16"
         volumeMounts:
         - name: config
           mountPath: /config
