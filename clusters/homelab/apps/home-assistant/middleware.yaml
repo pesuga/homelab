@@ -29,6 +29,6 @@ metadata:
   namespace: home-assistant
 spec:
   redirectRegex:
-    regex: "^https?://([^/]+)/onboarding.html"
-    replacement: "https://$1/home-assistant/onboarding.html"
+    regex: "^(https?)://([^/]+)/([^/].*)"
+    replacement: "${1}://${2}/home-assistant/${3}"
     permanent: false
