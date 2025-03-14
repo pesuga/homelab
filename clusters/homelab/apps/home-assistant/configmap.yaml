@@ -22,8 +22,7 @@ data:
         - 127.0.0.1
         - ::1
       use_x_forwarded_host: true
-      # This is vital for subpath configuration
-      root_path: /home-assistant
+      # No root_path needed with dedicated subdomain
 
     automation: !include automations.yaml
     script: !include scripts.yaml
