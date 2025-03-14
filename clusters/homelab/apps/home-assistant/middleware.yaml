@@ -7,17 +7,3 @@ spec:
   stripPrefix:
     prefixes:
       - /home-assistant
-    forceSlash: true
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: home-assistant-headers
-  namespace: home-assistant
-spec:
-  headers:
-    customRequestHeaders:
-      X-Forwarded-Proto: "https"
-      X-Forwarded-Host: "asuna.chimp-ulmer.ts.net"
-      X-Forwarded-For: "127.0.0.1"
-      X-Script-Name: "/home-assistant"
