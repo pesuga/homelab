@@ -16,19 +16,17 @@ data:
     http:
       use_x_forwarded_for: true
       trusted_proxies:
+        - 127.0.0.1
+        - ::1
         - 10.0.0.0/8
         - 172.16.0.0/12
         - 192.168.0.0/16
-        - fd00::/8
-        - ::1
-        - 127.0.0.1
+        - 10.42.0.0/16
       ip_ban_enabled: false
       use_x_forwarded_host: true
       server_host: 0.0.0.0
       server_port: 8123
-      # Both settings for proper reverse proxy with base path
       base_url: /home-assistant
-      root_path: /home-assistant
 
     automation: !include automations.yaml
     script: !include scripts.yaml
