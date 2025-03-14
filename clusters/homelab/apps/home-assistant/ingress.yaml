@@ -10,13 +10,13 @@ metadata:
 spec:
   tls:
   - hosts:
-    - home.chimp-ulmer.ts.net
+    - asuna.chimp-ulmer.ts.net
     secretName: home-assistant-tls
   rules:
-  - host: home.chimp-ulmer.ts.net
+  - host: asuna.chimp-ulmer.ts.net
     http:
       paths:
-      - path: /
+      - path: /home-assistant
         pathType: Prefix
         backend:
           service:
