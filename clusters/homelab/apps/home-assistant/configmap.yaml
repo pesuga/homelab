@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-assistant-config
+  namespace: home-assistant
+data:
+  configuration.yaml: |
+    # Configure a default setup of Home Assistant
+    default_config:
+
+    # Text to speech
+    tts:
+      - platform: google_translate
+
+    # Load frontend themes from the themes folder
+    frontend:
+      themes: !include_dir_merge_named themes
+      extra_module_url:
+        - /home-assistant/frontend_es5/custom-elements-es5-adapter.js
+        - /home-assistant/frontend_latest/hass-icons.js
+      use_oauth: true
+      extra_html_url:
+        - /home-assistant/static/authorize.html
+      themes_path: /home-assistant/themes
+      
+    http:
+      use_x_forwarded_for: true
+      trusted_proxies:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+      server_host: 0.0.0.0
+      server_port: 8123
+      ip_ban_enabled: true
+      login_attempts_threshold: 5
+      base_url: /home-assistant
+
+    automation: !include automations.yaml
+    script: !include scripts.yaml
+    scene: !include scenes.yaml
