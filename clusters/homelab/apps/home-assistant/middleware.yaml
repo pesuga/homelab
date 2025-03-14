@@ -1,31 +1,10 @@
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
-  name: home-assistant-strip-prefix
+  name: home-assistant-rewrite
   namespace: home-assistant
 spec:
   stripPrefix:
     prefixes:
       - /home-assistant
     forceSlash: true
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: home-assistant-header
-  namespace: home-assistant
-spec:
-  headers:
-    customRequestHeaders:
-      X-Ingress-Path: "/home-assistant"
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: home-assistant-chain
-  namespace: home-assistant
-spec:
-  chain:
-    middlewares:
-      - name: home-assistant-strip-prefix
-      - name: home-assistant-header
