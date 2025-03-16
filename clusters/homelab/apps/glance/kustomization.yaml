@@ -4,6 +4,7 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - configmap-script.yaml
+  - configmap-nginx.yaml
   - deployment.yaml
   - service.yaml
   - middleware.yaml
