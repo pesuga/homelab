@@ -17,46 +17,50 @@ spec:
     spec:
       containers:
         - name: owncloud
-          image: docker.io/bitnami/owncloud:latest
+          image: owncloud/server:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
               protocol: TCP
           env:
-            - name: OWNCLOUD_USERNAME
+            - name: OWNCLOUD_ADMIN_USERNAME
               value: "admin"
-            - name: OWNCLOUD_PASSWORD
+            - name: OWNCLOUD_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: owncloud-secret
                   key: password
-            - name: OWNCLOUD_HOST
+            - name: OWNCLOUD_MYSQL_HOST
+              value: "owncloud-mariadb"
+            - name: OWNCLOUD_MYSQL_PORT
+              value: "3306"
+            - name: OWNCLOUD_MYSQL_DATABASE
+              value: "owncloud"
+            - name: OWNCLOUD_MYSQL_USERNAME
+              value: "owncloud"
+            - name: OWNCLOUD_MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: owncloud-mariadb-secret
+                  key: password
+            - name: OWNCLOUD_DOMAIN
               value: "asuna.chimp-ulmer.ts.net"
+            - name: OWNCLOUD_TRUSTED_DOMAINS
+              value: "asuna.chimp-ulmer.ts.net"
+            - name: OWNCLOUD_TRUSTED_PROXIES
+              value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
             - name: OWNCLOUD_OVERWRITE_WEBROOT
               value: "/owncloud"
             - name: OWNCLOUD_OVERWRITE_PROTOCOL
               value: "https"
             - name: OWNCLOUD_OVERWRITE_HOST
               value: "asuna.chimp-ulmer.ts.net"
-            - name: OWNCLOUD_DATABASE_HOST
-              value: "owncloud-mariadb"
-            - name: OWNCLOUD_DATABASE_PORT
-              value: "3306"
-            - name: OWNCLOUD_DATABASE_NAME
-              value: "owncloud"
-            - name: OWNCLOUD_DATABASE_USER
-              value: "owncloud"
-            - name: OWNCLOUD_DATABASE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: owncloud-mariadb-secret
-                  key: password
+            - name: OWNCLOUD_OVERWRITE_CLI_URL
+              value: "https://asuna.chimp-ulmer.ts.net/owncloud"
           volumeMounts:
-            - mountPath: /bitnami/owncloud
+            - mountPath: /mnt/data
               name: owncloud-data
-            - mountPath: /bitnami/apache
-              name: apache-data
           livenessProbe:
             httpGet:
               path: /status.php
@@ -79,9 +83,6 @@ spec:
         - name: owncloud-data
           persistentVolumeClaim:
             claimName: owncloud-data
-        - name: apache-data
-          persistentVolumeClaim:
-            claimName: owncloud-apache
 ---
 apiVersion: v1
 kind: Service

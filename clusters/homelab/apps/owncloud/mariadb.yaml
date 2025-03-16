@@ -15,6 +15,14 @@ spec:
       labels:
         app: owncloud-mariadb
     spec:
+      # Add init container to fix permissions
+      initContainers:
+        - name: init-permissions
+          image: busybox
+          command: ['sh', '-c', 'mkdir -p /bitnami/mariadb/data && chmod -R 777 /bitnami/mariadb']
+          volumeMounts:
+            - name: mariadb-data
+              mountPath: /bitnami/mariadb
       containers:
         - name: mariadb
           image: docker.io/bitnami/mariadb:10.6

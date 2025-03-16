@@ -23,16 +23,3 @@ spec:
   resources:
     requests:
       storage: 8Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: owncloud-apache
-  namespace: owncloud
-spec:
-  storageClassName: owncloud-apache
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi

@@ -27,18 +27,3 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: /mnt/homedrive/owncloud/mariadb
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: owncloud-apache
-  labels:
-    type: local
-spec:
-  capacity:
-    storage: 1Gi
-  storageClassName: owncloud-apache
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /mnt/homedrive/owncloud/apache
