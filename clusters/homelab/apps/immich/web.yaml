@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: ghcr.io/immich-app/immich-web:v1.99.0
+          image: ghcr.io/immich-app/immich-web:v1.129.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
