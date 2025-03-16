@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: owncloud
+  namespace: owncloud
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: owncloud-owncloud-chain@kubernetescrd
+spec:
+  rules:
+    - host: asuna.chimp-ulmer.ts.net
+      http:
+        paths:
+          - path: /owncloud
+            pathType: Prefix
+            backend:
+              service:
+                name: owncloud
+                port:
+                  number: 80

@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: owncloud-mariadb
+  namespace: owncloud
+  labels:
+    app: owncloud-mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: owncloud-mariadb
+  template:
+    metadata:
+      labels:
+        app: owncloud-mariadb
+    spec:
+      containers:
+        - name: mariadb
+          image: docker.io/bitnami/mariadb:10.6
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: owncloud-mariadb-secret
+                  key: password
+            - name: MARIADB_DATABASE
+              value: "owncloud"
+            - name: MARIADB_USER
+              value: "owncloud"
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: owncloud-mariadb-secret
+                  key: password
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          volumeMounts:
+            - name: mariadb-data
+              mountPath: /bitnami/mariadb
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - exec mysqladmin status -uroot -p$MARIADB_ROOT_PASSWORD
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - exec mysqladmin status -uroot -p$MARIADB_ROOT_PASSWORD
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+      volumes:
+        - name: mariadb-data
+          persistentVolumeClaim:
+            claimName: owncloud-mariadb
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: owncloud-mariadb
+  namespace: owncloud
+  labels:
+    app: owncloud-mariadb
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3306
+      targetPort: mysql
+      protocol: TCP
+      name: mysql
+  selector:
+    app: owncloud-mariadb

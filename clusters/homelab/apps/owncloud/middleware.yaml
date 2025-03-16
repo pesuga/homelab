@@ -1,0 +1,30 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: owncloud-strip-prefix
+  namespace: owncloud
+spec:
+  stripPrefix:
+    prefixes:
+      - /owncloud
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: owncloud-headers
+  namespace: owncloud
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Prefix: "/owncloud"
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: owncloud-chain
+  namespace: owncloud
+spec:
+  chain:
+    middlewares:
+      - name: owncloud-strip-prefix
+      - name: owncloud-headers
