@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-web
+  namespace: immich
+  labels:
+    app: immich-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: immich-web
+  template:
+    metadata:
+      labels:
+        app: immich-web
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/immich-app/immich-web:v1.99.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PUBLIC_IMMICH_SERVER_URL
+              value: "/immich/api"
+            - name: IMMICH_SERVER_URL
+              value: "http://immich-server:3001"
+            - name: PUBLIC_BASE_PATH
+              value: "/immich"
+          livenessProbe:
+            httpGet:
+              path: /immich/
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /immich/
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-web
+  namespace: immich
+spec:
+  selector:
+    app: immich-web
+  ports:
+    - port: 3000
+      targetPort: 3000

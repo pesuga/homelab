@@ -1,0 +1,25 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: immich-web-ingress
+  namespace: immich
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: PathPrefix(`/immich`)
+      kind: Rule
+      middlewares:
+        - name: immich-strip-prefix
+          namespace: immich
+      services:
+        - name: immich-web
+          port: 3000
+    - match: PathPrefix(`/immich/api`)
+      kind: Rule
+      middlewares:
+        - name: immich-api-strip-prefix
+          namespace: immich
+      services:
+        - name: immich-server
+          port: 3001

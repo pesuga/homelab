@@ -1,0 +1,19 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: immich-strip-prefix
+  namespace: immich
+spec:
+  stripPrefix:
+    prefixes:
+      - /immich
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: immich-api-strip-prefix
+  namespace: immich
+spec:
+  stripPrefix:
+    prefixes:
+      - /immich/api

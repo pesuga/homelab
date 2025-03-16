@@ -7,3 +7,4 @@ resources:
   - apps/home-assistant
   - apps/glance
   - apps/owncloud
+  - apps/immich
