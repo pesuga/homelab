@@ -5,3 +5,4 @@ resources:
   - apps/n8n
   - apps/tailscale
   - apps/home-assistant
+  - apps/glance
