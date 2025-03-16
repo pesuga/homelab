@@ -9,10 +9,14 @@ data:
         listen 80;
         server_name _;
 
+        # Root location should serve the Glance homepage with appropriate prefix handling
+        location = /glance {
+            return 301 /glance/;
+        }
+
         location /glance/ {
             # Strip the /glance prefix before forwarding to Glance
-            rewrite ^/glance(/.*)$ $1 break;
-            proxy_pass http://localhost:8080;
+            proxy_pass http://localhost:8080/;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             
@@ -22,15 +26,21 @@ data:
             
             # Fix redirects to include the /glance prefix
             proxy_redirect / /glance/;
+            proxy_redirect /home /glance/home;
         }
-        
-        # For the initial /glance endpoint without trailing slash
-        location = /glance {
-            return 301 /glance/;
+
+        # Handle static assets
+        location /glance/static/ {
+            # Remove the /glance prefix for static assets
+            rewrite ^/glance/static/(.*)$ /static/$1 break;
+            proxy_pass http://localhost:8080;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
         }
 
         # Add a root location for health checks
         location / {
             return 200 "NGINX proxy for Glance is running";
+            add_header Content-Type text/plain;
         }
     }
