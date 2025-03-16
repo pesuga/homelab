@@ -5,8 +5,12 @@ metadata:
   namespace: glance
 data:
   glance.yml: |
+    # Base URL must be at the top level
     base-url: /glance
     title: Homelab Dashboard
+    # Server configuration
+    server:
+      port: 8080
     pages:
       - name: Home
         columns:

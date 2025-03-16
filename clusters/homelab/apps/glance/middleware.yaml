@@ -19,5 +19,19 @@ spec:
   headers:
     # This configuration ensures that redirects from Glance will work correctly
     # when being accessed through the /glance path
+    customRequestHeaders:
+      X-Forwarded-Prefix: "/glance"
     customResponseHeaders:
       X-Forwarded-Prefix: "/glance"
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: glance-replace-location
+  namespace: glance
+spec:
+  headers:
+    # Force Location headers to include the glance prefix path
+    customResponseHeaders:
+      Location: "/glance/"
