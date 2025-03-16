@@ -6,3 +6,4 @@ resources:
   - apps/tailscale
   - apps/home-assistant
   - apps/glance
+  - apps/owncloud
