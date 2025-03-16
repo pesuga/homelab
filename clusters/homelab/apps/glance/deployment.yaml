@@ -19,24 +19,16 @@ spec:
       - name: glance
         image: glanceapp/glance:latest
         imagePullPolicy: Always
+        env:
+        - name: GLANCE_BASE_URL
+          value: "/glance"
         ports:
         - containerPort: 8080
           name: http
         volumeMounts:
         - name: config
           mountPath: /app/config
-      - name: nginx-proxy
-        image: nginx:alpine
-        ports:
-        - containerPort: 80
-          name: proxy
-        volumeMounts:
-        - name: nginx-config
-          mountPath: /etc/nginx/conf.d
       volumes:
       - name: config
         configMap:
           name: glance-config
-      - name: nginx-config
-        configMap:
-          name: glance-nginx-config

@@ -6,8 +6,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    # We can simplify since nginx is handling the path routing 
-    traefik.ingress.kubernetes.io/router.middlewares: glance-glance-strip-prefix@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: glance-glance-strip-prefix@kubernetescrd,glance-glance-add-prefix-redirect@kubernetescrd
     cert-manager.io/cluster-issuer: selfsigned-issuer
 spec:
   tls:

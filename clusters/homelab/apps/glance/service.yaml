@@ -11,4 +11,4 @@ spec:
   ports:
   - port: 8080
     name: http
-    targetPort: proxy
+    targetPort: http
