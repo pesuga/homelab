@@ -1,0 +1,23 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: glance-strip-prefix
+  namespace: glance
+spec:
+  stripPrefix:
+    prefixes:
+      - /glance
+    forceSlash: true
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: glance-add-prefix-for-redirects
+  namespace: glance
+spec:
+  headers:
+    # This configuration ensures that redirects from Glance will work correctly
+    # when being accessed through the /glance path
+    customResponseHeaders:
+      X-Forwarded-Prefix: "/glance"
