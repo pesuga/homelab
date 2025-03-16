@@ -19,13 +19,25 @@ spec:
       - name: glance
         image: glanceapp/glance:latest
         imagePullPolicy: Always
+        command: ["/bin/sh", "/scripts/entrypoint.sh"]
+        env:
+        - name: GLANCE_BASE_URL
+          value: "/glance"
+        - name: BASE_URL
+          value: "/glance"
         ports:
         - containerPort: 8080
           name: http
         volumeMounts:
         - name: config
           mountPath: /app/config
+        - name: startup-script
+          mountPath: /scripts
       volumes:
       - name: config
         configMap:
           name: glance-config
+      - name: startup-script
+        configMap:
+          name: glance-startup-script
+          defaultMode: 0755

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: glance-startup-script
+  namespace: glance
+data:
+  entrypoint.sh: |
+    #!/bin/sh
+    set -e
+
+    # Create a wrapper HTML file that adds the /glance base path
+    cat > /app/wrapper.html << EOF
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta http-equiv="refresh" content="0;URL='/glance/home'" />
+    </head>
+    <body>
+        <p>Redirecting to <a href="/glance/home">Glance Dashboard</a></p>
+    </body>
+    </html>
+    EOF
+
+    # Start the original entrypoint
+    exec /app/glance
