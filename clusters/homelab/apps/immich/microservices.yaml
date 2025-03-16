@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: microservices
-          image: ghcr.io/immich-app/immich-server:v1.99.0
+          image: ghcr.io/immich-app/immich-server:release
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args: ["node dist/microservices/main.js"]
