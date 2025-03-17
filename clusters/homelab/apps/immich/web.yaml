@@ -30,7 +30,7 @@ spec:
               value: "/immich"
           livenessProbe:
             httpGet:
-              path: /immich/
+              path: /
               port: 3000
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -39,7 +39,7 @@ spec:
             successThreshold: 1
           readinessProbe:
             httpGet:
-              path: /immich/
+              path: /
               port: 3000
             initialDelaySeconds: 30
             periodSeconds: 10
