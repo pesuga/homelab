@@ -23,7 +23,7 @@ spec:
             - containerPort: 3000
           env:
             - name: PUBLIC_IMMICH_SERVER_URL
-              value: "/immich/api"
+              value: "/api"
             - name: IMMICH_SERVER_URL
               value: "http://immich-server:2283"
             - name: PUBLIC_BASE_PATH

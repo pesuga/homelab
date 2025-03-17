@@ -17,3 +17,6 @@ spec:
   stripPrefix:
     prefixes:
       - /immich/api
+  replacePathRegex:
+    regex: "^/api/(.*)$"
+    replacement: "/$1"
