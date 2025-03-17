@@ -20,7 +20,7 @@ spec:
           image: ghcr.io/immich-app/immich-server:release
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
-          args: ["node dist/microservices/main.js"]
+          args: ["node dist/app.js"]
           env:
             - name: IMMICH_MEDIA_LOCATION
               value: /usr/src/app/upload
@@ -60,7 +60,12 @@ spec:
           volumeMounts:
             - name: immich-library
               mountPath: /usr/src/app/upload
+            - name: immich-config
+              mountPath: /usr/src/app/config
       volumes:
         - name: immich-library
           persistentVolumeClaim:
             claimName: immich-library
+        - name: immich-config
+          configMap:
+            name: immich-config

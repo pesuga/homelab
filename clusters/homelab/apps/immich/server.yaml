@@ -62,6 +62,8 @@ spec:
           volumeMounts:
             - name: immich-library
               mountPath: /usr/src/app/upload
+            - name: immich-config
+              mountPath: /usr/src/app/config
           startupProbe:
             httpGet:
               path: /server-info/ping
@@ -91,6 +93,9 @@ spec:
         - name: immich-library
           persistentVolumeClaim:
             claimName: immich-library
+        - name: immich-config
+          configMap:
+            name: immich-config
 ---
 apiVersion: v1
 kind: Service
