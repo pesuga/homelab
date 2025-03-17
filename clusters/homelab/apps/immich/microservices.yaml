@@ -19,8 +19,6 @@ spec:
         - name: microservices
           image: ghcr.io/immich-app/immich-server:release
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c"]
-          args: ["node dist/main microservices"]
           env:
             - name: IMMICH_MEDIA_LOCATION
               value: /usr/src/app/upload
