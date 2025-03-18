@@ -59,6 +59,10 @@ spec:
               value: "https://immich.app.pesulabs.net"
             - name: IMMICH_BASE_PATH
               value: ""
+            - name: PUBLIC_IMMICH_SERVER_URL
+              value: "https://immich.app.pesulabs.net"
+            - name: PUBLIC_BASE_PATH
+              value: ""
           volumeMounts:
             - name: immich-library
               mountPath: /usr/src/app/upload

@@ -1,3 +1,5 @@
+# Web deployment is not needed as the server component serves the web UI
+# This file is kept for reference but the resources are not deployed
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,7 +8,7 @@ metadata:
   labels:
     app: immich-web
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: immich-web

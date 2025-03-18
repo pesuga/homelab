@@ -49,3 +49,15 @@ spec:
     regex: ^/api/server-info/(.*)
     replacement: /api/server/$1
     permanent: true
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: immich-strip-api-prefix
+  namespace: immich
+spec:
+  stripPrefix:
+    prefixes:
+      - /api
+    forceSlash: true
