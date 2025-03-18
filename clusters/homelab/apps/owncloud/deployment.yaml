@@ -58,6 +58,8 @@ spec:
               value: "owncloud.app.pesulabs.net"
             - name: OWNCLOUD_OVERWRITE_CLI_URL
               value: "https://owncloud.app.pesulabs.net"
+            - name: OWNCLOUD_OVERWRITE_COND_ADDR
+              value: "^10\\.42\\..*"
           volumeMounts:
             - mountPath: /mnt/data
               name: owncloud-data
