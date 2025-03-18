@@ -51,11 +51,13 @@ spec:
             - name: OWNCLOUD_TRUSTED_PROXIES
               value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
             - name: OWNCLOUD_OVERWRITE_WEBROOT
-              value: ""
+              value: "/"
             - name: OWNCLOUD_OVERWRITE_PROTOCOL
               value: "https"
             - name: OWNCLOUD_OVERWRITE_HOST
               value: "owncloud.app.pesulabs.net"
+            - name: OWNCLOUD_OVERWRITE_COND_ADDR
+              value: "^10\\..*|^172\\..*|^192\\..*|^.*"
             - name: OWNCLOUD_OVERWRITE_CLI_URL
               value: "https://owncloud.app.pesulabs.net"
           volumeMounts:
