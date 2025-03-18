@@ -22,13 +22,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: immich-web
+            name: immich-server
             port:
-              number: 3000
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: immich-api-proxy
-            port:
-              number: 80
+              number: 3001
