@@ -6,7 +6,7 @@ metadata:
 spec:
   stripPrefix:
     prefixes:
-      - /glance
+      - /
     forceSlash: true
 
 ---
@@ -18,4 +18,4 @@ metadata:
 spec:
   headers:
     customRequestHeaders:
-      X-Forwarded-Prefix: "/glance"
+      X-Forwarded-Prefix: ""
