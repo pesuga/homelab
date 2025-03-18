@@ -30,7 +30,7 @@ spec:
               cpu: "300m"
           env:
             - name: PUBLIC_IMMICH_SERVER_URL
-              value: "/api"
+              value: "https://immich.app.pesulabs.net/api"
             - name: IMMICH_SERVER_URL
               value: "http://immich-server:2283"
             - name: PUBLIC_BASE_PATH

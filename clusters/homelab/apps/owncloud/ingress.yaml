@@ -9,7 +9,6 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     external-dns.alpha.kubernetes.io/hostname: "owncloud.app.pesulabs.net"
     traefik.ingress.kubernetes.io/preserve-host: "true"
-    traefik.ingress.kubernetes.io/router.middlewares: owncloud-redirect-regex@kubernetescrd
 spec:
   tls:
   - hosts:
