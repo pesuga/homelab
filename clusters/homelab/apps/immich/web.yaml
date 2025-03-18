@@ -19,7 +19,11 @@ spec:
         - name: web
           image: ghcr.io/immich-app/immich-server:v1.129.0
           imagePullPolicy: IfNotPresent
-          command: ["node", "./dist/web"]
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              cd /usr/src/app
+              exec node ./dist/main web
           ports:
             - containerPort: 3000
           resources:
