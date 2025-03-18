@@ -32,7 +32,7 @@ spec:
             - name: PUBLIC_IMMICH_SERVER_URL
               value: "https://immich.app.pesulabs.net/api"
             - name: IMMICH_SERVER_URL
-              value: "http://immich-server:2283"
+              value: "http://immich-server:3001"
             - name: PUBLIC_BASE_PATH
               value: ""
           startupProbe:
