@@ -8,7 +8,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: letsencrypt-prod
     external-dns.alpha.kubernetes.io/hostname: "glance.app.pesulabs.net"
-    traefik.ingress.kubernetes.io/router.middlewares: glance-strip-prefix@kubernetescrd,glance-add-prefix-redirect@kubernetescrd
 spec:
   tls:
   - hosts:
