@@ -5,8 +5,9 @@ resources:
   - namespace.yaml
   - helmrepository.yaml
   - release.yaml
+
 secretGenerator:
   - name: cloudflare-api-token
     type: Opaque
     literals:
-      - api-token=QIgulCkm6_yRAlpozQ4PlKIpDgj82W5TusFdu4hI
+      - api-token=REPLACE_WITH_YOUR_ACTUAL_TOKEN

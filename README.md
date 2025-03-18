@@ -22,6 +22,23 @@ This repository contains the GitOps configuration for my home Kubernetes lab run
   - `FLUX_SETUP.md`: How to set up Flux
   - `SETUP.md`: Complete end-to-end setup guide
 
+## Current Status
+
+- **Tailscale DNS Limitation**: Tailscale DNS setup does not support subdomains. Applications should be configured with path-based routing (like `/home-assistant`) rather than dedicated subdomains.
+
+- **External-DNS Issues**: Currently experiencing issues with the External-DNS HelmRelease. See `docs/SUBDOMAIN_ROUTING_FIX_PLAN.md` for details and workarounds.
+
+- **Certificates**: Certificate issuance is working correctly with Let's Encrypt and DNS-01 validation through Cloudflare.
+
+## Scripts
+
+The `scripts/` directory contains helper scripts:
+
+- `install-external-dns.sh`: Direct installation of External-DNS using Helm (bypassing Flux)
+- `add-manual-dns-records.sh`: Add manual DNS records to Cloudflare
+- `test-subdomain-access.sh`: Test access to application subdomains
+- `setup-cloudflare-token.sh`: Set up Cloudflare API token for Flux
+
 ## Getting Started
 
 1. Set up a K3s cluster (see `docs/K3S_SETUP.md`)
@@ -46,6 +63,10 @@ To manually trigger reconciliation:
 flux reconcile source git flux-system
 flux reconcile kustomization flux-system
 ```
+
+## Applications
+
+Application configurations are organized in their respective directories under `clusters/homelab/apps/`.
 
 ## License
 
