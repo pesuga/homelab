@@ -7,7 +7,7 @@ metadata:
     app: n8n
 spec:
   ports:
-  - port: 80
+  - port: 5678
     targetPort: http
     protocol: TCP
     name: http
