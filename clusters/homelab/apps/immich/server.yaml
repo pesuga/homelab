@@ -58,7 +58,9 @@ spec:
             - name: IMMICH_SERVER_URL
               value: "https://immich.app.pesulabs.net"
             - name: IMMICH_BASE_PATH
-              value: ""
+              value: "/api"
+            - name: IMMICH_REVERSE_GEOCODING_ENABLED
+              value: "false"
           volumeMounts:
             - name: immich-library
               mountPath: /usr/src/app/upload
