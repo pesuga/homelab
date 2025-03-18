@@ -9,6 +9,8 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: "immich.app.pesulabs.net"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     traefik.ingress.kubernetes.io/proxy-body-size: "50G"
+    traefik.ingress.kubernetes.io/redirect-regex: "^https://immich.app.pesulabs.net/api/server-info/(.*)$$"
+    traefik.ingress.kubernetes.io/redirect-replacement: "https://immich.app.pesulabs.net/api/server/$${1}"
 spec:
   tls:
   - hosts:
