@@ -20,7 +20,7 @@ spec:
           image: ghcr.io/immich-app/immich-server:v1.129.0
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 3001
+            - containerPort: 2283
           env:
             - name: IMMICH_MEDIA_LOCATION
               value: /usr/src/app/upload
@@ -67,7 +67,7 @@ spec:
           startupProbe:
             httpGet:
               path: /api/server/ping
-              port: 3001
+              port: 2283
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
@@ -76,7 +76,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /api/server/ping
-              port: 3001
+              port: 2283
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 6
@@ -84,7 +84,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /api/server/ping
-              port: 3001
+              port: 2283
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 6
@@ -106,5 +106,5 @@ spec:
   selector:
     app: immich-server
   ports:
-    - port: 3001
-      targetPort: 3001
+    - port: 2283
+      targetPort: 2283
