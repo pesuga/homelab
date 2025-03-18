@@ -8,7 +8,7 @@ data:
     # Server configuration with base URL
     server:
       port: 8080
-      base-url: /
+      base-url: /glance
     
     # General configuration
     title: Homelab Dashboard
