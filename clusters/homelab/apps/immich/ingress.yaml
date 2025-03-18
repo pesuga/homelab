@@ -4,11 +4,11 @@ metadata:
   name: immich-ingress
   namespace: immich
   annotations:
-    kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/use-regex: "true"
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
     external-dns.alpha.kubernetes.io/hostname: "immich.app.pesulabs.net"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/proxy-body-size: "50G"
+    traefik.ingress.kubernetes.io/proxy-body-size: "50G"
 spec:
   tls:
   - hosts:
