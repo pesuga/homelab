@@ -4,14 +4,20 @@ metadata:
   name: owncloud
   namespace: owncloud
   annotations:
+    kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.middlewares: owncloud-owncloud-chain@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: "owncloud.app.pesulabs.net"
 spec:
+  tls:
+  - hosts:
+    - owncloud.app.pesulabs.net
+    secretName: owncloud-tls
   rules:
-    - host: asuna.chimp-ulmer.ts.net
+    - host: owncloud.app.pesulabs.net
       http:
         paths:
-          - path: /owncloud
+          - path: /
             pathType: Prefix
             backend:
               service:

@@ -1,30 +1,26 @@
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: owncloud-strip-prefix
+  name: owncloud-nginx-config
   namespace: owncloud
-spec:
-  stripPrefix:
-    prefixes:
-      - /owncloud
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: owncloud-headers
-  namespace: owncloud
-spec:
-  headers:
-    customRequestHeaders:
-      X-Forwarded-Prefix: "/owncloud"
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: owncloud-chain
-  namespace: owncloud
-spec:
-  chain:
-    middlewares:
-      - name: owncloud-strip-prefix
-      - name: owncloud-headers
+data:
+  owncloud-config: |
+    # OwnCloud configuration for NGINX
+    location / {
+      proxy_pass http://owncloud:80;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # Increase timeouts for large file uploads
+    proxy_connect_timeout 600s;
+    proxy_send_timeout 600s;
+    proxy_read_timeout 600s;
+    
+    # Support for large uploads
+    client_max_body_size 1G;

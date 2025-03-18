@@ -6,18 +6,18 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.middlewares: home-assistant-home-assistant-strip-prefix@kubernetescrd,home-assistant-home-assistant-add-prefix-for-redirects@kubernetescrd,home-assistant-home-assistant-replace-location@kubernetescrd
-    cert-manager.io/cluster-issuer: selfsigned-issuer
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: "home-assistant.app.pesulabs.net"
 spec:
   tls:
   - hosts:
-    - asuna.chimp-ulmer.ts.net
+    - home-assistant.app.pesulabs.net
     secretName: home-assistant-tls
   rules:
-  - host: asuna.chimp-ulmer.ts.net
+  - host: home-assistant.app.pesulabs.net
     http:
       paths:
-      - path: /home-assistant
+      - path: /
         pathType: Prefix
         backend:
           service:

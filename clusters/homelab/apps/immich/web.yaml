@@ -34,7 +34,7 @@ spec:
             - name: IMMICH_SERVER_URL
               value: "http://immich-server:2283"
             - name: PUBLIC_BASE_PATH
-              value: "/immich"
+              value: ""
           startupProbe:
             httpGet:
               path: /

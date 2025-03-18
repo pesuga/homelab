@@ -1,0 +1,4 @@
+// Workflow
+1. When you think you are done with setup and implementation for a request, please test it using either curl or checking app logs.
+2. If test fails please fix the issue and repeat step 1.
+3. If test is successful, please update the todo list and README file.

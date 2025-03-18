@@ -19,6 +19,12 @@ spec:
       service:
         type: LoadBalancer
         externalTrafficPolicy: Local
+        ports:
+          http: 8080
+          https: 8443
+      containerPort:
+        http: 8080
+        https: 8443
       config:
         use-forwarded-headers: "true"
         compute-full-forwarded-for: "true"

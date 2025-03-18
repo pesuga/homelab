@@ -27,11 +27,11 @@ spec:
         - name: N8N_PROTOCOL
           value: "https"
         - name: N8N_PATH
-          value: "/n8n"
+          value: ""
         - name: N8N_HOST
-          value: "asuna.chimp-ulmer.ts.net"
+          value: "n8n.app.pesulabs.net"
         - name: WEBHOOK_URL
-          value: "https://asuna.chimp-ulmer.ts.net/n8n"
+          value: "https://n8n.app.pesulabs.net"
         - name: N8N_DIAGNOSTICS_ENABLED
           value: "true"
         - name: N8N_SECURE_COOKIE

@@ -14,17 +14,17 @@ spec:
         name: bitnami
         namespace: flux-system
   values:
-    provider: cloudflare
+    provider: cloudflare  # Or your DNS provider
     cloudflare:
       apiToken:
         secretName: cloudflare-api-token
         secretKey: api-token
-      proxied: true
+      proxied: false  # Set to false to avoid proxying through Cloudflare
     policy: sync
     sources:
       - ingress
     domainFilters:
-      - "yourdomain.com"  # replace with your actual domain
+      - "pesulabs.net"  # Your actual domain
     txtOwnerId: "homelab"
     interval: "2m"
     logLevel: debug

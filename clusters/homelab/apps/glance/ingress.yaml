@@ -6,18 +6,18 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.middlewares: glance-glance-strip-prefix@kubernetescrd,glance-glance-add-prefix-redirect@kubernetescrd
-    cert-manager.io/cluster-issuer: selfsigned-issuer
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: "glance.app.pesulabs.net"
 spec:
   tls:
   - hosts:
-    - asuna.chimp-ulmer.ts.net
+    - glance.app.pesulabs.net
     secretName: glance-tls
   rules:
-  - host: asuna.chimp-ulmer.ts.net
+  - host: glance.app.pesulabs.net
     http:
       paths:
-      - path: /glance
+      - path: /
         pathType: Prefix
         backend:
           service:

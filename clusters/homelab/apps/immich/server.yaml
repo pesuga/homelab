@@ -56,9 +56,9 @@ spec:
             - name: IMMICH_REVERSE_GEOCODING_ENABLED
               value: "false"
             - name: IMMICH_SERVER_URL
-              value: "https://asuna.chimp-ulmer.ts.net/immich"
+              value: "https://immich.app.pesulabs.net"
             - name: IMMICH_BASE_PATH
-              value: "/immich"
+              value: ""
           volumeMounts:
             - name: immich-library
               mountPath: /usr/src/app/upload

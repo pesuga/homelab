@@ -45,19 +45,19 @@ spec:
                   name: owncloud-mariadb-secret
                   key: password
             - name: OWNCLOUD_DOMAIN
-              value: "asuna.chimp-ulmer.ts.net"
+              value: "owncloud.app.pesulabs.net"
             - name: OWNCLOUD_TRUSTED_DOMAINS
-              value: "asuna.chimp-ulmer.ts.net"
+              value: "owncloud.app.pesulabs.net"
             - name: OWNCLOUD_TRUSTED_PROXIES
               value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
             - name: OWNCLOUD_OVERWRITE_WEBROOT
-              value: "/owncloud"
+              value: ""
             - name: OWNCLOUD_OVERWRITE_PROTOCOL
               value: "https"
             - name: OWNCLOUD_OVERWRITE_HOST
-              value: "asuna.chimp-ulmer.ts.net"
+              value: "owncloud.app.pesulabs.net"
             - name: OWNCLOUD_OVERWRITE_CLI_URL
-              value: "https://asuna.chimp-ulmer.ts.net/owncloud"
+              value: "https://owncloud.app.pesulabs.net"
           volumeMounts:
             - mountPath: /mnt/data
               name: owncloud-data

@@ -4,17 +4,24 @@
 
 [ ] Plex Media Server
 [ ] Graphana, prometheus and Loki
-[x] NGINX Ingress Controller (implementation in progress)
-[x] External-DNS for DDNS (implementation in progress)
+[x] NGINX Ingress Controller
+[x] External-DNS for DDNS
+[x] Cert-manager for SSL certificates
 
 ## Tasks
 [ ] Fix Home Automation
-[x] Setup DDNS and enable the use of subdomains for app routing (implementation in progress)
-[ ] Setup a reverse proxy for the apps (implementation in progress with NGINX Ingress)
-[ ] Set up a dashboard in Glance
-[ ] Configure Tailscale for subdomain support (see TAILSCALE_SUBDOMAIN_SETUP.md)
-[ ] Migrate existing applications from path-based to subdomain-based routing
+[x] Setup DDNS and enable the use of subdomains for app routing
+[x] Setup a reverse proxy for the apps (NGINX Ingress)
+[x] Set up a dashboard in Glance
+[x] Configure Tailscale for subdomain support (see TAILSCALE_SUBDOMAIN_SETUP.md)
+[x] Set up subdomain routing for applications:
+   - [x] Immich
+   - [x] Home Assistant
+   - [x] N8N
+   - [x] OwnCloud
+   - [x] Glance
 
-## Ideas
-[ ] Implement cert-manager for automatic SSL certificate management
-[ ] Configure monitoring and alerting for critical services
+## Ongoing Improvements
+[ ] Fine-tune NGINX configurations for optimal performance
+[ ] Set up monitoring and alerting for critical services
+[ ] Implement automated backup solutions for application data

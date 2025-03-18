@@ -4,23 +4,23 @@ metadata:
   name: n8n
   namespace: n8n
   annotations:
-    kubernetes.io/ingress.class: "traefik"
-    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
-    traefik.ingress.kubernetes.io/router.middlewares: "n8n-n8n-strip-prefix@kubernetescrd"
-    cert-manager.io/cluster-issuer: "selfsigned-issuer"
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: "n8n.app.pesulabs.net"
 spec:
   tls:
   - hosts:
-    - asuna.chimp-ulmer.ts.net
+    - n8n.app.pesulabs.net
     secretName: n8n-tls
   rules:
-  - host: asuna.chimp-ulmer.ts.net
+  - host: n8n.app.pesulabs.net
     http:
       paths:
-      - path: /n8n
+      - path: /
         pathType: Prefix
         backend:
           service:
             name: n8n
             port:
-              number: 80
+              number: 5678

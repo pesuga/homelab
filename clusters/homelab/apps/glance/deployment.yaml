@@ -21,7 +21,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: GLANCE_BASE_URL
-          value: "/glance"
+          value: ""
         ports:
         - containerPort: 8080
           name: http

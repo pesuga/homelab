@@ -1,56 +1,124 @@
 # Tailscale Subdomain Configuration Guide
 
+## Overview
+
+This guide explains how to enable subdomain-based access to your Kubernetes applications using Tailscale. Instead of accessing services via path-based routing (e.g., `asuna.chimp-ulmer.ts.net/immich`), you'll be able to use subdomains (e.g., `immich.yourdomain.com`).
+
+This approach offers several advantages:
+- Cleaner URLs for your applications
+- Avoiding path-based routing complexities
+- Better application compatibility (many apps work better with root paths)
+
 ## Prerequisites
-- Tailscale account with admin access
-- A domain you own (e.g., yourdomain.com)
-- Cloudflare account (or other DNS provider)
 
-## Steps to Enable Subdomain Support in Tailscale
+- A domain you own (registered with a provider like Cloudflare, Namecheap, etc.)
+- Tailscale set up on your Kubernetes cluster
+- External-DNS and NGINX Ingress Controller (from our previous setup)
 
-### 1. Configure a Custom Domain in Tailscale
+## Implementation Steps
+
+### 1. Configure MagicDNS in Tailscale
 
 1. Log in to the Tailscale admin console: https://login.tailscale.com/admin
-2. Navigate to "DNS" settings
-3. Under "HTTPS Certificates", click "Add domain"
-4. Enter your domain (e.g., yourdomain.com)
-5. Follow the verification instructions (usually involves adding TXT records to your DNS)
+2. Navigate to the "DNS" settings
+3. Enable "MagicDNS" if not already enabled
+   - This allows your Tailscale nodes to be addressable by hostname
 
-### 2. Configure MagicDNS
+### 2. Set Up CNAME Records at Your DNS Provider
 
-1. In the Tailscale admin console, go to "DNS" settings
-2. Enable "MagicDNS"
-3. This will allow your Tailscale nodes to be addressable by hostname
+1. Log in to your DNS provider (e.g., Cloudflare)
+2. Create a wildcard CNAME record:
+   - Type: `CNAME`
+   - Name: `*.yourdomain.com` (or use a specific subdomain like `*.apps.yourdomain.com`)
+   - Target: `asuna.chimp-ulmer.ts.net` (your Tailscale node's MagicDNS name)
+   - Proxy status: DNS Only (don't proxy through Cloudflare)
+   - TTL: Auto
+3. Optionally, create individual CNAME records for specific applications:
+   - Type: `CNAME`
+   - Name: `immich.yourdomain.com`
+   - Target: `asuna.chimp-ulmer.ts.net`
+   - Proxy status: DNS Only
+   - TTL: Auto
 
-### 3. Add a Nameserver at Your Domain Registrar
+### 3. Configure External-DNS for Subdomain Management
 
-1. Log in to your domain registrar
-2. Find the DNS settings or nameserver settings
-3. Add the Tailscale nameservers provided in the Tailscale admin console
-   - ns1.tailscale.net
-   - ns2.tailscale.net
+Update your external-dns configuration to work with your domain:
 
-### A Note on Wildcard Domains for Kubernetes Ingress
+```yaml
+# In clusters/homelab/apps/external-dns/release.yaml
+spec:
+  values:
+    provider: cloudflare  # Or your DNS provider
+    domainFilters:
+      - "yourdomain.com"  # Your actual domain
+    policy: sync
+    sources:
+      - ingress
+```
 
-For your Kubernetes cluster to use subdomains (e.g., app1.yourdomain.com, app2.yourdomain.com), you'll need to:
+### 4. Update Ingress Resources for Subdomain Routing
 
-1. Make sure the Tailscale nameservers are authoritative for your domain
-2. Configure your applications to use the subdomain hostnames in their Ingress resources
-3. Ensure external-dns is properly configured to update the DNS records
+Update your application's Ingress resources to use subdomain-based routing:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: immich-web-ingress
+  namespace: immich
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    # Remove any path-based rewrite annotations
+spec:
+  rules:
+  - host: immich.yourdomain.com  # Use your subdomain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: immich-web
+            port:
+              number: 3000
+  # Add additional rules for the API if needed
+  - host: immich.yourdomain.com
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: immich-server
+            port:
+              number: 3001
+```
+
+### 5. Configure TLS Certificates (Optional but Recommended)
+
+For secure HTTPS connections, set up cert-manager to automatically provision certificates:
+
+1. Install cert-manager (to be detailed in a separate guide)
+2. Configure a ClusterIssuer for your domain
+3. Add TLS configuration to your Ingress resources
 
 ## Testing Your Configuration
 
 Once configured, you should be able to access your applications using subdomains:
 
 ```
-https://app1.yourdomain.com
-https://app2.yourdomain.com
+https://immich.yourdomain.com
+https://nextapp.yourdomain.com
 ```
 
 ## Troubleshooting
 
-- If DNS resolution doesn't work, verify that Tailscale nameservers are correctly configured
-- Check that MagicDNS is enabled in your Tailscale account
-- Ensure your Ingress resources are correctly configured with the proper hostname
-- Verify external-dns logs to ensure DNS records are being created/updated
+- **DNS Resolution Issues**: Ensure your CNAME records are correctly set up
+- **Certificate Errors**: Check cert-manager logs if using HTTPS
+- **Application Access Problems**: Review your Ingress resources and NGINX controller logs
 
-Remember that DNS changes can take time to propagate (up to 24 hours, though usually much less).
+## Additional Resources
+
+- [Tailscale MagicDNS Documentation](https://tailscale.com/kb/1081/magicdns)
+- [External-DNS with Kubernetes](https://github.com/kubernetes-sigs/external-dns)
+- [Cloudflare DNS Documentation](https://developers.cloudflare.com/dns/)
