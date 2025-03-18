@@ -19,13 +19,21 @@ spec:
         - name: server
           image: ghcr.io/immich-app/immich-server:v1.129.0
           imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              cd /usr/src/app
+              exec node ./dist/main web
           ports:
             - containerPort: 2283
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
           env:
-            - name: IMMICH_MEDIA_LOCATION
-              value: /usr/src/app/upload
-            - name: IMMICH_CONFIG_FILE
-              value: /usr/src/app/config/immich-config.json
             - name: DB_HOSTNAME
               value: immich-postgres
             - name: DB_USERNAME
@@ -47,12 +55,10 @@ spec:
                 secretKeyRef:
                   name: immich-secrets
                   key: REDIS_PASSWORD
-            - name: NODE_ENV
-              value: production
-            - name: LOG_LEVEL
-              value: "info"
-            - name: PUBLIC_LOGIN_PAGE_MESSAGE
-              value: ""
+            - name: IMMICH_MEDIA_LOCATION
+              value: /usr/src/app/upload
+            - name: IMMICH_CONFIG_FILE
+              value: /usr/src/app/config/immich-config.json
             - name: IMMICH_REVERSE_GEOCODING_ENABLED
               value: "false"
             - name: IMMICH_SERVER_URL
@@ -63,6 +69,12 @@ spec:
               value: "https://immich.app.pesulabs.net"
             - name: PUBLIC_BASE_PATH
               value: ""
+            - name: NODE_ENV
+              value: production
+            - name: LOG_LEVEL
+              value: "info"
+            - name: PUBLIC_LOGIN_PAGE_MESSAGE
+              value: ""
           volumeMounts:
             - name: immich-library
               mountPath: /usr/src/app/upload
@@ -70,16 +82,16 @@ spec:
               mountPath: /usr/src/app/config
           startupProbe:
             httpGet:
-              path: /api/server/ping
+              path: /
               port: 2283
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 6
+            failureThreshold: 30
             successThreshold: 1
           livenessProbe:
             httpGet:
-              path: /api/server/ping
+              path: /
               port: 2283
             periodSeconds: 10
             timeoutSeconds: 5
@@ -87,7 +99,7 @@ spec:
             successThreshold: 1
           readinessProbe:
             httpGet:
-              path: /api/server/ping
+              path: /
               port: 2283
             periodSeconds: 10
             timeoutSeconds: 5
