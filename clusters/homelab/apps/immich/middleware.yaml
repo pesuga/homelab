@@ -36,3 +36,16 @@ data:
     
     # Support for large uploads
     client_max_body_size 50G;
+
+---
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: immich-api-redirects
+  namespace: immich
+spec:
+  redirectRegex:
+    regex: ^/api/server-info/(.*)
+    replacement: /api/server/$1
+    permanent: true
