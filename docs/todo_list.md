@@ -69,8 +69,14 @@
       - [x] plex.app.pesulabs.net
       - [x] grafana.app.pesulabs.net
       - [x] prometheus.app.pesulabs.net
-   - [ ] Run the updated script to add the DNS records to Cloudflare
+   - [x] Run the updated script to add the DNS records to Cloudflare
+      - [x] Command: `./scripts/add-manual-dns-records.sh <cloudflare-api-token> <zone-id> <server-ip>`
+      - [x] You can find your zone ID in the Cloudflare dashboard -> Domain Overview -> API section
    - [ ] Verify DNS resolution for all services
+      - [ ] Test with: `curl -I https://plex.app.pesulabs.net`
+      - [ ] Test with: `curl -I https://grafana.app.pesulabs.net`
+      - [ ] Test with: `curl -I https://prometheus.app.pesulabs.net`
+      - [ ] Test with: `curl -I https://immich.app.pesulabs.net`
 [ ] Fix login issues for Immich tomorrow
 
 ## Ongoing Improvements
@@ -82,3 +88,16 @@
 [*] Create documentation for each service and monitoring setup
    - [x] Monitoring stack documentation
    - [x] Plex documentation
+[x] Implement better security for home network access only
+   - [x] Create a local DNS setup script
+     - [x] Set up a local DNS server (Pi-hole or dnsmasq) on the home network
+     - [x] Configure it to resolve *.app.pesulabs.net domains to the internal cluster IP (192.168.86.141)
+   - [x] Remove public DNS records from Cloudflare
+     - [x] Create a script to delete DNS records from Cloudflare
+     - [x] Keep the script for reference if public access is needed in the future
+   - [x] Enhance Tailscale integration for secure remote access
+     - [x] Configure Tailscale to provide access to internal services
+     - [x] Test remote access through Tailscale VPN
+   - [x] Verify router configuration
+     - [x] Ensure no port forwarding is enabled for ports 80/443 to the cluster
+     - [x] Document network security measures
