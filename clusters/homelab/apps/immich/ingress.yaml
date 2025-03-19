@@ -19,17 +19,10 @@ spec:
   - host: immich.app.pesulabs.net
     http:
       paths:
-      - path: /api
+      - path: /
         pathType: Prefix
         backend:
           service:
             name: immich-server
             port:
               number: 2283
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: immich-web
-            port:
-              number: 3000

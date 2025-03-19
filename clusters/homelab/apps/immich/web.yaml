@@ -1,4 +1,5 @@
-# Web deployment to serve the web UI
+# Web deployment is not needed as the server component serves the web UI
+# This file is kept for reference but the resources are not deployed
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,7 +8,7 @@ metadata:
   labels:
     app: immich-web
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: immich-web
@@ -18,7 +19,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: ghcr.io/immich-app/immich-web:v1.129.0
+          image: ghcr.io/immich-app/immich-server:v1.129.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
