@@ -10,6 +10,7 @@ data:
     server:
       http_listen_port: 3100
       grpc_listen_port: 9096
+      log_level: debug
 
     common:
       path_prefix: /data/loki
@@ -42,6 +43,22 @@ data:
       reject_old_samples_max_age: 168h
       ingestion_rate_mb: 10
       ingestion_burst_size_mb: 20
+      max_global_streams_per_user: 10000
+      max_query_length: 721h
+      max_query_parallelism: 32
+      split_queries_by_interval: 15m
+
+    query_range:
+      align_queries_with_step: true
+      max_retries: 5
+      cache_results: true
+
+    frontend:
+      compress_responses: true
+      log_queries_longer_than: 5s
 
     analytics:
       reporting_enabled: false
+
+    tracing:
+      enabled: true

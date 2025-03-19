@@ -60,6 +60,31 @@ Example queries:
   {namespace=~"immich|plex|home-assistant|n8n|owncloud|glance"} |~ "error|warning|critical|exception"
   ```
 
+### Known Issues with Logging
+
+**Status: Currently Troubleshooting**
+
+There is an ongoing issue with the Promtail and Loki integration:
+- Promtail appears to be running correctly but logs are not being sent to Loki
+- Loki is not showing any log data in Grafana
+- The Promtail configuration has been updated to use the correct log path pattern: `/var/log/pods/*/*/*.log`
+
+Troubleshooting steps taken:
+1. Verified Promtail pod has access to log files
+2. Confirmed Loki service is running correctly
+3. Updated Promtail configuration with correct log path pattern
+4. Checked Promtail and Loki logs for errors
+5. Created a test pod that sends logs directly to Loki, which worked successfully
+6. Added JSON parsing stages to the Promtail configuration
+7. Modified the log path pattern to match the actual directory structure
+
+Next steps for resolution:
+1. Further investigate Promtail configuration, focusing on the log format and parsing
+2. Check network connectivity between Promtail and Loki
+3. Verify Loki storage configuration
+4. Consider using a more verbose logging level for Promtail to debug the issue
+5. Test with a simpler Promtail configuration that focuses on a single namespace
+
 ## Alerting
 
 Alerting can be configured in Grafana for critical metrics. Common alert scenarios:
@@ -76,3 +101,22 @@ Alerting can be configured in Grafana for critical metrics. Common alert scenari
 - Grafana configuration is stored in a PersistentVolume
 
 To update components, edit the respective deployment files and apply the changes with Flux or kubectl.
+
+## Troubleshooting
+
+### Common Issues
+
+#### No Logs in Grafana
+If logs are not appearing in Grafana:
+1. Check that Promtail pods are running: `k get pods -n monitoring -l app=promtail`
+2. Verify Loki is running: `k get pods -n monitoring -l app=loki`
+3. Check Promtail logs: `k logs -n monitoring -l app=promtail`
+4. Verify Loki is receiving data: `curl -s "http://localhost:3100/loki/api/v1/labels" | jq` (requires port-forwarding)
+5. Ensure the Grafana Loki data source is configured correctly
+
+#### Prometheus Metrics Not Showing
+If Prometheus metrics are not appearing:
+1. Check that Prometheus pods are running: `k get pods -n monitoring -l app=prometheus`
+2. Verify node-exporter is running: `k get pods -n monitoring -l app=node-exporter`
+3. Check Prometheus targets: `curl -s "http://localhost:9090/api/v1/targets" | jq` (requires port-forwarding)
+4. Ensure the Grafana Prometheus data source is configured correctly

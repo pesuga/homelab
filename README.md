@@ -18,9 +18,11 @@ This repository contains the GitOps configuration for my home Kubernetes lab run
   - `apps/`: Application workloads
     - `n8n/`: n8n workflow automation platform
 - `docs/`: Setup and maintenance documentation
-  - `K3S_SETUP.md`: How to set up K3s
-  - `FLUX_SETUP.md`: How to set up Flux
-  - `SETUP.md`: Complete end-to-end setup guide
+  - `index.md`: Central documentation index
+  - `setup.md`: Complete end-to-end setup guide
+  - `k3s_setup.md`: How to set up K3s
+  - `flux_setup.md`: How to set up Flux
+  - `project_management.md`: Task tracking and project management
 
 ## Current Status
 
@@ -51,12 +53,21 @@ The `scripts/` directory contains helper scripts:
 - `setup-local-dns.sh`: Set up local DNS resolution for homelab services
 - `test-subdomain-access.sh`: Test access to application subdomains
 - `setup-cloudflare-token.sh`: Set up Cloudflare API token for Flux
+- `organize-docs.sh`: Script to organize documentation files
 
 ## Getting Started
 
-1. Set up a K3s cluster (see `docs/K3S_SETUP.md`)
-2. Bootstrap Flux (see `docs/FLUX_SETUP.md`)
+1. Set up a K3s cluster (see `docs/k3s_setup.md`)
+2. Bootstrap Flux (see `docs/flux_setup.md`)
 3. Push changes to this repository - Flux will automatically apply them
+
+## Documentation
+
+All documentation is available in the `docs/` directory. Start with the [Documentation Index](docs/index.md) for a complete overview of available documentation.
+
+## Project Management
+
+Task tracking and project management is handled in the [Project Management](docs/project_management.md) document.
 
 ## Secure Remote Access
 
