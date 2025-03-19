@@ -1,27 +1,26 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: immich-ingress
-  namespace: immich
+  name: grafana-ingress
+  namespace: monitoring
   annotations:
     kubernetes.io/ingress.class: "traefik"
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    external-dns.alpha.kubernetes.io/hostname: "immich.app.pesulabs.net"
+    external-dns.alpha.kubernetes.io/hostname: "grafana.app.pesulabs.net"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    traefik.ingress.kubernetes.io/proxy-body-size: "50G"
 spec:
   tls:
   - hosts:
-    - immich.app.pesulabs.net
-    secretName: immich-tls
+    - grafana.app.pesulabs.net
+    secretName: grafana-tls
   rules:
-  - host: immich.app.pesulabs.net
+  - host: grafana.app.pesulabs.net
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: immich-server
+            name: grafana
             port:
-              number: 2283
+              number: 3000

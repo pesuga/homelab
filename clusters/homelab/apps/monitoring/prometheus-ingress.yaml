@@ -1,27 +1,26 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: immich-ingress
-  namespace: immich
+  name: prometheus-ingress
+  namespace: monitoring
   annotations:
     kubernetes.io/ingress.class: "traefik"
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    external-dns.alpha.kubernetes.io/hostname: "immich.app.pesulabs.net"
+    external-dns.alpha.kubernetes.io/hostname: "prometheus.app.pesulabs.net"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    traefik.ingress.kubernetes.io/proxy-body-size: "50G"
 spec:
   tls:
   - hosts:
-    - immich.app.pesulabs.net
-    secretName: immich-tls
+    - prometheus.app.pesulabs.net
+    secretName: prometheus-tls
   rules:
-  - host: immich.app.pesulabs.net
+  - host: prometheus.app.pesulabs.net
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: immich-server
+            name: prometheus
             port:
-              number: 2283
+              number: 9090

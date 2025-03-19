@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: plex
+  labels:
+    app: plex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      containers:
+      - name: plex
+        image: plexinc/pms-docker:latest
+        ports:
+        - containerPort: 32400
+          name: web
+        - containerPort: 1900
+          protocol: UDP
+          name: dlna
+        - containerPort: 3005
+          name: companion
+        - containerPort: 5353
+          protocol: UDP
+          name: bonjour
+        - containerPort: 8324
+          name: roku
+        - containerPort: 32410
+          protocol: UDP
+          name: gdm1
+        - containerPort: 32412
+          protocol: UDP
+          name: gdm2
+        - containerPort: 32413
+          protocol: UDP
+          name: gdm3
+        - containerPort: 32414
+          protocol: UDP
+          name: gdm4
+        env:
+        - name: TZ
+          value: "America/Argentina/Buenos_Aires"
+        - name: PLEX_CLAIM
+          value: ""  # Optional: Add your claim token here
+        - name: ADVERTISE_IP
+          value: "https://plex.app.pesulabs.net"
+        - name: ALLOWED_NETWORKS
+          value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+          requests:
+            cpu: 1000m
+            memory: 1Gi
+        volumeMounts:
+        - name: plex-config
+          mountPath: /config
+        - name: plex-media
+          mountPath: /media
+      volumes:
+      - name: plex-config
+        persistentVolumeClaim:
+          claimName: plex-config
+      - name: plex-media
+        persistentVolumeClaim:
+          claimName: plex-media
