@@ -19,11 +19,6 @@ spec:
         - name: server
           image: ghcr.io/immich-app/immich-server:v1.129.0
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              cd /usr/src/app
-              exec node ./dist/main web
           ports:
             - containerPort: 2283
           resources:
@@ -82,7 +77,7 @@ spec:
               mountPath: /usr/src/app/config
           startupProbe:
             httpGet:
-              path: /
+              path: /api/server/ping
               port: 2283
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -91,7 +86,7 @@ spec:
             successThreshold: 1
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/server/ping
               port: 2283
             periodSeconds: 10
             timeoutSeconds: 5
@@ -99,7 +94,7 @@ spec:
             successThreshold: 1
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/server/ping
               port: 2283
             periodSeconds: 10
             timeoutSeconds: 5

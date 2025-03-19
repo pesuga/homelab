@@ -1,5 +1,4 @@
-# Web deployment is not needed as the server component serves the web UI
-# This file is kept for reference but the resources are not deployed
+# Web deployment to serve the web UI
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -8,7 +7,7 @@ metadata:
   labels:
     app: immich-web
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: immich-web
@@ -19,13 +18,8 @@ spec:
     spec:
       containers:
         - name: web
-          image: ghcr.io/immich-app/immich-server:v1.129.0
+          image: ghcr.io/immich-app/immich-web:v1.129.0
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              cd /usr/src/app
-              exec node ./dist/main web
           ports:
             - containerPort: 3000
           resources:
@@ -34,38 +28,38 @@ spec:
               cpu: "100m"
             limits:
               memory: "256Mi"
-              cpu: "300m"
+              cpu: "200m"
           env:
+            - name: IMMICH_SERVER_URL
+              value: "https://immich.app.pesulabs.net"
             - name: PUBLIC_IMMICH_SERVER_URL
               value: "https://immich.app.pesulabs.net"
-            - name: IMMICH_SERVER_URL
-              value: "http://immich-server:3001"
             - name: PUBLIC_BASE_PATH
               value: ""
           startupProbe:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 2
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
             failureThreshold: 30
             successThreshold: 1
           livenessProbe:
             httpGet:
               path: /
               port: 3000
-            periodSeconds: 20
-            timeoutSeconds: 2
-            failureThreshold: 3
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
             successThreshold: 1
           readinessProbe:
             httpGet:
               path: /
               port: 3000
             periodSeconds: 10
-            timeoutSeconds: 2
-            failureThreshold: 3
+            timeoutSeconds: 5
+            failureThreshold: 6
             successThreshold: 1
 ---
 apiVersion: v1
