@@ -68,5 +68,5 @@ spec:
         configMap:
           name: grafana-dashboards
           items:
-            - key: kubernetes-cluster-dashboard.json
-              path: kubernetes-cluster-dashboard.json
+            - key: asuna-dashboard.json
+              path: asuna-dashboard.json

@@ -1,0 +1,19 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: immich-api-strip
+  namespace: immich
+spec:
+  stripPrefix:
+    prefixes:
+      - /api
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: immich-api-headers
+  namespace: immich
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"
