@@ -8,3 +8,5 @@ resources:
   - apps/glance
   - apps/owncloud
   - apps/immich
+  - apps/monitoring
+  - apps/postgresql
