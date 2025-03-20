@@ -32,28 +32,32 @@ data:
                 cache: 5m
                 sites:
                   - title: Plex
-                    url: https://plex.app.pesulabs.net/web
+                    url: https://plex.app.pesulabs.net
                     icon: si:plex
                   - title: Immich
-                    url: https://immich.app.pesulabs.net/api
+                    url: https://immich.app.pesulabs.net
                     icon: si:immich
                   - title: Home Assistant
                     url: https://home-assistant.app.pesulabs.net
                     icon: si:homeassistant
+                    icon_color: "#00FF00"
                   - title: N8N
                     url: https://n8n.app.pesulabs.net
                     icon: si:n8n
+                    icon_color: "#00FF00"
                   - title: OwnCloud
                     url: https://owncloud.app.pesulabs.net
                     icon: si:owncloud
+                    icon_color: "#00FF00"
                   - title: Qdrant
                     url: http://10.43.50.114:6333/dashboard
                     icon: si:database
+                    icon_color: "#00FF00"
                   - title: Grafana
-                    url: https://grafana.app.pesulabs.net/login
+                    url: https://grafana.app.pesulabs.net
                     icon: si:grafana
                   - title: Prometheus
-                    url: https://prometheus.app.pesulabs.net/graph
+                    url: https://prometheus.app.pesulabs.net
                     icon: si:prometheus
           
           - size: small
@@ -64,19 +68,19 @@ data:
                     color: 200 70 50
                     links:
                       - title: Grafana
-                        url: https://grafana.app.pesulabs.net/login
+                        url: https://grafana.app.pesulabs.net
                         icon: si:grafana
                       - title: Prometheus
-                        url: https://prometheus.app.pesulabs.net/graph
+                        url: https://prometheus.app.pesulabs.net
                         icon: si:prometheus
                   - title: Media
                     color: 150 70 50
                     links:
                       - title: Plex
-                        url: https://plex.app.pesulabs.net/web
+                        url: https://plex.app.pesulabs.net
                         icon: si:plex
                       - title: Immich
-                        url: https://immich.app.pesulabs.net/api
+                        url: https://immich.app.pesulabs.net
                         icon: si:immich
                   - title: Services
                     color: 100 70 50
