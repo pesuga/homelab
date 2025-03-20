@@ -34,18 +34,19 @@ spec:
           mountPath: /media
         resources:
           limits:
-            cpu: 1000m
-            memory: 1Gi
+            cpu: 300m
+            memory: 512Mi
           requests:
-            cpu: 200m
-            memory: 256Mi
+            cpu: 50m
+            memory: 128Mi
       volumes:
       - name: config
         persistentVolumeClaim:
           claimName: bazarr-config
       - name: media
-        persistentVolumeClaim:
-          claimName: media-storage
+        hostPath:
+          path: /mnt/media
+          type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

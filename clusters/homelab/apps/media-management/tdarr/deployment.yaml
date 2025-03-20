@@ -48,11 +48,11 @@ spec:
           mountPath: /media
         resources:
           limits:
-            cpu: 2000m
-            memory: 2Gi
-          requests:
             cpu: 500m
-            memory: 512Mi
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 256Mi
       volumes:
       - name: config
         persistentVolumeClaim:
@@ -64,8 +64,9 @@ spec:
         persistentVolumeClaim:
           claimName: tdarr-logs
       - name: media
-        persistentVolumeClaim:
-          claimName: media-storage
+        hostPath:
+          path: /mnt/media
+          type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

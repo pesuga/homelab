@@ -127,6 +127,9 @@ data:
                       - title: Tdarr
                         url: https://tdarr.app.pesulabs.net
                         icon: si:tdarr
+                      - title: Tautulli
+                        url: https://tautulli.app.pesulabs.net
+                        icon: si:tautulli
                   - title: Services
                     color: 100 70 50
                     links:
