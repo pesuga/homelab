@@ -5,6 +5,7 @@ resources:
   - grafana-pvc.yaml
   - grafana-datasources.yaml
   - grafana-dashboards.yaml
+  - grafana-k8s-dashboards.yaml
   - grafana-deployment.yaml
   - grafana-service.yaml
   - grafana-ingress.yaml
@@ -21,3 +22,8 @@ resources:
   - promtail-config.yaml
   - promtail-rbac.yaml
   - promtail-daemonset.yaml
+  - kube-state-metrics
+  - node-exporter.yaml
+
+patchesStrategicMerge:
+  - prometheus-config-update.yaml

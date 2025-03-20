@@ -25,6 +25,11 @@ This document serves as the central hub for tracking tasks, issues, and future e
 - [ ] Configure alerts for critical services in Grafana
 - [ ] Research and implement solution for running Home Assistant add-ons in Kubernetes
 - [x] Deploy Media Management Apps (Sonarr, Radarr, Bazarr, Prowlarr, Tdarr, Ombi, Tautulli)
+- [x] Enhance Kubernetes monitoring
+  - [x] Deploy kube-state-metrics for detailed Kubernetes object metrics
+  - [x] Create Kubernetes cluster overview dashboard
+  - [x] Create Kubernetes node metrics dashboard
+  - [x] Configure Prometheus to scrape metrics from all applications
 
 ### Low Priority
 - [ ] Explore additional security hardening measures
@@ -46,6 +51,9 @@ This document serves as the central hub for tracking tasks, issues, and future e
 ### Applications
 - [x] Deploy and configure Plex Media Server
 - [x] Set up Monitoring Stack (Grafana, Prometheus, Loki)
+  - [x] Basic system monitoring
+  - [x] Kubernetes cluster monitoring
+  - [x] Application metrics collection
 - [x] Deploy and configure Immich (photo management)
 - [x] Set up Home Assistant
 - [x] Deploy N8N workflow automation
@@ -102,3 +110,4 @@ This document serves as the central hub for tracking tasks, issues, and future e
 - [x] Fixed Plex Media Server configuration
 - [x] Fixed Prometheus OOMKilled errors by increasing memory limits
 - [x] Improved Glance dashboard service status detection
+- [x] Added allow-insecure flag to Glance monitor to handle self-signed certificates

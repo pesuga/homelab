@@ -10,6 +10,8 @@ The monitoring stack consists of the following components:
 2. **Grafana**: Visualization and dashboarding tool
 3. **Loki**: Log aggregation system
 4. **Promtail**: Log collection agent that sends logs to Loki
+5. **Kube-State-Metrics**: Exposes Kubernetes object metrics
+6. **Node-Exporter**: Exposes hardware and OS metrics
 
 ## Access
 
@@ -27,6 +29,23 @@ A comprehensive dashboard that provides:
 - System metrics (CPU, memory, disk, network)
 - Application status and uptime
 - Application error logs
+
+### Kubernetes Cluster Overview Dashboard
+
+A dashboard focused on Kubernetes cluster metrics:
+
+- CPU and memory usage by namespace
+- Running pods percentage
+- Total pods and active namespaces
+- Service health and availability
+
+### Kubernetes Node Metrics Dashboard
+
+A dashboard showing detailed node-level metrics:
+
+- CPU, memory, and disk usage per node
+- Network traffic statistics
+- System load and resource pressure
 
 ### Asuna Cluster Dashboard
 
@@ -68,8 +87,31 @@ To modify the dashboard:
 To add a new dashboard:
 
 1. Create a JSON file with the dashboard configuration
-2. Add it to the `grafana-dashboards.yaml` ConfigMap in `clusters/homelab/apps/monitoring/`
-3. Restart the Grafana deployment with `k rollout restart deployment grafana -n monitoring`
+2. Add it to the `grafana-dashboards.yaml` or create a new ConfigMap in `clusters/homelab/apps/monitoring/`
+3. Update the kustomization.yaml file to include the new ConfigMap
+4. Restart the Grafana deployment with `k rollout restart deployment grafana -n monitoring`
+
+## Application Metrics
+
+The monitoring system is configured to automatically discover and scrape metrics from applications that expose them. To make your application's metrics available to Prometheus:
+
+1. Expose a metrics endpoint in your application (typically on `/metrics`)
+2. Add Prometheus annotations to your service:
+   ```yaml
+   metadata:
+     annotations:
+       prometheus.io/scrape: "true"
+       prometheus.io/port: "8080"  # Replace with your metrics port
+       prometheus.io/path: "/metrics"  # Optional if using the default path
+   ```
+
+3. Prometheus will automatically discover and scrape metrics from services with these annotations
+
+For PostgreSQL and other database services, specific exporters can be deployed to expose metrics:
+
+- **PostgreSQL**: The PostgreSQL service is configured to expose metrics that Prometheus can scrape
+- **MySQL/MariaDB**: Deploy a mysql-exporter if needed
+- **MongoDB**: Deploy a mongodb-exporter if needed
 
 ## Logging
 
@@ -189,3 +231,12 @@ If services are showing as "ERROR" on the Glance dashboard, try the following:
    k apply -f clusters/homelab/apps/glance/configmap.yaml
    k rollout restart deployment glance -n glance
    ```
+
+#### Kubernetes Metrics Not Showing
+
+If Kubernetes metrics are not appearing:
+
+1. Check that kube-state-metrics is running: `k get pods -n monitoring -l app=kube-state-metrics`
+2. Verify the metrics endpoint is accessible: `k port-forward -n monitoring svc/kube-state-metrics 8080:8080` and then `curl localhost:8080/metrics`
+3. Check Prometheus targets to ensure kube-state-metrics is being scraped: `curl -s "http://localhost:9090/api/v1/targets" | jq` (requires port-forwarding)
+4. Ensure RBAC permissions are correctly configured for kube-state-metrics
