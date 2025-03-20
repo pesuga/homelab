@@ -77,3 +77,5 @@ This document serves as the central hub for tracking tasks, issues, and future e
 - [x] Fixed DNS resolution issues
 - [x] Resolved Immich 404 error
 - [x] Fixed Plex Media Server configuration
+- [x] Fixed Prometheus OOMKilled errors by increasing memory limits
+- [x] Improved Glance dashboard service status detection

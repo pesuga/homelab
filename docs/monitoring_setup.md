@@ -147,3 +147,18 @@ If Prometheus metrics are not appearing:
 2. Verify node-exporter is running: `k get pods -n monitoring -l app=node-exporter`
 3. Check Prometheus targets: `curl -s "http://localhost:9090/api/v1/targets" | jq` (requires port-forwarding)
 4. Ensure the Grafana Prometheus data source is configured correctly
+
+#### Prometheus OOMKilled Errors
+If Prometheus is being terminated with OOMKilled errors:
+1. Check the pod status: `k get pods -n monitoring -l app=prometheus`
+2. View the pod details: `k describe pod -n monitoring -l app=prometheus`
+3. If you see "OOMKilled" in the events, the pod is running out of memory
+4. Increase the memory limits in the Prometheus deployment:
+   ```yaml
+   resources:
+     limits:
+       memory: 1Gi
+     requests:
+       memory: 512Mi
+   ```
+5. Apply the changes: `k apply -f clusters/homelab/apps/monitoring/prometheus-deployment.yaml`
