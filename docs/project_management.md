@@ -72,6 +72,7 @@ This document serves as the central hub for tracking tasks, issues, and future e
 ### Open Issues
 - [ ] Promtail not sending logs to Loki
 - [ ] Immich mobile app connectivity issues
+- [ ] DNS resolution issue for qdrant.app.pesulabs.net (workaround: using internal service IP)
 
 ### Resolved Issues
 - [x] Fixed DNS resolution issues

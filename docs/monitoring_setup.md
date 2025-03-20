@@ -162,3 +162,22 @@ If Prometheus is being terminated with OOMKilled errors:
        memory: 512Mi
    ```
 5. Apply the changes: `k apply -f clusters/homelab/apps/monitoring/prometheus-deployment.yaml`
+
+#### Glance Dashboard Service Status Issues
+If services are showing as "ERROR" on the Glance dashboard, try the following:
+
+1. Check if the service is running: `k get pods -n <namespace> -l app=<app-name>`
+2. Verify the service URL is correct in the Glance configuration
+3. For DNS resolution issues, you can use the internal service IP instead:
+   ```yaml
+   # Example for Qdrant service
+   - title: Qdrant
+     url: http://<cluster-ip>:6333/dashboard
+     icon: si:database
+   ```
+4. To find the cluster IP: `k get svc -n <namespace> <service-name> -o jsonpath='{.spec.clusterIP}'`
+5. Apply the changes and restart the Glance pod:
+   ```bash
+   k apply -f clusters/homelab/apps/glance/configmap.yaml
+   k rollout restart deployment glance -n glance
+   ```
