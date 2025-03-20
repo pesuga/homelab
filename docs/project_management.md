@@ -24,10 +24,16 @@ This document serves as the central hub for tracking tasks, issues, and future e
   - [ ] Configure Jellyfin users and permissions
   - [x] Update Glance dashboard with Jellyfin link
   - [x] Fix DNS resolution for Jellyfin domain
+  - [x] Temporarily disable Jellyfin to improve cluster performance
 - [x] Clean up Plex-related services
   - [x] Remove Ombi from the cluster
   - [x] Remove Tautulli from the cluster
   - [x] Update Glance dashboard to remove Ombi and Tautulli references
+- [x] Optimize cluster performance
+  - [x] Temporarily disable Jellyfin and media apps to reduce resource usage
+  - [x] Update Glance dashboard to reflect disabled services
+  - [x] Document the reason for disabling in project management file
+  - [ ] Monitor cluster performance after optimization
 
 ### Medium Priority
 - [ ] Implement automated backup solutions for application data
@@ -117,6 +123,7 @@ This document serves as the central hub for tracking tasks, issues, and future e
 - [ ] Promtail not sending logs to Loki
 - [ ] Immich mobile app connectivity issues
 - [ ] DNS resolution issue for qdrant.app.pesulabs.net (workaround: using internal service IP)
+- [ ] Performance issues with high number of apps
 
 ### Resolved Issues
 - [x] Fixed DNS resolution issues
@@ -125,3 +132,10 @@ This document serves as the central hub for tracking tasks, issues, and future e
 - [x] Fixed Prometheus OOMKilled errors by increasing memory limits
 - [x] Improved Glance dashboard service status detection
 - [x] Added allow-insecure flag to Glance monitor to handle self-signed certificates
+
+### In Progress
+- [ ] Optimizing cluster performance
+  - [x] Temporarily disabled resource-intensive apps (Jellyfin and media management services)
+  - [ ] Analyze resource usage patterns
+  - [ ] Implement resource quotas
+  - [ ] Consider cluster scaling options
