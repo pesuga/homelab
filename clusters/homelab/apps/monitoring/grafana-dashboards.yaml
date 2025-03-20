@@ -17,10 +17,8 @@ data:
       options:
         path: /var/lib/grafana/dashboards
         foldersFromFilesStructure: true
-  kubernetes-cluster-dashboard.json: |
-{{ ... }}
-  homelab-overview-dashboard.json: |
-{{ ... }}
+  kubernetes-cluster-dashboard.json: ""
+  homelab-overview-dashboard.json: ""
   asuna-overview-dashboard.json: |
     {
       "annotations": {
