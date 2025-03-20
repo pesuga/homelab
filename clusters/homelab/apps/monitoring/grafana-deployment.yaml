@@ -23,10 +23,10 @@ spec:
           name: http
         resources:
           limits:
-            cpu: 200m
+            cpu: 50m
             memory: 256Mi
           requests:
-            cpu: 50m
+            cpu: 5m
             memory: 128Mi
         env:
         - name: GF_SECURITY_ADMIN_USER
