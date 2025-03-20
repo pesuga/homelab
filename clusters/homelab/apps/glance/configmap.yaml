@@ -32,11 +32,11 @@ data:
                 cache: 1m
                 method: HEAD
                 sites:
-                  - title: Plex
-                    url: https://plex.app.pesulabs.net
-                    icon: si:plex
+                  - title: Jellyfin
+                    url: https://jellyfin.app.pesulabs.net
+                    icon: si:jellyfin
                     allow-insecure: true
-                    icon_color: "#E5A00D"
+                    icon_color: "#00A4DC"
                   - title: Immich
                     url: https://immich.app.pesulabs.net
                     icon: si:immich
@@ -96,16 +96,6 @@ data:
                     icon: si:tdarr
                     allow-insecure: true
                     icon_color: "#607D8B"
-                  - title: Ombi
-                    url: https://ombi.app.pesulabs.net
-                    icon: si:ombi
-                    allow-insecure: true
-                    icon_color: "#3F51B5"
-                  - title: Tautulli
-                    url: https://tautulli.app.pesulabs.net
-                    icon: si:tautulli
-                    allow-insecure: true
-                    icon_color: "#E91E63"
                   - title: PostgreSQL
                     url: https://postgresql.app.pesulabs.net
                     icon: simple-icons:postgresql
@@ -127,10 +117,6 @@ data:
                         url: https://prometheus.app.pesulabs.net
                         icon: si:prometheus
                         icon_color: "#E6522C"
-                      - title: Tautulli
-                        url: https://tautulli.app.pesulabs.net
-                        icon: si:tautulli
-                        icon_color: "#E91E63"
                   - title: Database
                     color: 220 70 50
                     links:
@@ -141,18 +127,14 @@ data:
                   - title: Media
                     color: 150 70 50
                     links:
-                      - title: Plex
-                        url: https://plex.app.pesulabs.net
-                        icon: si:plex
-                        icon_color: "#E5A00D"
+                      - title: Jellyfin
+                        url: https://jellyfin.app.pesulabs.net
+                        icon: si:jellyfin
+                        icon_color: "#00A4DC"
                       - title: Immich
                         url: https://immich.app.pesulabs.net
                         icon: si:immich
                         icon_color: "#4250AF"
-                      - title: Ombi
-                        url: https://ombi.app.pesulabs.net
-                        icon: si:ombi
-                        icon_color: "#3F51B5"
                   - title: Media Management
                     color: 120 70 50
                     links:
@@ -176,10 +158,6 @@ data:
                         url: https://tdarr.app.pesulabs.net
                         icon: si:tdarr
                         icon_color: "#607D8B"
-                      - title: Tautulli
-                        url: https://tautulli.app.pesulabs.net
-                        icon: si:tautulli
-                        icon_color: "#E91E63"
                   - title: Services
                     color: 100 70 50
                     links:

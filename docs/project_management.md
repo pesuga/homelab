@@ -19,16 +19,15 @@ This document serves as the central hub for tracking tasks, issues, and future e
   - [x] Set up bookmarks for quick service access
   - [x] Configure weather widget for local conditions
 - [ ] Replace Plex with Jellyfin
-  - [ ] Deploy Jellyfin container
+  - [x] Deploy Jellyfin container
   - [ ] Migrate media library configuration
   - [ ] Configure Jellyfin users and permissions
-  - [ ] Update Glance dashboard with Jellyfin link
-- [ ] Replace Ombi with Overseerr
-  - [ ] Deploy Overseerr container
-  - [ ] Configure Overseerr integration with Sonarr/Radarr
-  - [ ] Migrate existing requests if possible
-  - [ ] Update Glance dashboard with Overseerr link
-- [ ] Remove Tautulli (Plex-specific)
+  - [x] Update Glance dashboard with Jellyfin link
+  - [x] Fix DNS resolution for Jellyfin domain
+- [x] Clean up Plex-related services
+  - [x] Remove Ombi from the cluster
+  - [x] Remove Tautulli from the cluster
+  - [x] Update Glance dashboard to remove Ombi and Tautulli references
 
 ### Medium Priority
 - [ ] Implement automated backup solutions for application data
@@ -42,6 +41,11 @@ This document serves as the central hub for tracking tasks, issues, and future e
   - [x] Create Kubernetes node metrics dashboard
   - [x] Configure Prometheus to scrape metrics from all applications
   - [x] Successfully integrate Kubernetes metrics in Grafana
+- [ ] Enhance monitoring dashboards
+  - [x] Fix Grafana dashboard data display
+  - [x] Configure Prometheus datasources correctly
+  - [x] Ensure metrics are being collected from all services
+  - [ ] Add custom dashboards for application-specific metrics
 
 ### Low Priority
 - [ ] Explore additional security hardening measures
@@ -67,7 +71,7 @@ This document serves as the central hub for tracking tasks, issues, and future e
 - [x] Configure OwnCloud file storage
 - [x] Set up Glance dashboard
 - [x] Deploy Qdrant Vector Database
-- [x] Deploy Plex Media Server
+- [x] Deploy Plex Media Server (replaced with Jellyfin)
 - [x] Set up Monitoring Stack (Grafana, Prometheus, Loki)
   - [x] Basic system monitoring
   - [x] Kubernetes cluster monitoring
@@ -76,7 +80,7 @@ This document serves as the central hub for tracking tasks, issues, and future e
 ## Wishlist
 
 ### Applications
-- [ ] Jellyfin - Open source media server
+- [x] Jellyfin - Open source media server
 - [x] Home Assistant
 - [x] OwnCloud
 - [x] Immich

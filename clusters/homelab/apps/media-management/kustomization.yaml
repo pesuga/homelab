@@ -7,5 +7,3 @@ resources:
   - bazarr/deployment.yaml
   - prowlarr/deployment.yaml
   - tdarr/deployment.yaml
-  - ombi/deployment.yaml
-  - tautulli/deployment.yaml

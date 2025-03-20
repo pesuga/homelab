@@ -9,14 +9,14 @@ data:
     providers:
     - name: 'default'
       orgId: 1
-      folder: ''
+      folder: 'Kubernetes'
       type: file
       disableDeletion: false
       updateIntervalSeconds: 10
       allowUiUpdates: true
       options:
         path: /var/lib/grafana/dashboards
-        foldersFromFilesStructure: true
+        foldersFromFilesStructure: false
   kubernetes-cluster-dashboard.json: |
     {
       "annotations": {
@@ -138,14 +138,14 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\"}[5m])) by (namespace) / sum(kube_pod_container_resource_limits{resource=\"cpu\"}) by (namespace) * 100",
+              "expr": "sum(kube_pod_container_resource_requests{resource=\"cpu\"}) by (namespace)",
               "instant": false,
               "legendFormat": "{{namespace}}",
               "range": true,
               "refId": "A"
             }
           ],
-          "title": "CPU Usage by Namespace",
+          "title": "CPU Requests by Namespace",
           "type": "timeseries"
         },
         {
@@ -231,14 +231,14 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum(container_memory_usage_bytes{container!=\"\"}) by (namespace) / sum(kube_pod_container_resource_limits{resource=\"memory\"}) by (namespace) * 100",
+              "expr": "sum(kube_pod_container_resource_requests{resource=\"memory\"}) by (namespace) / 1024 / 1024 / 1024",
               "instant": false,
               "legendFormat": "{{namespace}}",
               "range": true,
               "refId": "A"
             }
           ],
-          "title": "Memory Usage by Namespace",
+          "title": "Memory Requests by Namespace (GB)",
           "type": "timeseries"
         },
         {
@@ -258,13 +258,10 @@ data:
                   {
                     "color": "green",
                     "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
                   }
                 ]
-              }
+              },
+              "unit": "none"
             },
             "overrides": []
           },
@@ -276,6 +273,9 @@ data:
           },
           "id": 4,
           "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
             "orientation": "auto",
             "reduceOptions": {
               "calcs": [
@@ -284,25 +284,23 @@ data:
               "fields": "",
               "values": false
             },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true
+            "textMode": "auto"
           },
-          "pluginVersion": "9.5.1",
+          "pluginVersion": "10.2.0",
           "targets": [
             {
               "datasource": {
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "count(kube_pod_info)",
+              "expr": "count(kube_namespace_created)",
               "instant": false,
-              "legendFormat": "Total Pods",
               "range": true,
               "refId": "A"
             }
           ],
-          "title": "Total Pods",
-          "type": "gauge"
+          "title": "Active Namespaces",
+          "type": "stat"
         },
         {
           "datasource": {
@@ -510,14 +508,14 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "100 - (avg by (instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+              "expr": "sum(rate(node_cpu_seconds_total{mode!=\"idle\"}[1m])) by (instance) / count(node_cpu_seconds_total{mode=\"idle\"}) by (instance) * 100",
               "instant": false,
-              "legendFormat": "CPU Usage",
+              "legendFormat": "{{instance}}",
               "range": true,
               "refId": "A"
             }
           ],
-          "title": "CPU Usage",
+          "title": "CPU Usage by Node",
           "type": "timeseries"
         },
         {
@@ -603,7 +601,7 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "100 * (1 - ((node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes) / node_memory_MemTotal_bytes))",
+              "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100",
               "instant": false,
               "legendFormat": "Memory Usage",
               "range": true,

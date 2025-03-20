@@ -12,6 +12,7 @@ data:
       url: http://prometheus:9090
       access: proxy
       isDefault: true
+      uid: prometheus
     - name: Loki
       type: loki
       url: http://loki:3100
