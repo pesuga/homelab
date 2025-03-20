@@ -18,18 +18,30 @@ This document serves as the central hub for tracking tasks, issues, and future e
   - [x] Configure visual indicators for service status
   - [x] Set up bookmarks for quick service access
   - [x] Configure weather widget for local conditions
+- [ ] Replace Plex with Jellyfin
+  - [ ] Deploy Jellyfin container
+  - [ ] Migrate media library configuration
+  - [ ] Configure Jellyfin users and permissions
+  - [ ] Update Glance dashboard with Jellyfin link
+- [ ] Replace Ombi with Overseerr
+  - [ ] Deploy Overseerr container
+  - [ ] Configure Overseerr integration with Sonarr/Radarr
+  - [ ] Migrate existing requests if possible
+  - [ ] Update Glance dashboard with Overseerr link
+- [ ] Remove Tautulli (Plex-specific)
 
 ### Medium Priority
 - [ ] Implement automated backup solutions for application data
 - [ ] Fine-tune NGINX configurations for optimal performance
 - [ ] Configure alerts for critical services in Grafana
 - [ ] Research and implement solution for running Home Assistant add-ons in Kubernetes
-- [x] Deploy Media Management Apps (Sonarr, Radarr, Bazarr, Prowlarr, Tdarr, Ombi, Tautulli)
+- [x] Deploy Media Management Apps (Sonarr, Radarr, Bazarr, Prowlarr, Tdarr, Overseerr)
 - [x] Enhance Kubernetes monitoring
   - [x] Deploy kube-state-metrics for detailed Kubernetes object metrics
   - [x] Create Kubernetes cluster overview dashboard
   - [x] Create Kubernetes node metrics dashboard
   - [x] Configure Prometheus to scrape metrics from all applications
+  - [x] Successfully integrate Kubernetes metrics in Grafana
 
 ### Low Priority
 - [ ] Explore additional security hardening measures
@@ -49,22 +61,22 @@ This document serves as the central hub for tracking tasks, issues, and future e
 - [x] Implement better security for home network access only
 
 ### Applications
-- [x] Deploy and configure Plex Media Server
-- [x] Set up Monitoring Stack (Grafana, Prometheus, Loki)
-  - [x] Basic system monitoring
-  - [x] Kubernetes cluster monitoring
-  - [x] Application metrics collection
 - [x] Deploy and configure Immich (photo management)
 - [x] Set up Home Assistant
 - [x] Deploy N8N workflow automation
 - [x] Configure OwnCloud file storage
 - [x] Set up Glance dashboard
 - [x] Deploy Qdrant Vector Database
+- [x] Deploy Plex Media Server
+- [x] Set up Monitoring Stack (Grafana, Prometheus, Loki)
+  - [x] Basic system monitoring
+  - [x] Kubernetes cluster monitoring
+  - [x] Application metrics collection
 
 ## Wishlist
 
 ### Applications
-- [x] Plex Media Server
+- [ ] Jellyfin - Open source media server
 - [x] Home Assistant
 - [x] OwnCloud
 - [x] Immich
@@ -76,8 +88,7 @@ This document serves as the central hub for tracking tasks, issues, and future e
   - [x] Bazarr - Subtitle management and automation
   - [x] Prowlarr - Indexer management
   - [x] Tdarr - Transcoding automation
-  - [x] Ombi - Media request management
-  - [x] Tautulli - Plex monitoring and analytics
+  - [x] Overseerr - Media request management
 
 ## Database Services
 - [x] PostgreSQL - General purpose database for applications
@@ -93,7 +104,6 @@ This document serves as the central hub for tracking tasks, issues, and future e
 ### New Applications to Consider
 - [ ] Paperless-ngx for document management
 - [ ] Frigate NVR for camera management
-- [ ] Jellyfin as an alternative to Plex
 - [ ] Photoprism as an alternative to Immich
 - [ ] Home automation expansion (Zigbee/Z-Wave integration)
 

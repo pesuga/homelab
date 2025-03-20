@@ -39,6 +39,8 @@ A dashboard focused on Kubernetes cluster metrics:
 - Total pods and active namespaces
 - Service health and availability
 
+The Kubernetes dashboards are now successfully integrated into Grafana and accessible through the Grafana interface. The dashboards are configured in the `grafana-dashboards.yaml` file in the `clusters/homelab/apps/monitoring/` directory.
+
 ### Kubernetes Node Metrics Dashboard
 
 A dashboard showing detailed node-level metrics:
