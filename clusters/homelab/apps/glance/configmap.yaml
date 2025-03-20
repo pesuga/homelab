@@ -47,7 +47,7 @@ data:
                     url: https://owncloud.app.pesulabs.net
                     icon: si:owncloud
                   - title: Qdrant
-                    url: https://qdrant.app.pesulabs.net/dashboard
+                    url: http://10.43.50.114:6333/dashboard
                     icon: si:database
                   - title: Grafana
                     url: https://grafana.app.pesulabs.net/login
@@ -91,5 +91,5 @@ data:
                         url: https://owncloud.app.pesulabs.net
                         icon: si:owncloud
                       - title: Qdrant
-                        url: https://qdrant.app.pesulabs.net/dashboard
+                        url: http://10.43.50.114:6333/dashboard
                         icon: si:database
