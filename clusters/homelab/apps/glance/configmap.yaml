@@ -29,57 +29,88 @@ data:
             widgets:
               - type: monitor
                 title: Homelab Services
-                cache: 5m
+                cache: 1m
+                method: HEAD
                 sites:
                   - title: Plex
                     url: https://plex.app.pesulabs.net
                     icon: si:plex
+                    allow-insecure: true
+                    icon_color: "#E5A00D"
                   - title: Immich
                     url: https://immich.app.pesulabs.net
                     icon: si:immich
+                    allow-insecure: true
+                    icon_color: "#4250AF"
                   - title: Home Assistant
                     url: https://home-assistant.app.pesulabs.net
                     icon: si:homeassistant
-                    icon_color: "#00FF00"
+                    allow-insecure: true
+                    icon_color: "#41BDF5"
                   - title: N8N
                     url: https://n8n.app.pesulabs.net
                     icon: si:n8n
-                    icon_color: "#00FF00"
+                    allow-insecure: true
+                    icon_color: "#FF6D00"
                   - title: OwnCloud
                     url: https://owncloud.app.pesulabs.net
                     icon: si:owncloud
-                    icon_color: "#00FF00"
+                    allow-insecure: true
+                    icon_color: "#1D2D44"
                   - title: Qdrant
                     url: http://10.43.50.114:6333/dashboard
                     icon: si:database
-                    icon_color: "#00FF00"
+                    icon_color: "#55C2E1"
                   - title: Grafana
                     url: https://grafana.app.pesulabs.net
                     icon: si:grafana
+                    allow-insecure: true
+                    icon_color: "#F46800"
                   - title: Prometheus
                     url: https://prometheus.app.pesulabs.net
                     icon: si:prometheus
+                    allow-insecure: true
+                    icon_color: "#E6522C"
                   - title: Sonarr
                     url: https://sonarr.app.pesulabs.net
                     icon: si:sonarr
+                    allow-insecure: true
+                    icon_color: "#2196F3"
                   - title: Radarr
                     url: https://radarr.app.pesulabs.net
                     icon: si:radarr
+                    allow-insecure: true
+                    icon_color: "#FFC107"
                   - title: Bazarr
                     url: https://bazarr.app.pesulabs.net
                     icon: si:bazarr
+                    allow-insecure: true
+                    icon_color: "#4CAF50"
                   - title: Prowlarr
                     url: https://prowlarr.app.pesulabs.net
                     icon: si:prowlarr
+                    allow-insecure: true
+                    icon_color: "#9C27B0"
                   - title: Tdarr
                     url: https://tdarr.app.pesulabs.net
                     icon: si:tdarr
+                    allow-insecure: true
+                    icon_color: "#607D8B"
                   - title: Ombi
                     url: https://ombi.app.pesulabs.net
                     icon: si:ombi
+                    allow-insecure: true
+                    icon_color: "#3F51B5"
                   - title: Tautulli
                     url: https://tautulli.app.pesulabs.net
                     icon: si:tautulli
+                    allow-insecure: true
+                    icon_color: "#E91E63"
+                  - title: PostgreSQL
+                    url: https://postgresql.app.pesulabs.net
+                    icon: simple-icons:postgresql
+                    allow-insecure: true
+                    icon_color: "#336791"
           
           - size: small
             widgets:
@@ -91,57 +122,80 @@ data:
                       - title: Grafana
                         url: https://grafana.app.pesulabs.net
                         icon: si:grafana
+                        icon_color: "#F46800"
                       - title: Prometheus
                         url: https://prometheus.app.pesulabs.net
                         icon: si:prometheus
+                        icon_color: "#E6522C"
                       - title: Tautulli
                         url: https://tautulli.app.pesulabs.net
                         icon: si:tautulli
+                        icon_color: "#E91E63"
+                  - title: Database
+                    color: 220 70 50
+                    links:
+                      - title: PostgreSQL
+                        url: https://postgresql.app.pesulabs.net
+                        icon: simple-icons:postgresql
+                        icon_color: "#336791"
                   - title: Media
                     color: 150 70 50
                     links:
                       - title: Plex
                         url: https://plex.app.pesulabs.net
                         icon: si:plex
+                        icon_color: "#E5A00D"
                       - title: Immich
                         url: https://immich.app.pesulabs.net
                         icon: si:immich
+                        icon_color: "#4250AF"
                       - title: Ombi
                         url: https://ombi.app.pesulabs.net
                         icon: si:ombi
+                        icon_color: "#3F51B5"
                   - title: Media Management
                     color: 120 70 50
                     links:
                       - title: Sonarr
                         url: https://sonarr.app.pesulabs.net
                         icon: si:sonarr
+                        icon_color: "#2196F3"
                       - title: Radarr
                         url: https://radarr.app.pesulabs.net
                         icon: si:radarr
+                        icon_color: "#FFC107"
                       - title: Bazarr
                         url: https://bazarr.app.pesulabs.net
                         icon: si:bazarr
+                        icon_color: "#4CAF50"
                       - title: Prowlarr
                         url: https://prowlarr.app.pesulabs.net
                         icon: si:prowlarr
+                        icon_color: "#9C27B0"
                       - title: Tdarr
                         url: https://tdarr.app.pesulabs.net
                         icon: si:tdarr
+                        icon_color: "#607D8B"
                       - title: Tautulli
                         url: https://tautulli.app.pesulabs.net
                         icon: si:tautulli
+                        icon_color: "#E91E63"
                   - title: Services
                     color: 100 70 50
                     links:
                       - title: Home Assistant
                         url: https://home-assistant.app.pesulabs.net
                         icon: si:homeassistant
+                        icon_color: "#41BDF5"
                       - title: N8N
                         url: https://n8n.app.pesulabs.net
                         icon: si:n8n
+                        icon_color: "#FF6D00"
                       - title: OwnCloud
                         url: https://owncloud.app.pesulabs.net
                         icon: si:owncloud
+                        icon_color: "#1D2D44"
                       - title: Qdrant
                         url: http://10.43.50.114:6333/dashboard
                         icon: si:database
+                        icon_color: "#55C2E1"

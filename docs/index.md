@@ -15,6 +15,9 @@ This document serves as a central index for all documentation in the homelab rep
 - [Router Security](router_security.md) - Network security measures
 - [Tailscale Secure Access](tailscale_secure_access.md) - Secure remote access with Tailscale
 
+## Database Services
+- [PostgreSQL Setup](postgresql_setup.md) - PostgreSQL database configuration and management
+
 ## Application Documentation
 
 - [Vector Database Setup](vectordb_setup.md) - Qdrant vector database setup and usage

@@ -176,7 +176,15 @@ If services are showing as "ERROR" on the Glance dashboard, try the following:
      icon: si:database
    ```
 4. To find the cluster IP: `k get svc -n <namespace> <service-name> -o jsonpath='{.spec.clusterIP}'`
-5. Apply the changes and restart the Glance pod:
+5. Try simplifying the URL path - sometimes services respond better to the root path than specific endpoints
+6. Add visual indicators for working services using the `icon_color` property:
+   ```yaml
+   - title: Service Name
+     url: https://service.app.pesulabs.net
+     icon: si:service
+     icon_color: "#00FF00"  # Green color for working services
+   ```
+7. Apply the changes and restart the Glance pod:
    ```bash
    k apply -f clusters/homelab/apps/glance/configmap.yaml
    k rollout restart deployment glance -n glance

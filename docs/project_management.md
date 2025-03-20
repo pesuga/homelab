@@ -71,6 +71,9 @@ This document serves as the central hub for tracking tasks, issues, and future e
   - [x] Ombi - Media request management
   - [x] Tautulli - Plex monitoring and analytics
 
+## Database Services
+- [x] PostgreSQL - General purpose database for applications
+
 ## Future Enhancements
 
 ### Infrastructure Improvements
