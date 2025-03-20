@@ -32,10 +32,10 @@ data:
                 cache: 5m
                 sites:
                   - title: Plex
-                    url: https://plex.app.pesulabs.net
+                    url: https://plex.app.pesulabs.net/web
                     icon: si:plex
                   - title: Immich
-                    url: https://immich.app.pesulabs.net
+                    url: https://immich.app.pesulabs.net/api
                     icon: si:immich
                   - title: Home Assistant
                     url: https://home-assistant.app.pesulabs.net
@@ -47,13 +47,13 @@ data:
                     url: https://owncloud.app.pesulabs.net
                     icon: si:owncloud
                   - title: Qdrant
-                    url: https://qdrant.app.pesulabs.net
+                    url: https://qdrant.app.pesulabs.net/dashboard
                     icon: si:database
                   - title: Grafana
-                    url: https://grafana.app.pesulabs.net
+                    url: https://grafana.app.pesulabs.net/login
                     icon: si:grafana
                   - title: Prometheus
-                    url: https://prometheus.app.pesulabs.net
+                    url: https://prometheus.app.pesulabs.net/graph
                     icon: si:prometheus
           
           - size: small
@@ -64,19 +64,19 @@ data:
                     color: 200 70 50
                     links:
                       - title: Grafana
-                        url: https://grafana.app.pesulabs.net
+                        url: https://grafana.app.pesulabs.net/login
                         icon: si:grafana
                       - title: Prometheus
-                        url: https://prometheus.app.pesulabs.net
+                        url: https://prometheus.app.pesulabs.net/graph
                         icon: si:prometheus
                   - title: Media
                     color: 150 70 50
                     links:
                       - title: Plex
-                        url: https://plex.app.pesulabs.net
+                        url: https://plex.app.pesulabs.net/web
                         icon: si:plex
                       - title: Immich
-                        url: https://immich.app.pesulabs.net
+                        url: https://immich.app.pesulabs.net/api
                         icon: si:immich
                   - title: Services
                     color: 100 70 50
@@ -91,5 +91,5 @@ data:
                         url: https://owncloud.app.pesulabs.net
                         icon: si:owncloud
                       - title: Qdrant
-                        url: https://qdrant.app.pesulabs.net
+                        url: https://qdrant.app.pesulabs.net/dashboard
                         icon: si:database
