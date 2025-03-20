@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - media-storage-pvc.yaml
+  - sonarr/deployment.yaml
+  - radarr/deployment.yaml
+  - bazarr/deployment.yaml
+  - prowlarr/deployment.yaml
+  - tdarr/deployment.yaml
+  - ombi/deployment.yaml
+  - tautulli/deployment.yaml

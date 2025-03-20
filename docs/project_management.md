@@ -52,6 +52,23 @@ This document serves as the central hub for tracking tasks, issues, and future e
 - [x] Set up Glance dashboard
 - [x] Deploy Qdrant Vector Database
 
+## Wishlist
+
+### Applications
+- [x] Plex Media Server
+- [x] Home Assistant
+- [x] OwnCloud
+- [x] Immich
+- [x] N8N
+- [x] Qdrant
+- [ ] Sonarr - TV show management and automation
+- [ ] Radarr - Movie management and automation
+- [ ] Bazarr - Subtitle management and automation
+- [ ] Prowlarr - Indexer management
+- [ ] Tdarr - Transcoding automation
+- [ ] Ombi - Media request management
+- [ ] Tautulli - Plex monitoring and analytics
+
 ## Future Enhancements
 
 ### Infrastructure Improvements
