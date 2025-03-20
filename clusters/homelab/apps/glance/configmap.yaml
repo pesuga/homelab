@@ -21,38 +21,75 @@ data:
                 first-day-of-week: monday
               
               - type: weather
-                location: London, United Kingdom
+                location: Don Torcuato, Buenos Aires, Argentina
                 units: metric
                 hour-format: 12h
           
           - size: full
             widgets:
-              - type: group
-                widgets:
-                  - type: hacker-news
-                  - type: lobsters
-              
-              - type: videos
-                channels:
-                  - UCXuqSBlHAE6Xw-yeJA0Tunw # Linus Tech Tips
-                  - UCR-DXc1voovS8nhAvccRZhg # Jeff Geerling
-                  - UCsBjURrPoezykLs9EqgamOA # Fireship
-              
+              - type: monitor
+                title: Homelab Services
+                cache: 5m
+                sites:
+                  - title: Plex
+                    url: https://plex.app.pesulabs.net
+                    icon: si:plex
+                  - title: Immich
+                    url: https://immich.app.pesulabs.net
+                    icon: si:immich
+                  - title: Home Assistant
+                    url: https://home-assistant.app.pesulabs.net
+                    icon: si:homeassistant
+                  - title: N8N
+                    url: https://n8n.app.pesulabs.net
+                    icon: si:n8n
+                  - title: OwnCloud
+                    url: https://owncloud.app.pesulabs.net
+                    icon: si:owncloud
+                  - title: Qdrant
+                    url: https://qdrant.app.pesulabs.net
+                    icon: si:database
+                  - title: Grafana
+                    url: https://grafana.app.pesulabs.net
+                    icon: si:grafana
+                  - title: Prometheus
+                    url: https://prometheus.app.pesulabs.net
+                    icon: si:prometheus
+          
           - size: small
             widgets:
-              - type: releases
-                cache: 1d
-                repositories:
-                  - glanceapp/glance
-                  - go-gitea/gitea
-                  - immich-app/immich
-                  - syncthing/syncthing
-              
-              - type: markets
-                markets:
-                  - symbol: SPY
-                    name: S&P 500
-                  - symbol: BTC-USD
-                    name: Bitcoin
-                  - symbol: NVDA
-                    name: NVIDIA
+              - type: bookmarks
+                groups:
+                  - title: Monitoring
+                    color: 200 70 50
+                    links:
+                      - title: Grafana
+                        url: https://grafana.app.pesulabs.net
+                        icon: si:grafana
+                      - title: Prometheus
+                        url: https://prometheus.app.pesulabs.net
+                        icon: si:prometheus
+                  - title: Media
+                    color: 150 70 50
+                    links:
+                      - title: Plex
+                        url: https://plex.app.pesulabs.net
+                        icon: si:plex
+                      - title: Immich
+                        url: https://immich.app.pesulabs.net
+                        icon: si:immich
+                  - title: Services
+                    color: 100 70 50
+                    links:
+                      - title: Home Assistant
+                        url: https://home-assistant.app.pesulabs.net
+                        icon: si:homeassistant
+                      - title: N8N
+                        url: https://n8n.app.pesulabs.net
+                        icon: si:n8n
+                      - title: OwnCloud
+                        url: https://owncloud.app.pesulabs.net
+                        icon: si:owncloud
+                      - title: Qdrant
+                        url: https://qdrant.app.pesulabs.net
+                        icon: si:database

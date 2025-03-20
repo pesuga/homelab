@@ -13,10 +13,11 @@ This document serves as the central hub for tracking tasks, issues, and future e
   - [ ] Verify networking and DNS setup for external access
   - [ ] Test connectivity from mobile app
   - [ ] Document mobile setup process
-- [ ] Create Glance dashboard for service monitoring
-  - [ ] Add uptime checks for all services
-  - [ ] Configure visual indicators for service status
-  - [ ] Set up simple metrics display
+- [x] Create Glance dashboard for service monitoring
+  - [x] Add uptime checks for all services
+  - [x] Configure visual indicators for service status
+  - [x] Set up bookmarks for quick service access
+  - [x] Configure weather widget for local conditions
 
 ### Medium Priority
 - [ ] Implement automated backup solutions for application data

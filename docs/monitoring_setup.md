@@ -36,6 +36,33 @@ A dashboard focused on Kubernetes metrics:
 - Pod resource usage
 - Cluster health
 
+### Glance Dashboard
+
+A dedicated dashboard for quick service monitoring:
+
+- Service uptime checks for all applications
+- Visual indicators for service status
+- Quick links to all services
+- Weather and calendar widgets
+
+The Glance dashboard is accessible at: https://glance.app.pesulabs.net
+
+#### Glance Configuration
+
+The Glance dashboard is configured using a YAML file stored in the repository at:
+`clusters/homelab/apps/glance/configmap.yaml`
+
+Key features of the current configuration:
+- Monitor widget for service health checks (refreshes every 5 minutes)
+- Bookmarks widget for quick access to services organized by category
+- Weather widget showing conditions in Don Torcuato, Buenos Aires
+- Calendar widget for date reference
+
+To modify the dashboard:
+1. Edit the `configmap.yaml` file
+2. Apply the changes with `kubectl apply -f clusters/homelab/apps/glance/configmap.yaml`
+3. Restart the Glance pod with `kubectl rollout restart deployment glance -n glance`
+
 ## Adding New Dashboards
 
 To add a new dashboard:
