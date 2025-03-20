@@ -24,6 +24,7 @@ This document serves as the central hub for tracking tasks, issues, and future e
 - [ ] Fine-tune NGINX configurations for optimal performance
 - [ ] Configure alerts for critical services in Grafana
 - [ ] Research and implement solution for running Home Assistant add-ons in Kubernetes
+- [x] Deploy Media Management Apps (Sonarr, Radarr, Bazarr, Prowlarr, Tdarr, Ombi, Tautulli)
 
 ### Low Priority
 - [ ] Explore additional security hardening measures
@@ -61,13 +62,14 @@ This document serves as the central hub for tracking tasks, issues, and future e
 - [x] Immich
 - [x] N8N
 - [x] Qdrant
-- [ ] Sonarr - TV show management and automation
-- [ ] Radarr - Movie management and automation
-- [ ] Bazarr - Subtitle management and automation
-- [ ] Prowlarr - Indexer management
-- [ ] Tdarr - Transcoding automation
-- [ ] Ombi - Media request management
-- [ ] Tautulli - Plex monitoring and analytics
+- [x] Media Management Apps
+  - [x] Sonarr - TV show management and automation
+  - [x] Radarr - Movie management and automation
+  - [x] Bazarr - Subtitle management and automation
+  - [x] Prowlarr - Indexer management
+  - [x] Tdarr - Transcoding automation
+  - [x] Ombi - Media request management
+  - [x] Tautulli - Plex monitoring and analytics
 
 ## Future Enhancements
 
