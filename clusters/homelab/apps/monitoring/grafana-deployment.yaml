@@ -26,7 +26,7 @@ spec:
             cpu: 200m
             memory: 256Mi
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 128Mi
         env:
         - name: GF_SECURITY_ADMIN_USER
@@ -51,9 +51,6 @@ spec:
         - name: grafana-dashboards
           mountPath: /var/lib/grafana/dashboards
           readOnly: true
-        - name: grafana-k8s-dashboards
-          mountPath: /var/lib/grafana/dashboards/kubernetes
-          readOnly: true
       volumes:
       - name: grafana-data
         persistentVolumeClaim:
@@ -73,9 +70,7 @@ spec:
           items:
             - key: asuna-overview-dashboard.json
               path: asuna-overview-dashboard.json
-      - name: grafana-k8s-dashboards
-        configMap:
-          name: grafana-k8s-dashboards
-          items:
-            - key: k8s-cluster-dashboard.json
-              path: k8s-cluster-dashboard.json
+            - key: kubernetes-cluster-dashboard.json
+              path: kubernetes-cluster-dashboard.json
+            - key: homelab-overview-dashboard.json
+              path: homelab-overview-dashboard.json
