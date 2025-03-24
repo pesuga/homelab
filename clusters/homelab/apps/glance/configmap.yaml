@@ -87,6 +87,10 @@ data:
                         url: https://prometheus.app.pesulabs.net
                         icon: si:prometheus
                         icon_color: "#E6522C"
+                      - title: Logs Explorer
+                        url: https://grafana.app.pesulabs.net/explore?left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Bnamespace%3D~%5C%22.%2B%5C%22%7D%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D
+                        icon: mdi:file-document-multiple
+                        icon_color: "#9C27B0"
                   - title: Database
                     color: 220 70 50
                     links:

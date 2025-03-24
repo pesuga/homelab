@@ -39,6 +39,8 @@ spec:
           value: grafana.app.pesulabs.net
         - name: GF_SERVER_ROOT_URL
           value: https://grafana.app.pesulabs.net
+        - name: GF_INSTALL_PLUGINS
+          value: "grafana-logcli-datasource,grafana-piechart-panel,grafana-loki-app"
         volumeMounts:
         - name: grafana-data
           mountPath: /var/lib/grafana

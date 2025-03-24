@@ -15,7 +15,7 @@ This guide walks through setting up a K3s cluster with Flux CD for GitOps-based 
 - [ ] 2. K3s Installation
 - [ ] 3. Repository Structure Setup
 - [ ] 4. Flux Installation and Bootstrap
-- [ ] 5. Application Deployment (n8n)
+- [ ] 5. Application Deployment
 - [ ] 6. Verify End-to-End GitOps Flow
 
 ## 1. Server OS Installation
@@ -74,7 +74,7 @@ cd homelab
 
 # Create directory structure
 mkdir -p clusters/homelab/infrastructure
-mkdir -p clusters/homelab/apps/n8n
+mkdir -p clusters/homelab/apps
 mkdir -p docs
 
 # Create the main kustomization file
@@ -83,7 +83,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - infrastructure
-  - apps/n8n
+  - apps
 EOF
 ```
 
@@ -121,23 +121,23 @@ flux bootstrap github \
   --personal
 ```
 
-## 5. Application Deployment (n8n)
+## 5. Application Deployment
 
-Create the necessary manifests for n8n:
+Create the necessary manifests for your applications:
 
 1. Create namespace:
 ```bash
-cat > clusters/homelab/apps/n8n/namespace.yaml << EOF
+cat > clusters/homelab/apps/[app-name]/namespace.yaml << EOF
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: n8n
+  name: [app-name]
 EOF
 ```
 
 2. Create kustomization file:
 ```bash
-cat > clusters/homelab/apps/n8n/kustomization.yaml << EOF
+cat > clusters/homelab/apps/[app-name]/kustomization.yaml << EOF
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
@@ -145,8 +145,6 @@ resources:
   - deployment.yaml
   - service.yaml
   - ingress.yaml
-  - postgresql.yaml
-  - pvc.yaml
 EOF
 ```
 
@@ -155,9 +153,46 @@ EOF
 4. Commit and push your changes:
 ```bash
 git add .
-git commit -m "Add n8n application manifests"
+git commit -m "Add application manifests"
 git push
 ```
+
+## Application Installation
+
+Once Flux is operational, the system will automatically deploy the following applications:
+
+1. **OwnCloud**: File storage and sharing platform
+2. **N8N**: Workflow automation platform
+3. **Home Assistant**: Home automation platform
+4. **Glance**: Dashboard for quick access to services
+5. **Immich**: Photo and video backup/management solution
+
+### Required Steps
+1. Configure DNS for all applications by running:
+   ```bash
+   ./scripts/setup-local-dns.sh pesulabs.net 192.168.1.100
+   ```
+   This will configure local DNS entries for apps like Grafana, Prometheus, Home Assistant, N8N, OwnCloud, and more.
+
+### Check application status
+```bash
+kubectl get pods -A | grep -v kube-system
+```
+
+You should see pods running for:
+- n8n
+- owncloud
+- home-assistant
+- glance
+- immich
+
+### Application Access
+Once all applications are running, you can access them at:
+- **OwnCloud**: https://owncloud.app.pesulabs.net
+- **N8N**: https://n8n.app.pesulabs.net
+- **Home Assistant**: https://home-assistant.app.pesulabs.net
+- **Glance**: https://glance.app.pesulabs.net
+- **Immich**: https://immich.app.pesulabs.net
 
 ## 6. Verify the GitOps Flow
 
@@ -167,8 +202,8 @@ Once your manifests are pushed to the repository, Flux will automatically deploy
 # Check Flux status
 flux get all -A
 
-# Check n8n deployment
-k -n n8n get pods,svc,ingress
+# Check application deployment
+k -n [app-name] get pods,svc,ingress
 
 # Force reconciliation if needed
 flux reconcile source git flux-system
@@ -186,7 +221,7 @@ flux logs
 
 2. Check pod logs:
 ```bash
-k -n n8n logs -l app=n8n
+k -n [app-name] logs -l app=[app-name]
 ```
 
 3. Check Flux components:
@@ -199,7 +234,6 @@ k -n flux-system get pods
 - Add monitoring (Prometheus/Grafana)
 - Set up secure ingress with cert-manager
 - Add more applications
-- Configure backups
 
 For detailed specifics on K3s and Flux, refer to:
 - K3s documentation: https://docs.k3s.io/

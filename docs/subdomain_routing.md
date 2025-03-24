@@ -79,8 +79,8 @@ kubectl apply -k /Users/gonzaloiglesias/sandbox/homelab/clusters/homelab/apps/ce
 | Grafana | https://grafana.app.pesulabs.net | Monitoring dashboard |
 | Prometheus | https://prometheus.app.pesulabs.net | Metrics collection |
 | Home Assistant | https://home-assistant.app.pesulabs.net | Home automation |
-| N8N | https://n8n.app.pesulabs.net | Workflow automation |
 | OwnCloud | https://owncloud.app.pesulabs.net | File storage |
+| N8N | https://n8n.app.pesulabs.net | Workflow automation |
 | Glance | https://glance.app.pesulabs.net | Service dashboard |
 | Qdrant | https://qdrant.app.pesulabs.net | Vector database |
 
