@@ -21,6 +21,8 @@ spec:
         ports:
         - containerPort: 5678
         env:
+        - name: N8N_PORT
+          value: "5678"
         - name: DB_TYPE
           value: "postgresdb"
         - name: DB_POSTGRESDB_HOST
@@ -34,7 +36,7 @@ spec:
         - name: DB_POSTGRESDB_PASSWORD
           value: "n8nSecurePassword123"
         - name: N8N_LOG_LEVEL
-          value: "info"
+          value: "debug"
         - name: N8N_AUTO_MIGRATE_DATABASE
           value: "true"
         - name: N8N_TRUST_PROXY
@@ -43,6 +45,12 @@ spec:
           value: "false"
         - name: N8N_RUNNERS_ENABLED
           value: "true"
+        - name: NODE_ENV
+          value: "production"
+        - name: N8N_PATH
+          value: "/"
+        - name: N8N_HOST
+          value: "0.0.0.0"
         resources:
           limits:
             cpu: 1000m
