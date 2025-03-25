@@ -26,15 +26,30 @@ spec:
         - name: DB_TYPE
           value: "postgresdb"
         - name: DB_POSTGRESDB_HOST
-          value: "postgresql.database.svc.cluster.local"
+          valueFrom:
+            secretKeyRef:
+              name: n8n-db-credentials
+              key: DB_POSTGRESDB_HOST
         - name: DB_POSTGRESDB_PORT
-          value: "5432"
+          valueFrom:
+            secretKeyRef:
+              name: n8n-db-credentials
+              key: DB_POSTGRESDB_PORT
         - name: DB_POSTGRESDB_DATABASE
-          value: "n8n"
+          valueFrom:
+            secretKeyRef:
+              name: n8n-db-credentials
+              key: DB_POSTGRESDB_DATABASE
         - name: DB_POSTGRESDB_USER
-          value: "n8n"
+          valueFrom:
+            secretKeyRef:
+              name: n8n-db-credentials
+              key: DB_POSTGRESDB_USER
         - name: DB_POSTGRESDB_PASSWORD
-          value: "n8nSecurePassword123"
+          valueFrom:
+            secretKeyRef:
+              name: n8n-db-credentials
+              key: DB_POSTGRESDB_PASSWORD
         - name: N8N_LOG_LEVEL
           value: "debug"
         - name: N8N_AUTO_MIGRATE_DATABASE
@@ -51,6 +66,14 @@ spec:
           value: "/"
         - name: N8N_HOST
           value: "0.0.0.0"
+        - name: N8N_EDITOR_BASE_URL
+          value: "https://n8n.app.pesulabs.net"
+        - name: DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED
+          value: "false"
+        - name: N8N_DIAGNOSTICS_ENABLED
+          value: "false"
+        - name: N8N_USER_MANAGEMENT_DISABLED
+          value: "false"
         resources:
           limits:
             cpu: 1000m
