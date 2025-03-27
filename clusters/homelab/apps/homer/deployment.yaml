@@ -17,18 +17,18 @@ spec:
     spec:
       containers:
       - name: homer
-        image: postgres:15-alpine  # Using image already available in database namespace
+        image: rancher/local-path-provisioner:v0.0.24  # Using an image already in your cluster
         command: ["/bin/sh", "-c"]
         args:
           - |
-            # Install lighttpd
-            apk add --no-cache lighttpd
+            # Install necessary packages
+            apt-get update && apt-get install -y lighttpd
 
             # Create directory structure
-            mkdir -p /var/www/localhost/htdocs
+            mkdir -p /var/www/html
 
             # Create HTML file directly
-            cat > /var/www/localhost/htdocs/index.html << 'EOF'
+            cat > /var/www/html/index.html << 'EOF'
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -225,7 +225,7 @@ spec:
 
             # Configure lighttpd
             cat > /etc/lighttpd/lighttpd.conf << EOF
-            server.document-root = "/var/www/localhost/htdocs"
+            server.document-root = "/var/www/html"
             server.port = 80
             mimetype.assign = (
               ".html" => "text/html",
