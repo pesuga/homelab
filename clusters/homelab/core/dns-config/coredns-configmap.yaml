@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health
+        ready
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+          pods insecure
+          fallthrough in-addr.arpa ip6.arpa
+        }
+        hosts /etc/coredns/NodeHosts {
+          ttl 60
+          reload 15s
+          fallthrough
+        }
+        prometheus :9153
+        forward . 8.8.8.8 8.8.4.4 {
+          max_concurrent 1000
+          health_check 5s
+        }
+        cache 30
+        loop
+        reload
+        loadbalance
+        import /etc/coredns/custom/*.override
+    }
+    import /etc/coredns/custom/*.server
+  NodeHosts: |
+    192.168.86.141 asuna
+    # Container registry entries to improve reliability
+    185.125.190.36 ghcr.io
+    140.82.121.34 api.github.com
+    44.192.253.152 registry-1.docker.io
+    152.199.19.117 quay.io
