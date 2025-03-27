@@ -1,0 +1,139 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: node-local-dns
+  namespace: kube-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-local-dns
+  namespace: kube-system
+data:
+  Corefile: |
+    cluster.local:53 {
+        errors
+        cache {
+            success 9984 30
+            denial 9984 5
+        }
+        reload
+        loop
+        bind 169.254.20.10
+        forward . 10.43.0.10 {
+            force_tcp
+        }
+        prometheus :9253
+        health 169.254.20.10:8080
+    }
+    in-addr.arpa:53 {
+        errors
+        cache 30
+        reload
+        loop
+        bind 169.254.20.10
+        forward . 10.43.0.10 {
+            force_tcp
+        }
+        prometheus :9253
+    }
+    ip6.arpa:53 {
+        errors
+        cache 30
+        reload
+        loop
+        bind 169.254.20.10
+        forward . 10.43.0.10 {
+            force_tcp
+        }
+        prometheus :9253
+    }
+    .:53 {
+        errors
+        cache 30
+        reload
+        loop
+        bind 169.254.20.10
+        forward . 8.8.8.8 1.1.1.1 {
+            force_tcp
+        }
+        prometheus :9253
+        health 169.254.20.10:8080
+    }
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-local-dns
+  namespace: kube-system
+  labels:
+    k8s-app: node-local-dns
+spec:
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 10%
+  selector:
+    matchLabels:
+      k8s-app: node-local-dns
+  template:
+    metadata:
+      labels:
+        k8s-app: node-local-dns
+    spec:
+      priorityClassName: system-node-critical
+      serviceAccountName: node-local-dns
+      hostNetwork: true
+      dnsPolicy: Default
+      tolerations:
+      - key: "CriticalAddonsOnly"
+        operator: "Exists"
+      - effect: "NoExecute"
+        operator: "Exists"
+      - effect: "NoSchedule"
+        operator: "Exists"
+      containers:
+      - name: node-cache
+        image: registry.k8s.io/dns/k8s-dns-node-cache:1.22.23
+        resources:
+          limits:
+            memory: 170Mi
+          requests:
+            cpu: 100m
+            memory: 70Mi
+        args: [ "-localip", "169.254.20.10", "-conf", "/etc/coredns/Corefile" ]
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 53
+          name: dns
+          protocol: UDP
+        - containerPort: 53
+          name: dns-tcp
+          protocol: TCP
+        - containerPort: 9253
+          name: metrics
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            host: 169.254.20.10
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+        volumeMounts:
+        - mountPath: /run/xtables.lock
+          name: xtables-lock
+          readOnly: false
+        - name: config-volume
+          mountPath: /etc/coredns
+      volumes:
+      - name: xtables-lock
+        hostPath:
+          path: /run/xtables.lock
+          type: FileOrCreate
+      - name: config-volume
+        configMap:
+          name: node-local-dns
+          items:
+          - key: Corefile
+            path: Corefile

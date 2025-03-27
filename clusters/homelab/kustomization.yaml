@@ -2,11 +2,15 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - infrastructure
-  - apps/n8n
   - apps/tailscale
   - apps/home-assistant
-  - apps/glance
-  - apps/owncloud
   - apps/immich
-  - apps/monitoring
+  - apps/n8n
+  - apps/owncloud
+  - apps/glance
+  - apps/prometheus
+  - apps/grafana
+  - apps/homer
+  - core/dns-config
   - apps/postgresql
+  - apps/monitoring
