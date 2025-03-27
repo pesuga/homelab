@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    tailscale.com/tailnet-fqdn: "database-prod.tailnet.ts."
+  name: database-prod
+  namespace: default
+spec:
+  externalName: placeholder
+  type: ExternalName
