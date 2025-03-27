@@ -34,7 +34,7 @@ spec:
         - name: TS_ACCEPT_DNS
           value: "true"
         - name: TS_EXTRA_ARGS
-          value: "--accept-routes --advertise-exit-node --advertise-routes=10.42.0.0/16,10.43.0.0/16"
+          value: "--accept-routes --advertise-exit-node --advertise-routes=10.42.0.0/16,10.43.0.0/16 --reset"
         securityContext:
           capabilities:
             add:
