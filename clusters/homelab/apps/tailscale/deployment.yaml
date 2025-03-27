@@ -34,7 +34,10 @@ spec:
         - name: TS_ACCEPT_DNS
           value: "true"
         - name: TS_EXTRA_ARGS
-          value: "--accept-routes --advertise-exit-node --advertise-routes=10.42.0.0/16,10.43.0.0/16 --reset"
+          value: "--accept-routes --advertise-exit-node --advertise-routes=10.42.0.0/16,10.43.0.0/16 --reset --advertise-tags=tag:k8s-dns"
+        # Addition of Kubernetes DNS server as TS_DEST_IP enables DNS sharing
+        - name: TS_DEST_IP
+          value: "10.43.0.10:53"
         securityContext:
           capabilities:
             add:
