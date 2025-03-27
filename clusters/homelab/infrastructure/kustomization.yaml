@@ -4,3 +4,4 @@ resources:
   - networking
   - cert-manager.yaml
   - cert-manager-resources.yaml
+  - local-dns

@@ -73,14 +73,13 @@ kubectl apply -k /Users/gonzaloiglesias/sandbox/homelab/clusters/homelab/apps/ce
 ## Service URLs
 
 | Service | URL | Description |
-|---------|-----|-------------|
-| Immich | https://immich.app.pesulabs.net | Photo and video management |
-| Plex | https://plex.app.pesulabs.net | Media server |
-| Grafana | https://grafana.app.pesulabs.net | Monitoring dashboard |
-| Prometheus | https://prometheus.app.pesulabs.net | Metrics collection |
+| --- | --- | --- |
+| Immich | https://immich.app.pesulabs.net | Photo & video backup |
 | Home Assistant | https://home-assistant.app.pesulabs.net | Home automation |
-| OwnCloud | https://owncloud.app.pesulabs.net | File storage |
 | N8N | https://n8n.app.pesulabs.net | Workflow automation |
+| OwnCloud | https://owncloud.app.pesulabs.net | File storage |
+| Grafana | https://grafana.app.pesulabs.net | Monitoring dashboards |
+| Prometheus | https://prometheus.app.pesulabs.net | Metrics database |
 | Glance | https://glance.app.pesulabs.net | Service dashboard |
 | Qdrant | https://qdrant.app.pesulabs.net | Vector database |
 

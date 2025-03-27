@@ -45,14 +45,16 @@ create_record() {
 }
 
 # Create/update records for all applications
-create_record "owncloud.app"
-create_record "n8n.app"
-create_record "home-assistant.app"
-create_record "glance.app"
+echo "Creating DNS records..."
 create_record "immich.app"
-create_record "plex.app"
 create_record "grafana.app"
 create_record "prometheus.app"
+create_record "home-assistant.app"
+create_record "n8n.app"
+create_record "owncloud.app"
+create_record "glance.app"
+create_record "qdrant.app"
+create_record "homer.app"
 
 echo "DNS records created/updated. Changes may take a few minutes to propagate."
 echo "You can verify the records in the Cloudflare dashboard."

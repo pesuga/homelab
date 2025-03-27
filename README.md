@@ -34,7 +34,6 @@ This repository contains the GitOps configuration for my home Kubernetes lab run
 
 - **Services Status**:
   - **Immich**: Working - Web interface accessible
-  - **Plex**: Working - Returns 401 (authentication required)
   - **Grafana**: Working - Returns 302 redirect to login page
   - **Prometheus**: Working - Returns 405 for HEAD requests (expected)
   - **Home Assistant**: Working - Returns 405 for HEAD requests (expected)
@@ -106,7 +105,6 @@ Application configurations are organized in their respective directories under `
 ### Available Services
 
 - **Immich** (`immich.app.pesulabs.net`): Photo and video backup and management
-- **Plex** (`plex.app.pesulabs.net`): Media server for movies, TV shows, music, and more
 - **Grafana** (`grafana.app.pesulabs.net`): Monitoring dashboard for system metrics
 - **Prometheus** (`prometheus.app.pesulabs.net`): Time-series database for metrics collection
 - **Home Assistant** (`home-assistant.app.pesulabs.net`): Home automation platform

@@ -513,7 +513,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "up{namespace=~\"immich|plex|home-assistant|n8n|owncloud|glance\"}",
+          "expr": "up{namespace=~\"immich|home-assistant|n8n|owncloud|glance\"}",
           "instant": false,
           "legendFormat": "{{namespace}} - {{pod}}",
           "range": true,
@@ -580,7 +580,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "time() - kube_pod_start_time{namespace=~\"immich|plex|home-assistant|n8n|owncloud|glance\"}",
+          "expr": "time() - kube_pod_start_time{namespace=~\"immich|home-assistant|n8n|owncloud|glance\"}",
           "instant": false,
           "legendFormat": "{{namespace}} - {{pod}}",
           "range": true,
@@ -632,7 +632,7 @@
             "uid": "${DS_LOKI}"
           },
           "editorMode": "code",
-          "expr": "{namespace=~\"immich|plex|home-assistant|n8n|owncloud|glance\"} |~ \"error|warning|critical|exception\"",
+          "expr": "{namespace=~\"immich|home-assistant|n8n|owncloud|glance\"} |~ \"error|warning|critical|exception\"",
           "queryType": "range",
           "refId": "A"
         }

@@ -18,10 +18,10 @@ This document serves as the central hub for tracking tasks, issues, and future e
   - [x] Configure visual indicators for service status
   - [x] Set up bookmarks for quick service access
   - [x] Configure weather widget for local conditions
-- [ ] Replace Plex with Jellyfin
+- [x] Replace Plex with Jellyfin
   - [x] Deploy Jellyfin container
-  - [ ] Migrate media library configuration
-  - [ ] Configure Jellyfin users and permissions
+  - [x] Migrate media library configuration
+  - [x] Configure Jellyfin users and permissions
   - [x] Update Glance dashboard with Jellyfin link
   - [x] Fix DNS resolution for Jellyfin domain
   - [x] Temporarily disable Jellyfin to improve cluster performance
@@ -29,6 +29,12 @@ This document serves as the central hub for tracking tasks, issues, and future e
   - [x] Remove Ombi from the cluster
   - [x] Remove Tautulli from the cluster
   - [x] Update Glance dashboard to remove Ombi and Tautulli references
+  - [x] Completely remove Plex from the repository and cluster
+- [ ] Install and configure Homer dashboard
+  - [ ] Deploy Homer on the cluster
+  - [ ] Configure Homer to display all current applications
+  - [ ] Set up proper ingress and DNS for Homer
+  - [ ] Update documentation to reflect Homer dashboard
 - [x] Optimize cluster performance
   - [x] Temporarily disable Jellyfin and media apps to reduce resource usage
   - [x] Update Glance dashboard to reflect disabled services

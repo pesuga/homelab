@@ -12,13 +12,14 @@ DOMAIN_SUFFIX="app.pesulabs.net"
 # Services to configure
 SERVICES=(
   "immich"
-  "plex"
   "grafana"
   "prometheus"
   "home-assistant"
   "n8n"
   "owncloud"
   "glance"
+  "qdrant"
+  "homer"
 )
 
 # Function to generate dnsmasq configuration

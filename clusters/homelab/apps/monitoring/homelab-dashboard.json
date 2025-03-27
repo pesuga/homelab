@@ -514,7 +514,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "up{namespace=~\"immich|monitoring|plex|home-assistant|n8n|owncloud|glance\"}",
+          "expr": "up{namespace=~\"immich|monitoring|home-assistant|n8n|owncloud|glance\"}",
           "legendFormat": "{{namespace}}/{{pod}}",
           "range": true,
           "refId": "A"
@@ -608,7 +608,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "time() - kube_pod_start_time{namespace=~\"immich|monitoring|plex|home-assistant|n8n|owncloud|glance\"}",
+          "expr": "time() - kube_pod_start_time{namespace=~\"immich|monitoring|home-assistant|n8n|owncloud|glance\"}",
           "legendFormat": "{{namespace}}/{{pod}}",
           "range": true,
           "refId": "A"
@@ -659,7 +659,7 @@
             "uid": "P8E80F9AEF21F6940"
           },
           "editorMode": "builder",
-          "expr": "{namespace=~\"immich|plex|home-assistant|n8n|owncloud|glance\"} |~ \"error|warning|critical|exception\"",
+          "expr": "{namespace=~\"immich|home-assistant|n8n|owncloud|glance\"} |~ \"error|warning|critical|exception\"",
           "queryType": "range",
           "refId": "A"
         }

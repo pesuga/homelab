@@ -9,26 +9,22 @@ data:
     server:
       port: 8080
       base-url: ""
-    
+
     # General configuration
-    title: Homelab Dashboard
+    title: "PesuLabs Homelab Dashboard"
+    theme:
+      primary-color: "#4a69bd"
+      accent-color: "#60a3bc"
+      background-color: "#1e272e"
+      card-background: "#2c3e50"
+    
     pages:
       - name: Home
         columns:
-          - size: small
-            widgets:
-              - type: calendar
-                first-day-of-week: monday
-              
-              - type: weather
-                location: Don Torcuato, Buenos Aires, Argentina
-                units: metric
-                hour-format: 12h
-          
           - size: full
             widgets:
               - type: monitor
-                title: Homelab Services
+                title: Homelab Services Status
                 cache: 1m
                 method: HEAD
                 sites:
@@ -74,7 +70,19 @@ data:
           
           - size: small
             widgets:
+              - type: weather
+                location: Don Torcuato, Buenos Aires, Argentina
+                units: metric
+                hour-format: 12h
+              
+              - type: calendar
+                first-day-of-week: monday
+                show-today-indicator: true
+          
+          - size: medium
+            widgets:
               - type: bookmarks
+                title: Quick Access
                 groups:
                   - title: Monitoring
                     color: 200 70 50
@@ -98,6 +106,10 @@ data:
                         url: https://postgresql.app.pesulabs.net
                         icon: simple-icons:postgresql
                         icon_color: "#336791"
+                      - title: Qdrant
+                        url: http://10.43.50.114:6333/dashboard
+                        icon: si:database
+                        icon_color: "#55C2E1"
                   - title: Media
                     color: 150 70 50
                     links:
@@ -120,7 +132,35 @@ data:
                         url: https://owncloud.app.pesulabs.net
                         icon: si:owncloud
                         icon_color: "#1D2D44"
-                      - title: Qdrant
-                        url: http://10.43.50.114:6333/dashboard
-                        icon: si:database
-                        icon_color: "#55C2E1"
+      
+      - name: System
+        columns:
+          - size: full
+            widgets:
+              - type: iframe
+                title: Cluster Metrics
+                url: https://grafana.app.pesulabs.net/d/kubernetes-compute-resources-cluster/kubernetes-compute-resources-cluster?orgId=1&refresh=10s
+                height: 400px
+                allow-insecure: true
+                
+          - size: small
+            widgets:
+              - type: system-info
+                title: System Information
+                
+              - type: releases
+                title: Software Versions
+                cache: 60m
+                releases:
+                  - name: Kubernetes
+                    url: https://github.com/kubernetes/kubernetes/releases
+                    regex: v\d+\.\d+\.\d+
+                  - name: Flux
+                    url: https://github.com/fluxcd/flux2/releases
+                    regex: v\d+\.\d+\.\d+
+                  - name: Immich
+                    url: https://github.com/immich-app/immich/releases
+                    regex: v\d+\.\d+\.\d+
+                  - name: Home Assistant
+                    url: https://github.com/home-assistant/core/releases
+                    regex: \d+\.\d+\.\d+

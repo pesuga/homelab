@@ -259,7 +259,7 @@ data:
                 "uid": "Loki"
               },
               "editorMode": "code",
-              "expr": "{namespace=~\"immich|plex|home-assistant|n8n|owncloud|glance\"} |~ \"error|warning|critical|exception\"",
+              "expr": "{namespace=~\"immich|home-assistant|n8n|owncloud|glance\"} |~ \"error|warning|critical|exception\"",
               "queryType": "range",
               "refId": "A"
             }

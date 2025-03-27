@@ -20,9 +20,9 @@ SERVICES=(
   "home-assistant.app"
   "glance.app"
   "immich.app"
-  "plex.app"
   "grafana.app"
   "prometheus.app"
+  "homer.app"
 )
 
 # Function to remove DNS record

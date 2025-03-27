@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tls-fix-configmap
+  namespace: kube-system
+data:
+  containerd-fix.sh: |
+    #!/bin/sh
+    
+    # Backup original config
+    cp /etc/containerd/config.toml /etc/containerd/config.toml.backup.$(date +%Y%m%d%H%M%S)
+    
+    # Create a new config that skips TLS verification for Docker Hub
+    cat > /etc/containerd/config.toml <<EOF
+    version = 2
+    
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      config_path = "/etc/containerd/certs.d"
+    
+    [plugins."io.containerd.grpc.v1.cri".registry.configs."docker.io".tls]
+      insecure_skip_verify = true
+    
+    [plugins."io.containerd.grpc.v1.cri".registry.configs."quay.io".tls]
+      insecure_skip_verify = true
+    
+    [plugins."io.containerd.grpc.v1.cri".registry.configs."ghcr.io".tls]
+      insecure_skip_verify = true
+    
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+      endpoint = ["https://registry-1.docker.io"]
+    EOF
+    
+    # Restart containerd to apply changes
+    systemctl restart containerd
+    
+    # Wait for containerd to restart
+    sleep 5
+    
+    echo "Containerd configuration updated to skip TLS verification for container registries."
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fix-containerd-tls
+  namespace: kube-system
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      hostNetwork: true
+      hostPID: true
+      restartPolicy: Never
+      containers:
+      - name: containerd-config-fixer
+        image: quay.io/jetstack/cert-manager-controller:v1.12.0
+        command: ["sh", "-c"]
+        args:
+        - |
+          cp /scripts/containerd-fix.sh /host-root/tmp/
+          nsenter -t 1 -m -u -n -i sh /tmp/containerd-fix.sh
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: host-root
+          mountPath: /host-root
+        - name: scripts
+          mountPath: /scripts
+      volumes:
+      - name: host-root
+        hostPath:
+          path: /
+      - name: scripts
+        configMap:
+          name: tls-fix-configmap
+          defaultMode: 0755

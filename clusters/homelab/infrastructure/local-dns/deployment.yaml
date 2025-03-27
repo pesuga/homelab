@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-dns
+  namespace: local-dns
+  labels:
+    app: local-dns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-dns
+  template:
+    metadata:
+      labels:
+        app: local-dns
+    spec:
+      containers:
+      - name: coredns
+        image: k8s.gcr.io/coredns/coredns:v1.8.6
+        args: ["-conf", "/etc/coredns/Corefile"]
+        ports:
+        - containerPort: 53
+          name: dns
+          protocol: UDP
+        - containerPort: 53
+          name: dns-tcp
+          protocol: TCP
+        - containerPort: 9153
+          name: metrics
+          protocol: TCP
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/coredns
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8181
+            scheme: HTTP
+      volumes:
+      - name: config-volume
+        configMap:
+          name: coredns-custom
+          items:
+          - key: Corefile
+            path: Corefile
