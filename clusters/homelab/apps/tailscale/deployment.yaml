@@ -17,34 +17,19 @@ spec:
       containers:
       - name: tailscale
         image: tailscale/tailscale:v1.58.2
-        command: ["/bin/sh", "-c"]
+        command:
+        - "/bin/bash"
+        - "-c"
         args:
-          - |
-            #!/bin/sh
-            # Start tailscaled
-            tailscaled --state=mem: &
-            PID=$!
-            
-            # Wait for tailscaled to start
-            sleep 5
-            
-            # Run tailscale up with all required flags
-            tailscale up \
-              --authkey=${TS_AUTH_KEY} \
-              --hostname=${TS_HOSTNAME} \
-              --accept-dns \
-              --advertise-exit-node \
-              --advertise-routes=10.42.0.0/16,10.43.0.0/16 \
-              --advertise-tags=tag:k8s-dns
-            
-            # Forward DNS requests to kube-dns
-            if [ -n "${TS_DEST_IP}" ]; then
-              echo "Forwarding DNS to ${TS_DEST_IP}"
-              tailscale serve dns ${TS_HOSTNAME} ${TS_DEST_IP}
-            fi
-            
-            # Wait for tailscaled to exit
-            wait $PID
+        - |
+          set -e
+          # Start tailscaled
+          /app/start_tagged.sh &
+          sleep 5
+          # Configure DNS sharing
+          tailscale serve dns k8s-dns 10.43.0.10:53 
+          # Keep the pod running
+          sleep infinity
         env:
         - name: TS_AUTH_KEY
           valueFrom:
@@ -59,8 +44,8 @@ spec:
           value: "/var/lib/tailscale"
         - name: TS_ACCEPT_DNS
           value: "true"
-        - name: TS_DEST_IP
-          value: "10.43.0.10:53"
+        - name: TS_EXTRA_ARGS 
+          value: "--accept-routes --advertise-exit-node --advertise-routes=10.42.0.0/16,10.43.0.0/16 --accept-dns=true --advertise-tags=tag:k8s-dns"
         securityContext:
           capabilities:
             add:
