@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-coredns
+  namespace: local-dns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: external-coredns
+  template:
+    metadata:
+      labels:
+        app: external-coredns
+    spec:
+      containers:
+      - name: coredns
+        image: coredns/coredns:1.10.1
+        args: ["-conf", "/etc/coredns/Corefile"]
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/coredns
+        ports:
+        - containerPort: 53
+          name: dns
+          protocol: UDP
+        - containerPort: 53
+          name: dns-tcp
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+            scheme: HTTP
+      volumes:
+      - name: config-volume
+        configMap:
+          name: external-coredns-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-coredns
+  namespace: local-dns
+spec:
+  selector:
+    app: external-coredns
+  ports:
+  - name: dns
+    port: 53
+    protocol: UDP
+    targetPort: 53
+  - name: dns-tcp
+    port: 53
+    protocol: TCP
+    targetPort: 53
+  type: LoadBalancer
