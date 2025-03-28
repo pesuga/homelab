@@ -22,14 +22,33 @@ spec:
         - "-c"
         args:
         - |
-          set -e
+          set -ex
           # Start tailscaled
-          /app/start_tagged.sh &
+          tailscaled --state=mem: &
+          TAILSCALED_PID=$!
+          
+          # Wait for tailscaled to start
           sleep 5
-          # Configure DNS sharing
-          tailscale serve dns k8s-dns 10.43.0.10:53 
-          # Keep the pod running
-          sleep infinity
+          
+          # Run tailscale up with all required flags
+          echo "Authenticating Tailscale..."
+          tailscale up \
+            --authkey="${TS_AUTH_KEY}" \
+            --hostname="${TS_HOSTNAME}" \
+            --accept-dns \
+            --advertise-exit-node \
+            --advertise-routes=10.42.0.0/16,10.43.0.0/16 \
+            --advertise-tags=tag:k8s-dns \
+            --reset
+          
+          # Configure DNS sharing for cluster.local domains
+          echo "Setting up DNS sharing for Kubernetes cluster..."
+          tailscale serve dns "${TS_HOSTNAME}" 10.43.0.10:53
+          
+          echo "Tailscale setup complete!"
+          
+          # Keep the container running
+          wait $TAILSCALED_PID
         env:
         - name: TS_AUTH_KEY
           valueFrom:
@@ -44,8 +63,6 @@ spec:
           value: "/var/lib/tailscale"
         - name: TS_ACCEPT_DNS
           value: "true"
-        - name: TS_EXTRA_ARGS 
-          value: "--accept-routes --advertise-exit-node --advertise-routes=10.42.0.0/16,10.43.0.0/16 --accept-dns=true --advertise-tags=tag:k8s-dns"
         securityContext:
           capabilities:
             add:
