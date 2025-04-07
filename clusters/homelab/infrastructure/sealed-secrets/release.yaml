@@ -10,9 +10,13 @@ spec:
       chart: sealed-secrets
       version: "2.5.7" # Use latest available version
       sourceRef:
+        # type: helm # Explicitly define the type (Optional, but might help)
+        # Let's try without this first, the HelmRepository change should be enough.
+        # If OCI error persists, uncomment this.
         kind: HelmRepository
         name: bitnami # Assumes bitnami repo is defined in flux-system/sources
         namespace: flux-system
+      type: helm # Explicitly define the type
       interval: 5m
   install:
     remediation:
