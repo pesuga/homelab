@@ -7,6 +7,9 @@ spec:
   interval: 10m
   path: ./clusters/homelab/infrastructure/cert-manager
   prune: true
+  dependsOn:
+    - name: kube-prometheus-stack
+      namespace: monitoring
   sourceRef:
     kind: GitRepository
     name: flux-system

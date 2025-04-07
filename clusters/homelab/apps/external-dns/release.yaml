@@ -11,7 +11,7 @@ spec:
       version: "8.7.7"
       sourceRef:
         kind: HelmRepository
-        name: bitnami-external-dns
+        name: bitnami # Use simplified name
         namespace: flux-system
   values:
     provider: cloudflare  # Or your DNS provider

@@ -1,20 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  # Keep namespace, Loki, and Promtail
   - namespace.yaml
-  - grafana-pvc.yaml
-  - grafana-datasources.yaml
-  - grafana-dashboards.yaml
-  - grafana-k8s-dashboards.yaml
-  - grafana-deployment.yaml
-  - grafana-service.yaml
-  - grafana-ingress.yaml
-  - prometheus-pvc.yaml
-  - prometheus-configmap.yaml
-  - prometheus-rbac.yaml
-  - prometheus-deployment.yaml
-  - prometheus-service.yaml
-  - prometheus-ingress.yaml
   - loki-config.yaml
   - loki-pvc.yaml
   - loki-deployment.yaml
@@ -22,8 +10,6 @@ resources:
   - promtail-config.yaml
   - promtail-rbac.yaml
   - promtail-daemonset.yaml
-  - kube-state-metrics
-  - node-exporter.yaml
+  # Removed: grafana-*, prometheus-*, node-exporter.yaml, kube-state-metrics
 
-patchesStrategicMerge:
-  - prometheus-config-update.yaml
+# Removed patchesStrategicMerge for prometheus-config-update.yaml
