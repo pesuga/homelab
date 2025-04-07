@@ -10,7 +10,10 @@ spec:
       # Use direct chart URL instead of HelmRepository sourceRef
       chart: https://charts.bitnami.com/bitnami/sealed-secrets-2.5.7.tgz
       # Version is implicit in the URL
-      # sourceRef removed
+      sourceRef: # Add back required sourceRef block
+        kind: HelmRepository
+        name: bitnami
+        namespace: flux-system
       interval: 15m # Interval to check the chart URL (can be longer)
   install:
     remediation:
