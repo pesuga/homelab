@@ -9,7 +9,7 @@ spec:
   selector:
     app: homer
   ports:
-  - port: 80
-    targetPort: 80
+  - port: 80 # Keep the service port as 80 for the ingress
+    targetPort: 8080 # Target the container's port 8080
     protocol: TCP
     name: http
