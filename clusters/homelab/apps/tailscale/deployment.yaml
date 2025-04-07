@@ -40,13 +40,9 @@ spec:
             --advertise-routes=10.42.0.0/16,10.43.0.0/16 \
             --advertise-tags=tag:k8s-dns \
             --reset
-          
-          # Configure DNS sharing for cluster.local domains
-          echo "Setting up DNS sharing for Kubernetes cluster..."
-          tailscale serve dns "${TS_HOSTNAME}" 10.43.0.10:53
-          
+
           echo "Tailscale setup complete!"
-          
+
           # Keep the container running
           wait $TAILSCALED_PID
         env:

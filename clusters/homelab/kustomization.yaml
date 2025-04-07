@@ -5,11 +5,7 @@ resources:
   - infrastructure.yaml
   # Then apply apps etc.
   - apps/tailscale
-  - apps/home-assistant
-  - apps/immich
   - apps/n8n
-  - apps/owncloud
-  - apps/glance
   - apps/homer
   - core/dns-config
   - apps/postgresql

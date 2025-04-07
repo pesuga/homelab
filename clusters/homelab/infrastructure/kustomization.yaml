@@ -5,6 +5,7 @@ resources:
   - sources
   - monitoring
   - networking
+  - sealed-secrets # Add Sealed Secrets
   - cert-manager.yaml
   - cert-manager-resources.yaml
   - local-dns
