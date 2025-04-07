@@ -4,17 +4,16 @@ metadata:
   name: n8n
   namespace: n8n
   annotations:
-    kubernetes.io/ingress.class: "traefik"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
-    traefik.ingress.kubernetes.io/router.tls: "true"
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging" # Use staging for internal/local domains initially
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true" # Optional: Enforce HTTPS
 spec:
   tls:
   - hosts:
-    - n8n.app.pesulabs.net
-    secretName: n8n-tls
+    - n8n.homelab.local
+    secretName: n8n-homelab-local-tls # New secret name for the internal cert
   rules:
-  - host: n8n.app.pesulabs.net
+  - host: n8n.homelab.local
     http:
       paths:
       - path: /
