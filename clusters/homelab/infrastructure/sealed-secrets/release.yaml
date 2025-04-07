@@ -7,17 +7,11 @@ spec:
   interval: 15m
   chart:
     spec:
-      chart: sealed-secrets
-      version: "2.5.7" # Use latest available version
-      sourceRef:
-        # type: helm # Explicitly define the type (Optional, but might help)
-        # Let's try without this first, the HelmRepository change should be enough.
-        # If OCI error persists, uncomment this.
-        kind: HelmRepository
-        name: bitnami # Assumes bitnami repo is defined in flux-system/sources
-        namespace: flux-system
-      type: helm # Explicitly define the type
-      interval: 5m
+      # Use direct chart URL instead of HelmRepository sourceRef
+      chart: https://charts.bitnami.com/bitnami/sealed-secrets-2.5.7.tgz
+      # Version is implicit in the URL
+      # sourceRef removed
+      interval: 15m # Interval to check the chart URL (can be longer)
   install:
     remediation:
       retries: 3
