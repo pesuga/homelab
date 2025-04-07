@@ -1,0 +1,14 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infrastructure # This name matches the resource entry in clusters/homelab/kustomization.yaml
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/homelab/infrastructure # Point to the infrastructure directory
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  # Ensure infrastructure is applied before apps that might depend on it
+  dependsOn: [] # No explicit dependencies needed here for now, but could add later
