@@ -8,8 +8,6 @@ resources:
   - apps/n8n
   - apps/owncloud
   - apps/glance
-  - apps/prometheus
-  - apps/grafana
   - apps/homer
   - core/dns-config
   - apps/postgresql
