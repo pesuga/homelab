@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: sealed-secrets
-      version: "2.15.0" # Use a recent version
+      version: "2.5.7" # Use latest available version
       sourceRef:
         kind: HelmRepository
         name: bitnami # Assumes bitnami repo is defined in flux-system/sources
