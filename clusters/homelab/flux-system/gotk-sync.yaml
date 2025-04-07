@@ -16,12 +16,32 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: flux-system
+  name: flux-infra # New Kustomization for infrastructure
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./clusters/homelab
+  path: ./clusters/homelab/infrastructure # Apply only infrastructure
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
+  dependsOn: # Wait for core Flux controllers
+    - name: helm-controller
+      namespace: flux-system
+    - name: kustomize-controller
+      namespace: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps # Renamed Kustomization for apps (and remaining cluster config)
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./clusters/homelab # Apply the rest of the cluster config
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn: # Wait for infrastructure Kustomization
+    - name: flux-infra
