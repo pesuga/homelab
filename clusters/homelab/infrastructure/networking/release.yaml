@@ -1,0 +1,45 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ingress-nginx
+  namespace: ingress-nginx # Target namespace for the release
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: ingress-nginx
+      # Find a recent stable version from https://github.com/kubernetes/ingress-nginx/releases
+      version: "4.10.1"
+      sourceRef:
+        kind: HelmRepository
+        name: ingress-nginx # Assumes 'ingress-nginx' repo defined in sources
+        namespace: flux-system
+      interval: 5m
+  install:
+    remediation:
+      retries: 3
+    # Create the namespace if it doesn't exist
+    createNamespace: true
+  upgrade:
+    remediation:
+      retries: 3
+  # Values matching previous setup attempt (adjust if needed)
+  values:
+    controller:
+      kind: DaemonSet # Run one pod per node
+      service:
+        # type: LoadBalancer # K3s provides this by default via ServiceLB
+        externalTrafficPolicy: Local
+        # Use NodePort or hostPort if LoadBalancer isn't desired/working
+        # Or configure MetalLB if you need dedicated LoadBalancer IPs
+        ports:
+          http: 80 # Standard HTTP port
+          https: 443 # Standard HTTPS port
+      # The default container ports are 80 and 443, no need to override usually
+      # config:
+      #   use-forwarded-headers: "true" # Often needed behind proxies/LBs
+      #   compute-full-forwarded-for: "true"
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: true # If using Prometheus Operator

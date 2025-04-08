@@ -1,6 +1,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+# No namespace needed here, HelmRelease specifies its own target namespace
 resources:
-  - namespace.yaml
-  - ingress-nginx-deployment.yaml
-  - ingress-nginx-service.yaml
+  - release.yaml # Apply the HelmRelease
