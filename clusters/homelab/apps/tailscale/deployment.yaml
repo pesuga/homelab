@@ -37,7 +37,7 @@ spec:
             --hostname="${TS_HOSTNAME}" \
             --accept-dns \
             --advertise-exit-node \
-            --advertise-routes=10.42.0.0/16,10.43.0.0/16 \
+            --advertise-routes=10.42.0.0/16, 10.43.0.0/16 \
             --advertise-tags=tag:k8s-dns \
             --reset
 
