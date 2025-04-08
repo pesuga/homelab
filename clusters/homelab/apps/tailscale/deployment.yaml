@@ -17,9 +17,31 @@ spec:
       containers:
       - name: tailscale
         image: tailscale/tailscale:v1.58.2
-        # Override command and args entirely for testing
-        command: ["/bin/sleep"]
-        args: ["infinity"]
+        command:
+        - "/bin/bash"
+        - "-c"
+        args:
+        - |
+          set -ex
+          echo "Starting tailscaled..."
+          tailscaled --state=mem: &
+          TAILSCALED_PID=$!
+          
+          echo "Waiting for tailscaled..."
+          sleep 5
+
+          echo "Running tailscale up..."
+          tailscale up \
+            --authkey="${TS_AUTH_KEY}" \
+            --hostname="${TS_HOSTNAME}" \
+            --accept-dns \
+            --advertise-exit-node \
+            --advertise-routes=10.42.0.0/16, 10.43.0.0/16 \
+            --advertise-tags=tag:k8s-dns \
+            --reset
+
+          echo "Tailscale setup complete! Waiting for tailscaled process..."
+          wait $TAILSCALED_PID
         env:
         - name: TS_AUTH_KEY
           valueFrom:
