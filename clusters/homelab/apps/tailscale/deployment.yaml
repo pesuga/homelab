@@ -23,28 +23,16 @@ spec:
         args:
         - |
           set -ex
-          # Start tailscaled
+          echo "Starting tailscaled..."
           tailscaled --state=mem: &
           TAILSCALED_PID=$!
           
-          # Wait for tailscaled to start
-          sleep 5
+          echo "Tailscaled started with PID $TAILSCALED_PID. Container will sleep indefinitely."
           
-          # Run tailscale up with all required flags
-          echo "Authenticating Tailscale..."
-          tailscale up \
-            --authkey="${TS_AUTH_KEY}" \
-            --hostname="${TS_HOSTNAME}" \
-            --accept-dns \
-            --advertise-exit-node \
-            --advertise-routes=10.42.0.0/16, 10.43.0.0/16 \
-            --advertise-tags=tag:k8s-dns \
-            --reset
-
-          echo "Tailscale setup complete!"
-
-          # Keep the container running
-          wait $TAILSCALED_PID
+          # Keep container running without running 'tailscale up' for now
+          sleep infinity
+          
+          # wait $TAILSCALED_PID # Don't wait for tailscaled, just sleep
         env:
         - name: TS_AUTH_KEY
           valueFrom:
