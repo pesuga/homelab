@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgresql-config
-  namespace: database
+  namespace: databases
 data:
   postgresql.conf: |
     # Memory Configuration

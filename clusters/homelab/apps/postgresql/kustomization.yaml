@@ -1,7 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  # Add namespace.yaml if it doesn't exist yet
+  - namespace.yaml # Assuming postgresql runs in its own namespace
   - deployment.yaml
-  - secret.yaml
+  - sealed-secret.yaml # Use the sealed secret
   - configmap.yaml
-  - ingress.yaml
+  # - ingress.yaml # Removed, not needed for internal access
+  # Remove plain secret.yaml if no longer needed elsewhere
