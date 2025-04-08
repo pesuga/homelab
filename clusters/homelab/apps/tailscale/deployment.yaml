@@ -16,22 +16,22 @@ spec:
       serviceAccountName: tailscale
       containers:
       - name: tailscale
-        image: tailscale/tailscale:latest # Try latest version
+        image: tailscale/tailscale:v1.58.2 # Revert to original version tested
         command:
         - "/bin/bash"
         - "-c"
         args:
         - |
-          # set -ex # Disable exit on error for debugging
-          set -x # Trace commands
-          echo "Starting tailscaled..."
+          set -ex # Original setting
+          # Start tailscaled
           tailscaled --state=mem: &
           TAILSCALED_PID=$!
-          
-          echo "Waiting for tailscaled..."
+
+          # Wait for tailscaled to start
           sleep 5
 
-          echo "Running tailscale up..."
+          # Run tailscale up with all required flags
+          echo "Authenticating Tailscale..."
           tailscale up \
             --authkey="${TS_AUTH_KEY}" \
             --hostname="${TS_HOSTNAME}" \
@@ -47,17 +47,17 @@ spec:
         - name: TS_AUTH_KEY
           valueFrom:
             secretKeyRef:
-              name: tailscale
+              name: tailscale # Assumes sealed-secret.yaml provides this
               key: key
         - name: TS_USERSPACE
-          value: "true"
+          value: "true" # Revert to original userspace mode
         - name: TS_HOSTNAME
           value: "k8s-asuna"
         - name: TS_STATE_DIR
           value: "/var/lib/tailscale"
         - name: TS_ACCEPT_DNS
           value: "true"
-        securityContext:
+        securityContext: # Restore security context
           capabilities:
             add:
             - NET_ADMIN
