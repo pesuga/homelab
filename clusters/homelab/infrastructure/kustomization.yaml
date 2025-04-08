@@ -5,7 +5,7 @@ resources:
   - sources
   - monitoring
   - networking
-  # - sealed-secrets # Temporarily removed for manual install test
+  - sealed-secrets # Re-add Sealed Secrets (using manifests)
   - cert-manager.yaml
   - cert-manager-resources.yaml
   - local-dns
