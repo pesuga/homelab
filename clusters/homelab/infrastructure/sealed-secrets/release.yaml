@@ -4,7 +4,7 @@ metadata:
   name: sealed-secrets
   namespace: kube-system # Match the namespace in kustomization.yaml
 spec:
-  interval: 15m
+  interval: 30m # Increase interval to allow HelmChart more time
   chart:
     spec:
       chart: sealed-secrets # Use chart name
