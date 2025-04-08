@@ -4,7 +4,7 @@ resources:
   # Order matters: Apply sources first, then monitoring, then cert-manager
   - sources
   - monitoring
-  - networking
+  # - networking # Temporarily disable Flux management for Nginx
   - sealed-secrets # Re-add Sealed Secrets (using manifests)
   - cert-manager.yaml
   - cert-manager-resources.yaml
