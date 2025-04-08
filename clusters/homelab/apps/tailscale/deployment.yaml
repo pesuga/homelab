@@ -22,7 +22,8 @@ spec:
         - "-c"
         args:
         - |
-          set -ex
+          # set -ex # Disable exit on error for debugging
+          set -x # Trace commands
           echo "Starting tailscaled..."
           tailscaled --state=mem: &
           TAILSCALED_PID=$!
