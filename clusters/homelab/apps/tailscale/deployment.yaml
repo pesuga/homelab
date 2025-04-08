@@ -47,10 +47,7 @@ spec:
           value: "/var/lib/tailscale"
         - name: TS_ACCEPT_DNS
           value: "true"
-        securityContext:
-          capabilities:
-            add:
-            - NET_ADMIN
+        # securityContext removed for testing
         volumeMounts:
         - name: tailscale-state
           mountPath: /var/lib/tailscale
