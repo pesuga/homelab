@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: leantime
+  namespace: leantime
+  labels:
+    app: leantime
+spec:
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app: leantime
+  type: ClusterIP # Only needs internal access

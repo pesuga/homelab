@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: leantime
+  namespace: leantime
+  labels:
+    app: leantime
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: leantime
+  template:
+    metadata:
+      labels:
+        app: leantime
+    spec:
+      containers:
+      - name: leantime
+        image: leantime/leantime:latest # Use the official image
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        # Database Configuration (using PostgreSQL service in 'databases' namespace)
+        - name: LEAN_DB_HOST
+          value: "postgresql.databases.svc.cluster.local" # Internal service DNS name
+        - name: LEAN_DB_PORT
+          value: "5432"
+        - name: LEAN_DB_DATABASE
+          value: "leantime" # We'll need to ensure this DB exists or Leantime creates it
+        - name: LEAN_DB_USERNAME
+          value: "leantime_user" # We'll need to create this user/role in PostgreSQL
+        - name: LEAN_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: leantime-db-secret # Secret containing the DB password
+              key: password
+        # Other Leantime settings (using defaults for now)
+        - name: LEAN_APP_URL # Base URL for accessing Leantime
+          value: "https://leantime.homelab.local" # Use the planned internal hostname
+        - name: LEAN_SITE_TITLE
+          value: "My Leantime"
+        # Add other necessary env vars based on Leantime docs if needed
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        # Leantime doesn't typically require persistent storage for the app itself,
+        # but check docs if file uploads need a volume. Data is in the DB.

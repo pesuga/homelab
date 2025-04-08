@@ -9,4 +9,5 @@ resources:
   - apps/homer
   - core/dns-config
   - apps/postgresql
+  - apps/project-management/leantime # Add Leantime
   - apps/monitoring
