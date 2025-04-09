@@ -12,4 +12,3 @@ spec:
     name: flux-system # Assumes the GitRepository source is named 'flux-system'
   dependsOn: # Optional: Ensure infrastructure is ready before apps
     - name: infrastructure
-  validation: client

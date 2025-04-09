@@ -10,4 +10,3 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system # Assumes the GitRepository source is named 'flux-system'
-  validation: client
