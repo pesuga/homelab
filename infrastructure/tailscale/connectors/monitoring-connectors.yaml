@@ -1,21 +1,10 @@
-apiVersion: tailscale.com/v1alpha1
-kind: Connector
-metadata:
-  name: grafana-connector
-spec:
-  hostname: grafana-connector
-  # This connector will be used for Grafana service exposure
-  subnetRouter:
-    advertiseRoutes:
-      - "10.96.0.0/16" # Kubernetes service CIDR
-  # No tags needed here as we're only accessing internal services
----
 apiVersion: v1
 kind: Service
 metadata:
   name: grafana-tailscale
   namespace: monitoring
   annotations:
+    tailscale.com/expose: "true"
     tailscale.com/hostname: "grafana.app.pesulabs.net"
   labels:
     app: grafana
@@ -28,23 +17,13 @@ spec:
       targetPort: 3000
   type: ClusterIP
 ---
-apiVersion: tailscale.com/v1alpha1
-kind: Connector
-metadata:
-  name: prometheus-connector
-spec:
-  hostname: prometheus-connector
-  # This connector will be used for Prometheus service exposure
-  subnetRouter:
-    advertiseRoutes:
-      - "10.96.0.0/16" # Kubernetes service CIDR
----
 apiVersion: v1
 kind: Service
 metadata:
   name: prometheus-tailscale
   namespace: monitoring
   annotations:
+    tailscale.com/expose: "true"
     tailscale.com/hostname: "prometheus.app.pesulabs.net"
   labels:
     app: prometheus
@@ -55,4 +34,23 @@ spec:
     - name: http
       port: 9090
       targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki-tailscale
+  namespace: monitoring
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "loki.app.pesulabs.net"
+  labels:
+    app: loki
+spec:
+  selector:
+    app: loki
+  ports:
+    - name: http
+      port: 3100
+      targetPort: 3100
   type: ClusterIP

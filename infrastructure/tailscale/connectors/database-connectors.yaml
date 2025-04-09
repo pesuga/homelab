@@ -1,20 +1,10 @@
-apiVersion: tailscale.com/v1alpha1
-kind: Connector
-metadata:
-  name: database-connector
-spec:
-  hostname: database-connector
-  # This connector will be used for database service exposure
-  subnetRouter:
-    advertiseRoutes:
-      - "10.96.0.0/16" # Kubernetes service CIDR
----
 apiVersion: v1
 kind: Service
 metadata:
   name: postgres-tailscale
   namespace: databases
   annotations:
+    tailscale.com/expose: "true"
     tailscale.com/hostname: "postgres.db.pesulabs.net"
   labels:
     app: postgres
@@ -33,6 +23,7 @@ metadata:
   name: qdrant-tailscale
   namespace: databases
   annotations:
+    tailscale.com/expose: "true"
     tailscale.com/hostname: "qdrant.db.pesulabs.net"
   labels:
     app: qdrant
