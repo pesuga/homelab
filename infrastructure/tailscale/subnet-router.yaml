@@ -43,11 +43,9 @@ spec:
         - name: TS_ROUTES
           value: "10.0.0.0/8"
         - name: TS_HOSTNAME
-          value: "k8s-router"
+          value: "k8s-homelab-router"
         - name: TS_EXTRA_ARGS
-          value: "--advertise-routes=10.0.0.0/8 --advertise-exit-node --hostname=k8s-homelab-router --advertise-tags=tag:infra --accept-dns=true"
-        - name: TS_DEST_IP
-          value: "10.43.213.195"
+          value: "--advertise-routes=10.0.0.0/8 --advertise-exit-node --advertise-tags=tag:infra --accept-dns=true"
         - name: TS_TAILSCALED_EXTRA_ARGS
           value: "--tun=userspace-networking --socks5-server=localhost:1055"
         volumeMounts:
