@@ -9,19 +9,7 @@ spec:
       containers:
       - name: operator
         env:
-        - name: TS_AUTHKEY
-          valueFrom:
-            secretKeyRef:
-              name: tailscale-auth
-              key: auth_key
         - name: OPERATOR_INITIAL_TAGS
           value: ""
         - name: PROXY_TAGS
           value: ""
-        volumeMounts:
-        - name: oauth
-          mountPath: /oauth
-          readOnly: true
-      volumes:
-      - name: oauth
-        emptyDir: {}
