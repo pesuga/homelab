@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: qdrant
+  namespace: databases
+spec:
+  serviceName: "qdrant"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qdrant
+  template:
+    metadata:
+      labels:
+        app: qdrant
+    spec:
+      containers:
+      - name: qdrant
+        image: qdrant/qdrant:v1.7.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6333
+          name: http
+        - containerPort: 6334
+          name: grpc
+        volumeMounts:
+        - name: qdrant-data
+          mountPath: /qdrant/storage
+          subPath: storage
+        - name: qdrant-data
+          mountPath: /qdrant/snapshots
+          subPath: snapshots
+        - name: qdrant-config-volume
+          mountPath: /qdrant/config/production.yaml
+          subPath: config.yaml
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /readyz
+            port: 6333
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 6
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 6333
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 6
+      volumes:
+      - name: qdrant-config-volume
+        configMap:
+          name: qdrant-config
+  volumeClaimTemplates:
+  - metadata:
+      name: qdrant-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi

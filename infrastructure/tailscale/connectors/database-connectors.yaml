@@ -1,0 +1,48 @@
+apiVersion: tailscale.com/v1alpha1
+kind: Connector
+metadata:
+  name: database-connector
+spec:
+  hostname: database-connector
+  # This connector will be used for database service exposure
+  subnetRouter:
+    advertiseRoutes: []
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-tailscale
+  namespace: databases
+  annotations:
+    tailscale.com/hostname: "postgres.db.pesulabs.net"
+  labels:
+    app: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-tailscale
+  namespace: databases
+  annotations:
+    tailscale.com/hostname: "qdrant.db.pesulabs.net"
+  labels:
+    app: qdrant
+spec:
+  selector:
+    app: qdrant
+  ports:
+    - name: http
+      port: 6333
+      targetPort: 6333
+    - name: grpc
+      port: 6334
+      targetPort: 6334
+  type: ClusterIP

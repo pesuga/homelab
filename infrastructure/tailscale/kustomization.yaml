@@ -6,3 +6,10 @@ resources:
   - operator.yaml
   # Reference the encrypted secret
   - tailscale-secret.yaml
+  # Include the connectors for accessing services via Tailscale
+  - connectors/monitoring-connectors.yaml
+  - connectors/database-connectors.yaml
+
+# Apply the patches to update the Tailscale operator deployment
+patchesStrategicMerge:
+  - patches/operator-deployment-patch.yaml

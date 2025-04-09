@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operator
+  namespace: tailscale
+spec:
+  template:
+    spec:
+      containers:
+      - name: operator
+        env:
+        - name: TS_AUTHKEY
+          valueFrom:
+            secretKeyRef:
+              name: tailscale-auth
+              key: auth_key
+        - name: OPERATOR_INITIAL_TAGS
+          value: ""
+        - name: PROXY_TAGS
+          value: ""

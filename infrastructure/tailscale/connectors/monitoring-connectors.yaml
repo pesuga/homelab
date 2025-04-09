@@ -1,0 +1,56 @@
+apiVersion: tailscale.com/v1alpha1
+kind: Connector
+metadata:
+  name: grafana-connector
+spec:
+  hostname: grafana-connector
+  # This connector will be used for Grafana service exposure
+  subnetRouter:
+    advertiseRoutes: []
+  # No tags needed here as we're only accessing internal services
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-tailscale
+  namespace: monitoring
+  annotations:
+    tailscale.com/hostname: "grafana.app.pesulabs.net"
+  labels:
+    app: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: tailscale.com/v1alpha1
+kind: Connector
+metadata:
+  name: prometheus-connector
+spec:
+  hostname: prometheus-connector
+  # This connector will be used for Prometheus service exposure
+  subnetRouter:
+    advertiseRoutes: []
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-tailscale
+  namespace: monitoring
+  annotations:
+    tailscale.com/hostname: "prometheus.app.pesulabs.net"
+  labels:
+    app: prometheus
+spec:
+  selector:
+    app: prometheus
+  ports:
+    - name: http
+      port: 9090
+      targetPort: 9090
+  type: ClusterIP
