@@ -1,22 +1,36 @@
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: ConfigMap
 metadata:
-  name: tailscale-state
+  name: tailscale-config
   namespace: tailscale
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+data:
+  run.sh: |
+    #!/bin/sh
+    set -e
+    
+    tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
+    
+    # Give tailscaled some time to start up
+    sleep 5
+    
+    # Reset configuration and apply new settings
+    tailscale up \
+      --reset \
+      --authkey="${TS_AUTHKEY}" \
+      --hostname="${TS_HOSTNAME}" \
+      --advertise-routes="${TS_ROUTES}" \
+      --advertise-exit-node \
+      --accept-dns=true
+      
+    # Keep the container running
+    exec tail -f /dev/null
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: tailscale-subnet-router
   namespace: tailscale
 spec:
-  serviceName: "tailscale-subnet-router"
   replicas: 1
   selector:
     matchLabels:
@@ -30,33 +44,31 @@ spec:
       - name: tailscale
         imagePullPolicy: Always
         image: tailscale/tailscale:stable
+        command: ["/bin/sh", "/scripts/run.sh"]
         env:
-        - name: TS_STATE_DIR
-          value: "/var/lib/tailscale"
         - name: TS_AUTHKEY
           valueFrom:
             secretKeyRef:
               name: tailscale-auth
               key: auth_key
-        - name: TS_USERSPACE
-          value: "true"
         - name: TS_ROUTES
           value: "10.0.0.0/8"
         - name: TS_HOSTNAME
           value: "k8s-homelab-router"
-        - name: TS_EXTRA_ARGS
-          value: "--advertise-routes=10.0.0.0/8 --advertise-exit-node --accept-dns=true"
-        - name: TS_TAILSCALED_EXTRA_ARGS
-          value: "--tun=userspace-networking --socks5-server=localhost:1055"
         volumeMounts:
-        - name: tailscale-state
+        - name: tailscale-data
           mountPath: /var/lib/tailscale
+        - name: scripts
+          mountPath: /scripts
         securityContext:
           capabilities:
             add:
             - NET_ADMIN
       volumes:
-      - name: tailscale-state
-        persistentVolumeClaim:
-          claimName: tailscale-state
+      - name: tailscale-data
+        emptyDir: {}
+      - name: scripts
+        configMap:
+          name: tailscale-config
+          defaultMode: 0755
       serviceAccountName: proxies
