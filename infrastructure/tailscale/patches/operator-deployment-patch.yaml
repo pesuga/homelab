@@ -18,3 +18,10 @@ spec:
           value: ""
         - name: PROXY_TAGS
           value: ""
+        volumeMounts:
+        - name: oauth
+          mountPath: /oauth
+          readOnly: true
+      volumes:
+      - name: oauth
+        emptyDir: {}
