@@ -12,8 +12,8 @@ metadata:
   name: operator-oauth
   namespace: tailscale
 stringData:
-  client_id: # SET CLIENT ID HERE
-  client_secret: # SET CLIENT SECRET HERE
+  client_id: "kHzCyZJfoV11CNTRL" 
+  client_secret: "tskey-client-kHzCyZJfoV11CNTRL-BynJfrrDZy4DZ7GpEx1Jz4bQWLzBsaLg" 
 ---
 apiVersion: v1
 kind: ServiceAccount

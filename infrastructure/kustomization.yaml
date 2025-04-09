@@ -3,4 +3,5 @@ kind: Kustomization
 # Resources will be added here later (e.g., ./nginx-ingress, ./monitoring)
 resources:
   - ./nginx-ingress
-  - ./tailscale
+  # - ./tailscale # Temporarily disabled until Sealed Secrets is set up
+  - ./sealed-secrets
