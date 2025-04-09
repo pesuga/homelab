@@ -4,3 +4,5 @@ namespace: tailscale # Recommended namespace for the Tailscale operator
 resources:
   # Reference the bundled operator manifest
   - operator.yaml
+  # Reference the encrypted secret
+  - tailscale-secret.yaml

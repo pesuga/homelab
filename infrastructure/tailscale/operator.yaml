@@ -7,15 +7,6 @@ metadata:
   name: tailscale
 ---
 apiVersion: v1
-kind: Secret
-metadata:
-  name: operator-oauth
-  namespace: tailscale
-stringData:
-  client_id: "kHzCyZJfoV11CNTRL" 
-  client_secret: "tskey-client-kHzCyZJfoV11CNTRL-BynJfrrDZy4DZ7GpEx1Jz4bQWLzBsaLg" 
----
-apiVersion: v1
 kind: ServiceAccount
 metadata:
     name: operator
