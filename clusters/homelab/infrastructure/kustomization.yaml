@@ -1,9 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  # Order matters: Apply sources first, then monitoring, then cert-manager
+  # Order matters: Apply sources first, then cert-manager
   - sources
-  - monitoring
+  # - monitoring # Temporarily disable monitoring
   # - networking # Temporarily disable Flux management for Nginx
   - sealed-secrets # Re-add Sealed Secrets (using manifests)
   - cert-manager.yaml

@@ -1,6 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# Apply namespace first, then HelmRelease
+# Apply namespace first, then the full deployment manifest
 resources:
   - namespace.yaml
-  - release.yaml # Apply the HelmRelease
+  - deploy.yaml # Apply the downloaded manifest
