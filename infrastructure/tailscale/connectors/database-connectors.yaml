@@ -5,7 +5,7 @@ metadata:
   namespace: databases
   annotations:
     tailscale.com/expose: "true"
-    tailscale.com/hostname: "postgres.db.pesulabs.net"
+    tailscale.com/hostname: "postgres-db"
   labels:
     app: postgres
 spec:
@@ -24,7 +24,7 @@ metadata:
   namespace: databases
   annotations:
     tailscale.com/expose: "true"
-    tailscale.com/hostname: "qdrant.db.pesulabs.net"
+    tailscale.com/hostname: "qdrant-db"
   labels:
     app: qdrant
 spec:

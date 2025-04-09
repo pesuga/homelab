@@ -5,7 +5,7 @@ metadata:
   namespace: monitoring
   annotations:
     tailscale.com/expose: "true"
-    tailscale.com/hostname: "grafana.app.pesulabs.net"
+    tailscale.com/hostname: "grafana-monitoring"
   labels:
     app: grafana
 spec:
@@ -24,7 +24,7 @@ metadata:
   namespace: monitoring
   annotations:
     tailscale.com/expose: "true"
-    tailscale.com/hostname: "prometheus.app.pesulabs.net"
+    tailscale.com/hostname: "prometheus-monitoring"
   labels:
     app: prometheus
 spec:
@@ -43,7 +43,7 @@ metadata:
   namespace: monitoring
   annotations:
     tailscale.com/expose: "true"
-    tailscale.com/hostname: "loki.app.pesulabs.net"
+    tailscale.com/hostname: "loki-monitoring"
   labels:
     app: loki
 spec:
