@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: tailscale
+data:
+  pesulabs.conf: |
+    app.pesulabs.net {
+      hosts {
+        10.43.56.28 grafana.app.pesulabs.net
+        10.43.184.103 prometheus.app.pesulabs.net
+        10.43.81.86 loki.app.pesulabs.net
+        fallthrough
+      }
+    }
+    
+    db.pesulabs.net {
+      hosts {
+        10.43.186.130 postgres.db.pesulabs.net
+        10.43.210.80 qdrant.db.pesulabs.net
+        fallthrough
+      }
+    }

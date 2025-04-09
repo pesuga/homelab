@@ -8,6 +8,8 @@ resources:
   - tailscale-secret.yaml
   # Use a single subnet router instead of individual connectors
   - subnet-router.yaml
+  # CoreDNS for domain name resolution
+  - coredns.yaml
 
 # Apply the patches to update the Tailscale operator deployment
 patchesStrategicMerge:
