@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tailscale-subnet-router
+  namespace: tailscale
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tailscale-subnet-router
+  template:
+    metadata:
+      labels:
+        app: tailscale-subnet-router
+    spec:
+      containers:
+      - name: tailscale
+        imagePullPolicy: Always
+        image: tailscale/tailscale:latest
+        env:
+        - name: TS_KUBE_SECRET
+          value: "tailscale-auth"
+        - name: TS_USERSPACE
+          value: "true"
+        - name: TS_AUTH_ONCE
+          value: "true"  
+        - name: TS_ROUTES
+          value: "10.0.0.0/8"  # Covers most k8s service/pod networks
+        - name: TS_HOSTNAME
+          value: "k8s-router"
+        - name: TS_EXTRA_ARGS
+          value: "--advertise-routes=10.0.0.0/8"
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+      serviceAccountName: proxies
