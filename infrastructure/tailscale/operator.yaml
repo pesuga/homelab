@@ -5009,6 +5009,10 @@ spec:
                         secretKeyRef:
                           name: tailscale-auth
                           key: auth_key
+                    - name: CLIENT_ID_FILE
+                      value: /dev/null
+                    - name: CLIENT_SECRET_FILE
+                      value: /dev/null
                     - name: PROXY_IMAGE
                       value: tailscale/tailscale:unstable
                     - name: PROXY_TAGS
