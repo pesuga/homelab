@@ -51,8 +51,6 @@ spec:
           items:
           - key: Corefile
             path: Corefile
-          - key: pesulabs.conf
-            path: pesulabs.conf
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -67,29 +65,33 @@ data:
           lameduck 5s
         }
         ready
-        import /etc/coredns/pesulabs.conf
         forward . 1.1.1.1 8.8.8.8
         cache 30
         loop
         reload
     }
-  pesulabs.conf: |
-    app.pesulabs.net {
-      hosts {
-        10.43.56.28 grafana.app.pesulabs.net
-        10.43.184.103 prometheus.app.pesulabs.net
-        10.43.81.86 loki.app.pesulabs.net
-        fallthrough
-      }
+
+    app.pesulabs.net:53 {
+        errors
+        hosts {
+            10.43.56.28 grafana.app.pesulabs.net
+            10.43.184.103 prometheus.app.pesulabs.net
+            10.43.81.86 loki.app.pesulabs.net
+            fallthrough
+        }
+        cache 30
     }
     
-    db.pesulabs.net {
-      hosts {
-        10.43.186.130 postgres.db.pesulabs.net
-        10.43.210.80 qdrant.db.pesulabs.net
-        fallthrough
-      }
+    db.pesulabs.net:53 {
+        errors
+        hosts {
+            10.43.186.130 postgres.db.pesulabs.net
+            10.43.210.80 qdrant.db.pesulabs.net
+            fallthrough
+        }
+        cache 30
     }
+  pesulabs.conf: |
 ---
 apiVersion: v1
 kind: Service
