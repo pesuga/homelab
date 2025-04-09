@@ -6,7 +6,8 @@ spec:
   hostname: grafana-connector
   # This connector will be used for Grafana service exposure
   subnetRouter:
-    advertiseRoutes: []
+    advertiseRoutes:
+      - "10.96.0.0/16" # Kubernetes service CIDR
   # No tags needed here as we're only accessing internal services
 ---
 apiVersion: v1
@@ -35,7 +36,8 @@ spec:
   hostname: prometheus-connector
   # This connector will be used for Prometheus service exposure
   subnetRouter:
-    advertiseRoutes: []
+    advertiseRoutes:
+      - "10.96.0.0/16" # Kubernetes service CIDR
 ---
 apiVersion: v1
 kind: Service

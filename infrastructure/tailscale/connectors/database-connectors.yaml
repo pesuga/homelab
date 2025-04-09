@@ -6,7 +6,8 @@ spec:
   hostname: database-connector
   # This connector will be used for database service exposure
   subnetRouter:
-    advertiseRoutes: []
+    advertiseRoutes:
+      - "10.96.0.0/16" # Kubernetes service CIDR
 ---
 apiVersion: v1
 kind: Service
