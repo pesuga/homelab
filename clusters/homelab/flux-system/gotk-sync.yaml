@@ -16,12 +16,34 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: flux-system
+  name: flux-infra # Kustomization for infrastructure
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./clusters/homelab
+  path: ./clusters/homelab/infrastructure # Apply only infrastructure
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
+  # dependsOn: # We might need to depend on specific controllers if CRD timing is still an issue
+  #   - name: helm-controller
+  #     namespace: flux-system
+  #   - name: kustomize-controller
+  #     namespace: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps # Kustomization for apps (and remaining cluster config)
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  # Point this to the apps directory once created, or keep it at ./clusters/homelab
+  # if infrastructure Kustomization is handled separately or implicitly.
+  path: ./clusters/homelab # Apply the main Kustomization which includes apps
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn: # Wait for infrastructure Kustomization
+    - name: flux-infra
