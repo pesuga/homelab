@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: tailscale # Ensure the namespace matches the one defined in the base
+
+# Use the official Tailscale Kustomize base for the operator
+resources:
+  - github.com/tailscale/tailscale//cmd/k8s-operator/deploy?ref=v1.66.0
+
+# Optional: Add patches here if needed later
+patches: []

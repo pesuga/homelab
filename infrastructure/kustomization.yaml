@@ -3,3 +3,4 @@ kind: Kustomization
 # Resources will be added here later (e.g., ./nginx-ingress, ./monitoring)
 resources:
   - ./nginx-ingress
+  - ./tailscale
