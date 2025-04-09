@@ -3,47 +3,25 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: flux-system
+  name: flux-system # This name must match the sourceRef in infrastructure.yaml and apps.yaml
   namespace: flux-system
 spec:
   interval: 1m0s
   ref:
-    branch: main
+    branch: main # Assuming 'main' is your primary branch
   secretRef:
-    name: flux-system
-  url: ssh://git@github.com/pesuga/homelab
+    name: flux-system # Optional: for private repos, points to a secret with deploy key/token
+  url: ssh://git@github.com/pesuga/homelab # Using SSH URL, common for deploy keys
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: flux-infra # Kustomization for infrastructure
+  name: flux-system
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./clusters/homelab/infrastructure # Apply only infrastructure
+  path: ./clusters/homelab # Points Flux to the root of your cluster config within the repo
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
-  # dependsOn: # We might need to depend on specific controllers if CRD timing is still an issue
-  #   - name: helm-controller
-  #     namespace: flux-system
-  #   - name: kustomize-controller
-  #     namespace: flux-system
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: apps # Kustomization for apps (and remaining cluster config)
-  namespace: flux-system
-spec:
-  interval: 10m0s
-  # Point this to the apps directory once created, or keep it at ./clusters/homelab
-  # if infrastructure Kustomization is handled separately or implicitly.
-  path: ./clusters/homelab # Apply the main Kustomization which includes apps
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-  dependsOn: # Wait for infrastructure Kustomization
-    - name: flux-infra

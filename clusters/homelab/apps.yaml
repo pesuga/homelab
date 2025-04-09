@@ -1,13 +1,15 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: infrastructure
+  name: apps
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./infrastructure # Points to the infrastructure directory relative to the repo root
+  path: ./apps # Points to the apps directory relative to the repo root
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system # Assumes the GitRepository source is named 'flux-system'
+  dependsOn: # Optional: Ensure infrastructure is ready before apps
+    - name: infrastructure
   validation: client
