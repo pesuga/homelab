@@ -7,22 +7,31 @@ data:
   run.sh: |
     #!/bin/sh
     set -e
+
+    # Start tailscaled in userspace mode as required in the memory
+    echo "Starting tailscaled in userspace mode..."
+    tailscaled --tun=userspace-networking &
     
-    tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
-    
-    # Give tailscaled some time to start up
+    # Wait for tailscaled to start
     sleep 5
     
-    # Reset configuration and apply new settings
+    # Authenticate and enable subnet routing for 10.0.0.0/8
+    echo "Authenticating to Tailscale and advertising subnet ${TS_ROUTES}..."
     tailscale up \
-      --reset \
       --authkey="${TS_AUTHKEY}" \
       --hostname="${TS_HOSTNAME}" \
       --advertise-routes="${TS_ROUTES}" \
-      --advertise-exit-node \
-      --accept-dns=true
-      
-    # Keep the container running
+      --accept-dns=false
+    
+    # Display status
+    echo "Tailscale status:"
+    tailscale status
+    
+    # Important reminder for the user
+    echo "NOTE: Routes need to be approved in the Tailscale admin console"
+    echo "Please visit https://login.tailscale.com/admin/machines"
+    
+    # Keep container running
     exec tail -f /dev/null
 ---
 apiVersion: apps/v1
@@ -40,10 +49,12 @@ spec:
       labels:
         app: tailscale-subnet-router
     spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: tailscale
+        image: tailscale/tailscale:latest
         imagePullPolicy: Always
-        image: tailscale/tailscale:stable
         command: ["/bin/sh", "/scripts/run.sh"]
         env:
         - name: TS_AUTHKEY
@@ -53,17 +64,20 @@ spec:
               key: auth_key
         - name: TS_ROUTES
           value: "10.0.0.0/8"
+        - name: TS_USERSPACE
+          value: "true"
         - name: TS_HOSTNAME
           value: "k8s-homelab-router"
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+          privileged: true
         volumeMounts:
         - name: tailscale-data
           mountPath: /var/lib/tailscale
         - name: scripts
           mountPath: /scripts
-        securityContext:
-          capabilities:
-            add:
-            - NET_ADMIN
       volumes:
       - name: tailscale-data
         emptyDir: {}
@@ -71,4 +85,3 @@ spec:
         configMap:
           name: tailscale-config
           defaultMode: 0755
-      serviceAccountName: proxies
