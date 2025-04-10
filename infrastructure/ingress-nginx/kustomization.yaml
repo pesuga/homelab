@@ -5,14 +5,8 @@ resources:
   - https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/cloud/deploy.yaml
 
 patches:
-  # Configure the ingress controller to use hostPort for standard ports (80/443)
-  - path: hostport-patch.yaml
-    target:
-      kind: Deployment
-      name: ingress-nginx-controller
-  
-  # Keep NodePort configuration as a fallback
-  - path: service-nodeport-patch.yaml
+  # Configure service with fixed NodePorts and proper selectors
+  - path: service-selector-patch.yaml
     target:
       kind: Service
       name: ingress-nginx-controller

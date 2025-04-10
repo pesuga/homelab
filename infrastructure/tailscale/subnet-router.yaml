@@ -21,7 +21,8 @@ data:
       --authkey="${TS_AUTHKEY}" \
       --hostname="${TS_HOSTNAME}" \
       --advertise-routes="${TS_ROUTES}" \
-      --accept-dns=false
+      --accept-dns=false \
+      --force-reauth
     
     # Display status
     echo "Tailscale status:"

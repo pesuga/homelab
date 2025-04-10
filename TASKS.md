@@ -15,10 +15,10 @@ This file tracks the setup and configuration tasks for the homelab cluster using
 
 -   [ ] Define `GitRepository` source in `infrastructure/sources/` for this repository.
 -   [x] **Nginx Ingress:**
-    -   [x] Create Kustomize base for Nginx Ingress manifests in `infrastructure/nginx-ingress/`.
+    -   [x] Create Kustomize base for Nginx Ingress manifests in `infrastructure/ingress-nginx/`.
     -   [x] Reference Nginx base in `clusters/homelab/infrastructure.yaml`.
     -   [x] Verify Nginx Ingress controller deployment and service.
-    -   [x] Configure Nginx Ingress with LoadBalancer service type to work with MetalLB.
+    -   [x] Configure Nginx Ingress with NodePort service type for reliable access.
 -   [x] **~~Tailscale~~ MetalLB:** _(Tailscale replaced with MetalLB for local network access)_
     -   [x] Create namespace for MetalLB in `infrastructure/metallb/namespace.yaml`.
     -   [x] Install MetalLB using HelmRelease in `infrastructure/metallb/installation.yaml`.
@@ -32,10 +32,12 @@ This file tracks the setup and configuration tasks for the homelab cluster using
     -   [x] Reference monitoring bases in `clusters/homelab/infrastructure.yaml`.
     -   [x] Verify monitoring components deployment and basic functionality.
     -   [x] Create ingress resources for monitoring stack in `infrastructure/ingress/monitoring-stack.yaml`.
--   [x] **TLS Certificates:**
+-   [x] **TLS Certificates and Service Access:**
     -   [x] Create self-signed wildcard certificate for `*.homelab.local` using script in `infrastructure/certificates/`.
-    -   [x] Store TLS certificate in `homelab-tls` secret in `cert-storage` namespace.
+    -   [x] Store TLS certificate in `homelab-tls` secret in required namespaces.
     -   [x] Configure ingress resources to use TLS certificate.
+    -   [x] Implement port-forwarding solution for standard port access (8080/8443).
+    -   [x] Create documentation for service access methods in `infrastructure/simple-access.md`.
     -   [x] Verify HTTPS access to services via ingress.
 -   [ ] **(Future) Cert-Manager:**
     -   [ ] Create Kustomize base for Cert-Manager manifests in `infrastructure/cert-manager/`.
