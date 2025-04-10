@@ -17,8 +17,12 @@ data:
     HTTP_PORT = 3000
     
     [database]
-    DB_TYPE = sqlite3
-    PATH = /data/gitea/gitea.db
+    DB_TYPE = postgres
+    HOST = postgres.databases.svc.cluster.local:5432
+    NAME = gitea
+    USER = gitea
+    PASSWD = 45un4DB
+    SCHEMA = public
     
     [repository]
     ROOT = /data/git/repositories
