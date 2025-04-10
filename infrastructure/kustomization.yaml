@@ -1,8 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# Resources will be added here later (e.g., ./nginx-ingress, ./monitoring)
+
 resources:
   - ./ingress-nginx
   - ./tailscale
   - ./sealed-secrets
   - ./monitoring
+  - ./ingress
