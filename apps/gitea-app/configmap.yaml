@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitea-config
+  namespace: gitea
+data:
+  app.ini: |
+    APP_NAME = Homelab Gitea
+    RUN_MODE = prod
+    
+    [server]
+    DOMAIN = gitea.homelab.local
+    SSH_DOMAIN = gitea.homelab.local
+    ROOT_URL = https://gitea.homelab.local/
+    DISABLE_SSH = false
+    SSH_PORT = 22
+    HTTP_PORT = 3000
+    
+    [database]
+    DB_TYPE = sqlite3
+    PATH = /data/gitea/gitea.db
+    
+    [repository]
+    ROOT = /data/git/repositories
+    
+    [security]
+    INSTALL_LOCK = false
+    
+    [service]
+    REGISTER_EMAIL_CONFIRM = false
+    ENABLE_NOTIFY_MAIL = false
+    DISABLE_REGISTRATION = false
+    ALLOW_ONLY_EXTERNAL_REGISTRATION = false
+    ENABLE_CAPTCHA = false
+    REQUIRE_SIGNIN_VIEW = false
+    
+    [log]
+    MODE = console
+    LEVEL = info
