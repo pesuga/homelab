@@ -29,6 +29,11 @@ data:
     
     [security]
     INSTALL_LOCK = false
+
+[proxy]
+    ENABLED = true
+    PROXY_URL = http://squid-proxy.egress-system.svc.cluster.local:3128
+    PROXY_HOSTS = github.com,api.github.com,githubusercontent.com
     
     [service]
     REGISTER_EMAIL_CONFIRM = false

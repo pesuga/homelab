@@ -35,6 +35,12 @@ spec:
           value: "https://n8n.homelab.local"
         - name: GENERIC_TIMEZONE
           value: "America/Argentina/Buenos_Aires"
+        - name: HTTP_PROXY
+          value: "http://squid-proxy.egress-system.svc.cluster.local:3128"
+        - name: HTTPS_PROXY
+          value: "http://squid-proxy.egress-system.svc.cluster.local:3128"
+        - name: NO_PROXY
+          value: "localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc.cluster.local"
         - name: N8N_ENCRYPTION_KEY
           valueFrom:
             secretKeyRef:
