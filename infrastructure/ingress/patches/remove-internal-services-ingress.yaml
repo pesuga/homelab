@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus-ingress
+  namespace: monitoring
+$patch: delete
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: loki-ingress
+  namespace: monitoring
+$patch: delete
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: postgres-ingress
+  namespace: databases
+$patch: delete
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qdrant-ingress
+  namespace: databases
+$patch: delete
