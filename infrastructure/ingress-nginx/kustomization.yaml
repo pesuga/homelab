@@ -10,3 +10,9 @@ patches:
     target:
       kind: Service
       name: ingress-nginx-controller
+      
+  # Configure direct hostPort access on ports 80/443
+  - path: hostport-patch.yaml
+    target:
+      kind: Deployment
+      name: ingress-nginx-controller
