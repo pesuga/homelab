@@ -1,7 +1,0 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-  - grafana.yaml
-  # Removed prometheus-ingress, loki-ingress, postgres-ingress and qdrant-ingress
-  # to restrict direct external access to these internal services

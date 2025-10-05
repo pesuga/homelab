@@ -1,2 +1,0 @@
-# Add these entries to your /etc/hosts file for NodePort access:
-192.168.86.141 grafana.homelab.local prometheus.homelab.local loki.homelab.local postgres.homelab.local qdrant.homelab.local
