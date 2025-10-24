@@ -2,44 +2,49 @@
 
 > **Purpose**: Deploy local LLM inference on compute node with AMD RX 7800 XT GPU using ROCm
 
-**Last Updated**: 2025-10-17
-**Status**: In Progress - WSL2 Configured, GPU Verification Next
+**Last Updated**: 2025-10-22
+**Status**: Fresh Ubuntu Installation - Ready for ROCm Setup
 
 ---
 
 ## 📊 Hardware Specifications
 
-**Compute Node:**
-- **GPU**: AMD Radeon RX 7800 XT (16GB VRAM, gfx1101)
-- **CPU**: Intel i5-12400F (6 cores)
-- **RAM**: 32GB DDR4
-- **Storage**: 500GB+ NVMe SSD
-- **OS**: Windows with WSL2 (Ubuntu 24.04 LTS)
+**Compute Node (pesubuntu):**
+- **GPU**: AMD Radeon RX 7800 XT (16GB VRAM, Navi 32, gfx1101)
+- **CPU**: Intel i5-12400F (6 cores, 12 threads)
+- **RAM**: 32GB DDR4 (30Gi available)
+- **Storage**: 937GB NVMe SSD available
+- **OS**: Ubuntu 25.10 (Questing Quetzal) - Native installation
+- **Kernel**: 6.17.0-5-generic
 
 **ROCm Compatibility:**
-- ✅ Officially supported in ROCm 6.4.1+ (May 2025)
+- ✅ RX 7800 XT officially supported in ROCm 6.4.1+
 - ✅ ROCm 7.0 support available
 - ✅ gfx1101 architecture fully supported
+- ✅ Native Ubuntu installation (no WSL2 limitations)
 
 ---
 
 ## 🎯 Deployment Strategy
 
-### Phase 1: Foundation ✅ PLANNED
+### Phase 1: Foundation 🔄 IN PROGRESS
 **Goal**: Get ROCm and Ollama working with basic model
 
 **Steps:**
-1. Verify WSL2 Ubuntu version and GPU passthrough
-2. Install ROCm 6.4.1 or 7.0
-3. Configure AMD GPU in WSL2
-4. Install Ollama with ROCm support
-5. Test with Mistral 7B Q4_K_M
-6. Verify performance benchmarks
+1. ✅ Install fresh Ubuntu 25.10 on compute node
+2. ✅ Verify GPU detection via lspci
+3. ⏳ Install ROCm 6.4.1 or 7.0 (Ubuntu 25.10 compatible)
+4. ⏳ Verify GPU detection with rocm-smi and rocminfo
+5. ⏳ Install Ollama with ROCm support
+6. ⏳ Test with Mistral 7B Q4_K_M
+7. ⏳ Verify performance benchmarks
 
 **Success Criteria:**
-- ROCm detects RX 7800 XT
-- Ollama runs inference on GPU
-- Achieve 20+ tokens/second on 7B model
+- ✅ Native Ubuntu installation complete
+- ✅ GPU detected via lspci
+- ⏳ ROCm detects RX 7800 XT
+- ⏳ Ollama runs inference on GPU
+- ⏳ Achieve 20+ tokens/second on 7B model
 
 ---
 
@@ -153,19 +158,22 @@
 ## 📋 Installation Checklist
 
 ### Prerequisites
-- [x] WSL2 installed and updated
-- [x] Ubuntu 24.04 LTS running in WSL2
-- [x] WSL2 resources configured (24GB RAM, 6 cores, 6GB swap)
-- [ ] AMD GPU drivers installed on Windows
-- [ ] GPU-Z or similar shows RX 7800 XT detected
-- [x] At least 100GB free disk space (938GB available)
+- [x] Ubuntu 25.10 native installation complete
+- [x] GPU detected via lspci (AMD RX 7800 XT Navi 32)
+- [x] 32GB RAM available (30Gi free)
+- [x] 937GB free disk space
+- [x] Git configured and repository cloned
+- [x] GitHub SSH credentials configured
+- [ ] Network configured for internet access
+- [ ] Tailscale installed (for remote access)
 
-### ROCm Installation
-- [ ] Add AMD ROCm repository
+### ROCm Installation (Ubuntu 25.10)
+- [ ] Add AMD ROCm repository (may need Ubuntu 24.04 repo)
 - [ ] Install ROCm 6.4.1 or 7.0
 - [ ] Verify GPU detection: `rocm-smi`
-- [ ] Set environment variables if needed
+- [ ] Set environment variables if needed (HSA_OVERRIDE_GFX_VERSION)
 - [ ] Test with `rocminfo`
+- [ ] Verify /dev/dri/renderD128 exists
 
 ### Ollama Installation
 - [ ] Download Ollama with ROCm support
@@ -196,11 +204,13 @@
 
 ## ⚙️ Configuration
 
-### ROCm Environment Variables
+### ROCm Environment Variables (Native Ubuntu)
 ```bash
-export HSA_OVERRIDE_GFX_VERSION=11.0.0  # May be needed for RX 7800 XT
+# Add to ~/.bashrc or /etc/environment
+export HSA_OVERRIDE_GFX_VERSION=11.0.0  # May be needed for RX 7800 XT (gfx1101)
 export ROCM_PATH=/opt/rocm
 export PATH=$PATH:/opt/rocm/bin
+export LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIBRARY_PATH
 ```
 
 ### Ollama Service
@@ -335,18 +345,20 @@ echo $HSA_OVERRIDE_GFX_VERSION
 ## 🎯 Next Steps
 
 1. ✅ Create this documentation
-2. ✅ Configure WSL2 resources (.wslconfig)
-3. ✅ Restart WSL2 and verify resources
-4. ⏳ Verify GPU passthrough (NEXT)
-5. ⏳ Install ROCm on compute node
-6. ⏳ Install and test Ollama
-7. ⏳ Deploy first model
-8. ⏳ Benchmark performance
-9. ⏳ Set up LiteLLM
-10. ⏳ Integrate with N8n
-11. ⏳ Create sample workflows
+2. ✅ Install fresh Ubuntu 25.10 on compute node
+3. ✅ Verify GPU detection via lspci
+4. ✅ Configure Git and clone repository
+5. ⏳ Install ROCm 6.4.1+ on Ubuntu 25.10 (NEXT)
+6. ⏳ Verify GPU with rocm-smi and rocminfo
+7. ⏳ Install and test Ollama with ROCm
+8. ⏳ Deploy first model (Mistral 7B)
+9. ⏳ Benchmark performance (target 20+ tok/s)
+10. ⏳ Set up LiteLLM router
+11. ⏳ Install Tailscale for remote access
+12. ⏳ Integrate with N8n on service node
+13. ⏳ Create sample workflows
 
 ---
 
-**Status**: WSL2 configured, verifying GPU access next
-**Next Action**: Check if GPU is accessible in WSL2 via lspci and /dev/dri
+**Status**: Fresh Ubuntu 25.10 installation, GPU detected, ready for ROCm
+**Next Action**: Install ROCm 6.4.1+ for Ubuntu (may need 24.04 repository)

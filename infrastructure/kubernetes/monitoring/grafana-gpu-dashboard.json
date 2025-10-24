@@ -1,0 +1,196 @@
+{
+  "dashboard": {
+    "title": "Homelab GPU Monitoring (AMD RX 7800 XT)",
+    "tags": ["gpu", "rocm", "amd", "llm"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "type": "graph",
+        "title": "GPU Utilization",
+        "targets": [
+          {
+            "expr": "rocm_gpu_utilization_percent",
+            "legendFormat": "GPU Usage %"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "percent",
+            "max": 100,
+            "min": 0
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "type": "graph",
+        "title": "GPU Memory Usage",
+        "targets": [
+          {
+            "expr": "rocm_gpu_memory_used_bytes / 1024 / 1024 / 1024",
+            "legendFormat": "Used (GB)"
+          },
+          {
+            "expr": "rocm_gpu_memory_total_bytes / 1024 / 1024 / 1024",
+            "legendFormat": "Total (GB)"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "decgbytes",
+            "min": 0
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "type": "graph",
+        "title": "GPU Temperature",
+        "targets": [
+          {
+            "expr": "rocm_gpu_temperature_celsius",
+            "legendFormat": "Temperature (°C)"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "celsius",
+            "min": 0,
+            "max": 110
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "type": "graph",
+        "title": "GPU Power Consumption",
+        "targets": [
+          {
+            "expr": "rocm_gpu_power_watts",
+            "legendFormat": "Power (W)"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "watt",
+            "min": 0
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        }
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "Current GPU Utilization",
+        "targets": [
+          {
+            "expr": "rocm_gpu_utilization_percent"
+          }
+        ],
+        "options": {
+          "graphMode": "none",
+          "colorMode": "value",
+          "unit": "percent"
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 6,
+        "type": "stat",
+        "title": "Memory Utilization",
+        "targets": [
+          {
+            "expr": "rocm_gpu_memory_utilization_percent"
+          }
+        ],
+        "options": {
+          "graphMode": "none",
+          "colorMode": "value",
+          "unit": "percent"
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 16
+        }
+      },
+      {
+        "id": 7,
+        "type": "stat",
+        "title": "Current Temperature",
+        "targets": [
+          {
+            "expr": "rocm_gpu_temperature_celsius"
+          }
+        ],
+        "options": {
+          "graphMode": "none",
+          "colorMode": "value",
+          "unit": "celsius"
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 16
+        }
+      },
+      {
+        "id": 8,
+        "type": "stat",
+        "title": "Current Power Draw",
+        "targets": [
+          {
+            "expr": "rocm_gpu_power_watts"
+          }
+        ],
+        "options": {
+          "graphMode": "none",
+          "colorMode": "value",
+          "unit": "watt"
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 16
+        }
+      }
+    ],
+    "refresh": "5s",
+    "time": {
+      "from": "now-30m",
+      "to": "now"
+    }
+  }
+}

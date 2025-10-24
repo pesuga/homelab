@@ -1,0 +1,109 @@
+---
+# Simple DNSMasq deployment for homelab DNS
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dnsmasq-config
+  namespace: homelab
+data:
+  dnsmasq.conf: |
+    # DNSMasq configuration for homelab.local domains
+
+    # Listen on all interfaces
+    listen-address=0.0.0.0
+
+    # Upstream DNS servers (Cloudflare and Quad9)
+    server=1.1.1.1
+    server=9.9.9.9
+
+    # Local domain
+    domain=homelab.local
+    local=/homelab.local/
+
+    # Expand simple names
+    expand-hosts
+
+    # DNS records for homelab services
+    address=/grafana.homelab.local/100.81.76.55
+    address=/prometheus.homelab.local/100.81.76.55
+    address=/n8n.homelab.local/100.81.76.55
+    address=/webui.homelab.local/100.81.76.55
+
+    # Wildcard for all homelab.local
+    address=/homelab.local/100.81.76.55
+
+    # Cache settings
+    cache-size=1000
+
+    # Log queries (optional, comment out in production)
+    log-queries
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dnsmasq
+  namespace: homelab
+  labels:
+    app: dnsmasq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dnsmasq
+  template:
+    metadata:
+      labels:
+        app: dnsmasq
+    spec:
+      containers:
+        - name: dnsmasq
+          image: jpillora/dnsmasq:latest
+          ports:
+            - containerPort: 53
+              name: dns-tcp
+              protocol: TCP
+            - containerPort: 53
+              name: dns-udp
+              protocol: UDP
+            - containerPort: 8080
+              name: web
+          volumeMounts:
+            - name: config
+              mountPath: /etc/dnsmasq.conf
+              subPath: dnsmasq.conf
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: config
+          configMap:
+            name: dnsmasq-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dnsmasq
+  namespace: homelab
+  labels:
+    app: dnsmasq
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 100.81.76.55
+  ports:
+    - port: 53
+      targetPort: 53
+      protocol: TCP
+      name: dns-tcp
+    - port: 53
+      targetPort: 53
+      protocol: UDP
+      name: dns-udp
+    - port: 8080
+      targetPort: 8080
+      name: web
+  selector:
+    app: dnsmasq

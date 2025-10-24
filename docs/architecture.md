@@ -40,23 +40,31 @@ This document describes the complete system architecture of the homelab agentic 
 
 **Purpose**: LLM Inference Engine
 
-- **Hostname**: `compute-01`
-- **OS**: Windows 11 + WSL2 (Ubuntu 22.04)
+- **Hostname**: `pesubuntu`
+- **OS**: Ubuntu 25.10 (Questing Quetzal) - Native installation
+- **Kernel**: 6.17.0-5-generic
 - **CPU**: Intel i5-12400F (6C/12T @ 4.4GHz)
-- **RAM**: 32GB DDR4-3200
-- **GPU**: AMD Radeon RX 7800 XT (16GB VRAM)
+- **RAM**: 32GB DDR4 (30Gi available)
+- **GPU**: AMD Radeon RX 7800 XT (Navi 32, 16GB VRAM, gfx1101)
 - **Storage**:
-  - 500GB NVMe SSD (System + Models)
-  - 1TB HDD (Backups)
-- **Network**: 1Gbps Ethernet
-- **IP**: 192.168.1.10
-- **Tailscale IP**: 100.64.0.10
+  - 937GB NVMe SSD available
+- **Network**: 1Gbps Ethernet (to be configured)
+- **IP**: TBD (to be assigned)
+- **Tailscale IP**: TBD (to be installed)
 
-**Services Running**:
-- Ollama (LLM Server)
+**Planned Services**:
+- ROCm 6.4.1+ (AMD GPU Runtime)
+- Ollama (LLM Server with GPU acceleration)
 - LiteLLM (Model Router)
 - Development Environment (Claude Code)
-- Docker Engine
+- Docker Engine (optional)
+- Tailscale (VPN client)
+
+**Current Status**:
+- ✅ Fresh Ubuntu 25.10 installation
+- ✅ GPU detected via lspci
+- ⏳ ROCm installation pending
+- ⏳ All services pending installation
 
 ### Service Node Specifications
 
@@ -116,10 +124,11 @@ This document describes the complete system architecture of the homelab agentic 
 ├─────────────────────────────────────────────────────────┤
 │  Compute Node          │  Service Node                  │
 ├────────────────────────┼────────────────────────────────┤
-│  • Docker Engine       │  • K3s (Kubernetes)            │
-│  • AMD ROCm Drivers    │  • containerd                  │
+│  • Ubuntu 25.10        │  • K3s (Kubernetes)            │
+│  • AMD ROCm 6.4.1+     │  • containerd                  │
 │  • systemd             │  • Helm                        │
 │  • Tailscale Agent     │  • Tailscale Agent             │
+│  • Docker (optional)   │  • Docker v28.5.1              │
 └────────────────────────┴────────────────────────────────┘
 ```
 
@@ -485,9 +494,10 @@ Developer
 
 **Ollama**:
 - Simple model management
-- Good AMD GPU support via ROCm
+- Excellent AMD GPU support via ROCm (on native Ubuntu)
 - REST API for easy integration
 - Active development
+- Automatic GPU detection
 
 **LiteLLM**:
 - Unified interface across model providers
@@ -527,10 +537,53 @@ Developer
 
 ---
 
+## Security & Access Strategy
+
+### HTTPS & Domain Strategy
+
+**Current State**: Services accessed via HTTP with IP:port (e.g., `http://192.168.8.185:30300`)
+
+**Target State**: HTTPS with friendly domains (e.g., `https://grafana.homelab.local`)
+
+**See**: `/docs/HTTPS-DOMAIN-STRATEGY.md` for complete implementation guide
+
+**Planned Implementation**:
+1. Deploy Traefik ingress controller
+2. Configure local DNS (`.homelab.local` domain)
+3. Implement Let's Encrypt with DNS challenge OR self-signed CA
+4. Create Ingress resources for all services
+5. Migrate from NodePort to domain-based access
+
+**Service Domains** (Proposed):
+```
+grafana.homelab.local       → Grafana (monitoring)
+prometheus.homelab.local    → Prometheus (metrics)
+n8n.homelab.local          → N8n (workflows)
+webui.homelab.local        → Open WebUI (LLM chat)
+ollama.homelab.local       → Ollama API (via proxy)
+litellm.homelab.local      → LiteLLM API
+```
+
+### Authentication Strategy
+
+**Phase 1** (Current): Basic auth per-service
+- Grafana: admin/admin123
+- N8n: admin/admin123
+- Open WebUI: self-signup
+
+**Phase 2** (Future): Centralized SSO
+- Deploy Authelia or Keycloak
+- OAuth/OIDC for all services
+- MFA support
+
+---
+
 ## Future Enhancements
 
 ### Phase 2 (6-12 months)
 
+- **Security**: HTTPS everywhere, centralized auth (SSO)
+- **Networking**: Traefik ingress, domain-based access
 - Multi-GPU support
 - Model fine-tuning pipeline
 - Advanced agent capabilities
@@ -542,9 +595,11 @@ Developer
 - Mobile-first agents
 - Voice interface
 - Advanced RAG systems
+- Service mesh with mTLS
+- Zero-trust architecture
 
 ---
 
-**Last Updated**: 2025-10-05  
-**Version**: 1.0.0  
+**Last Updated**: 2025-10-22
+**Version**: 1.1.0
 **Status**: Active Development

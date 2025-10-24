@@ -132,11 +132,11 @@ Network Layer
 ### Hardware Requirements
 
 #### Compute Node (Required)
-- CPU: 6+ cores (Intel i5-12400F or equivalent)
-- RAM: 32GB minimum
-- GPU: AMD RX 7800 XT (or equivalent with 8GB+ VRAM)
-- Storage: 500GB+ NVMe SSD
-- OS: Windows with WSL2 (Ubuntu) or Linux
+- CPU: 6+ cores (Intel i5-12400F or equivalent) ✅ *Currently: i5-12400F*
+- RAM: 32GB minimum ✅ *Currently: 32GB DDR4*
+- GPU: AMD RX 7800 XT (or equivalent with 8GB+ VRAM) ✅ *Currently: RX 7800 XT 16GB*
+- Storage: 500GB+ NVMe SSD ✅ *Currently: 937GB available*
+- OS: Ubuntu 25.10 (Native installation) ✅ *Currently: Ubuntu 25.10 Questing Quetzal*
 
 #### Service Node (Required)
 - CPU: 4+ cores (Intel i7 or equivalent) ✅ *Currently: i7-4510U*
@@ -323,9 +323,9 @@ Comprehensive documentation is available in the `/docs` directory:
 - [x] Basic authentication setup
 
 **Deployed Services:**
-- PostgreSQL: ClusterIP on port 5432
-- Redis: ClusterIP on port 6379
-- N8n: NodePort 30678 (accessible locally and via Tailscale)
+- PostgreSQL 16.10: ClusterIP on port 5432 (10Gi storage, User: homelab/DB: homelab)
+- Redis 7.4.6: ClusterIP on port 6379 (ephemeral storage, AOF enabled)
+- N8n: NodePort 30678 (accessible locally and via Tailscale, 5Gi storage)
 
 ### Sprint 2: Observability (Weeks 5-6) ✅ COMPLETED
 - [x] Prometheus setup (10Gi storage)
@@ -339,19 +339,28 @@ Comprehensive documentation is available in the `/docs` directory:
 - Grafana: NodePort 30300
 - RBAC configured for cluster metrics
 
-### Sprint 3: LLM Infrastructure (Weeks 7-8) 🔄 NEXT
-- [ ] Ollama installation on compute node
+### Sprint 3: LLM Infrastructure (Weeks 7-8) 🔄 IN PROGRESS (RESTARTED)
+- [x] Fresh Ubuntu 25.10 installation on compute node
+- [x] GPU detection verified (AMD RX 7800 XT)
+- [ ] ROCm installation (AMD GPU drivers)
+- [ ] Ollama installation with GPU support
 - [ ] LiteLLM deployment
-- [ ] Model management
-- [ ] GPU configuration (AMD RX 7800 XT)
-- [ ] Health monitoring
+- [ ] Model management and testing
+- [ ] Performance benchmarking
+- [ ] Tailscale setup on compute node
+- [ ] Integration with service node
 
-### Sprint 4: Advanced Services (Weeks 9-10)
-- [ ] AgentStack setup
-- [ ] Service mesh configuration
-- [ ] Enhanced monitoring dashboards
-- [ ] Log aggregation with Loki
-- [ ] Alert rules and runbooks
+### Sprint 4: Advanced Services (Weeks 9-10) 🔄 IN PROGRESS
+- [x] PostgreSQL deployment and documentation
+- [x] Redis deployment and documentation
+- [x] Database services integrated with homelab dashboard
+- [ ] Integrate LLM services with N8n workflows
+- [ ] Create first N8n workflow with local LLM
+- [ ] Enhanced monitoring dashboards for LLM services
+- [ ] AgentStack setup (optional)
+- [ ] Service mesh configuration (future)
+- [ ] Log aggregation with Loki (future)
+- [ ] Alert rules and runbooks (future)
 
 ### Sprint 5: Networking & Security (Weeks 11-12)
 - [x] Tailscale subnets (completed)
@@ -405,12 +414,20 @@ claude
 
 ## 📊 Project Status
 
-**Current Phase**: Sprint 3 - LLM Infrastructure Setup
-**Progress**: 45% (3 of 7 sprints completed)
-**Next Milestone**: Ollama + LiteLLM deployment on compute node
-**Timeline**: 16 weeks total to full platform (6 weeks completed)
+**Current Phase**: Sprint 3 - LLM Infrastructure Setup (RESTARTED)
+**Progress**: 40% (2 of 7 sprints completed, Sprint 3 in progress)
+**Next Milestone**: ROCm + Ollama + LiteLLM deployment on compute node
+**Timeline**: 16 weeks total to full platform (restarting Sprint 3)
 
 ### Current Deployment
+
+**Compute Node (pesubuntu - localhost):**
+- ✅ Ubuntu 25.10 native installation
+- ✅ GPU detected (AMD RX 7800 XT Navi 32)
+- ✅ GitHub configured and repository cloned
+- ⏳ ROCm installation pending
+- ⏳ Ollama + LiteLLM pending
+- ⏳ Tailscale pending
 
 **Service Node (asuna - 192.168.8.185):**
 - ✅ K3s v1.33.5 cluster (1 node)
@@ -421,9 +438,9 @@ claude
 - ✅ Prometheus + Grafana
 
 **Network:**
-- ✅ Local network: 192.168.86.0/24
-- ✅ Tailscale mesh network active
-- ✅ Subnet routing enabled
+- ✅ Local network: 192.168.8.0/24
+- ✅ Tailscale mesh network active on service node
+- ✅ Subnet routing enabled for 192.168.86.0/24
 
 ### Success Metrics
 

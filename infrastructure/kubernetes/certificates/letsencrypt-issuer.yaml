@@ -1,0 +1,57 @@
+---
+# Let's Encrypt ClusterIssuer with Cloudflare DNS-01 challenge
+# This will automatically issue certificates for homelab.pesulabs.net
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    # Let's Encrypt production server
+    server: https://acme-v02.api.letsencrypt.org/directory
+
+    # Email for expiration notifications
+    email: pesu@pesulabs.net
+
+    # Secret to store ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+
+    # DNS-01 challenge using Cloudflare
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token
+        selector:
+          dnsZones:
+            - "pesulabs.net"
+---
+# Let's Encrypt Staging Issuer (for testing)
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    # Let's Encrypt staging server (higher rate limits, invalid certs)
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+
+    # Email for expiration notifications
+    email: pesu@pesulabs.net
+
+    # Secret to store ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-staging-account-key
+
+    # DNS-01 challenge using Cloudflare
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token
+        selector:
+          dnsZones:
+            - "pesulabs.net"
