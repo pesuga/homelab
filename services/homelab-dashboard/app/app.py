@@ -100,6 +100,14 @@ SERVICES = [
         'icon': '🌊',
         'status_endpoint': '/',
         'tags': ['ai', 'llm', 'workflows']
+    },
+    {
+        'name': 'Qdrant',
+        'description': 'Vector database for RAG and semantic search (v1.12.5)',
+        'url': 'http://100.81.76.55:30633/dashboard',
+        'icon': '🔍',
+        'status_endpoint': '/healthz',
+        'tags': ['database', 'vector', 'ai']
     }
 ]
 
