@@ -1,10 +1,10 @@
-# 🔄 Homelab Session State - 2025-10-23
+# 🔄 Homelab Session State - 2025-10-25
 
 ## 📍 Current Status
 
-**Last Updated**: 2025-10-24
-**Current Phase**: Sprint 4 - Advanced Services - IN PROGRESS
-**Active Task**: LiteLLM API key configured and ready for N8n integration
+**Last Updated**: 2025-10-25
+**Current Phase**: Sprint 4 - Advanced Services - IN PROGRESS (75% Complete)
+**Active Task**: GitOps, Qdrant, and Grafana Dashboards implementation complete
 
 ---
 
@@ -30,6 +30,18 @@
 - ✅ **Open WebUI**: Deployed at http://100.81.76.55:30080
 - ✅ **Homelab Dashboard**: Deployed at http://100.81.76.55:30800 (admin/admin123)
   - ✅ PostgreSQL and Redis added to dashboard
+  - ✅ Flowise added to dashboard
+- ✅ **Flowise**: Deployed at http://100.81.76.55:30850 (admin/admin123)
+  - ✅ Low-code LLM flow builder and AI orchestration platform
+  - ✅ PostgreSQL integration for data persistence
+  - ✅ Ingress: https://flowise.homelab.pesulabs.net
+  - ✅ Connected to compute node LLMs via Ollama
+- ✅ **Qdrant Vector Database**: Deployed at http://100.81.76.55:30633
+  - ✅ v1.12.5 running with 20Gi persistent storage
+  - ✅ HTTP API (6333) and gRPC API (6334) operational
+  - ✅ Health checks passing
+  - ✅ Ready for RAG and semantic search workflows
+  - ✅ Integration documented for N8n and Flowise
 
 ### Compute Node Setup (pesubuntu - 100.72.98.106)
 - ✅ **Fresh Ubuntu 25.10 Installation** (native, not WSL2)
@@ -52,10 +64,16 @@
 - ✅ **Repository**: Cloned and on revised-version branch
 
 ### Documentation Created
-- ✅ README.md updated with current progress (45% complete)
+- ✅ README.md updated with current progress (50% complete, Sprint 3 & 4)
 - ✅ LLM-SETUP.md created with full AMD GPU deployment plan
 - ✅ Architecture and roadmap documented
-- ✅ CLAUDE.md created for future AI assistance
+- ✅ CLAUDE.md created and updated with new services
+- ✅ **IMPLEMENTATION-PLAN.md** - GitOps, Qdrant, Grafana roadmap ✅ NEW
+- ✅ **GITOPS-SETUP.md** - Complete Flux CD setup guide ✅ NEW
+- ✅ **QDRANT-SETUP.md** - Vector database deployment and integration ✅ NEW
+- ✅ **GRAFANA-DASHBOARDS.md** - Dashboard creation guide ✅ NEW
+- ✅ **QUICKSTART-DASHBOARDS.md** - Quick dashboard setup ✅ NEW
+- ✅ **METRICS-ANALYSIS.md** - Prometheus metrics catalog ✅ NEW
 
 ---
 
@@ -104,16 +122,41 @@
 13. ⏳ Integrate LLM endpoint with N8n (NEXT SPRINT)
 14. ⏳ Create sample N8n workflow with LLM (NEXT SPRINT)
 
-### Sprint 4: Advanced Services - IN PROGRESS
+### Sprint 4: Advanced Services - IN PROGRESS (75% Complete)
 - [x] PostgreSQL deployment and documentation (postgres:16.10, 10Gi storage)
 - [x] Redis deployment and documentation (redis:7.4.6, ephemeral storage)
 - [x] Database services added to homelab dashboard
 - [x] Database deployment manifests created (infrastructure/kubernetes/databases/)
 - [x] LiteLLM API key authentication configured
 - [x] N8n integration guide created (docs/N8N-LITELLM-INTEGRATION.md)
+- [x] N8n domain configuration (https://n8n.homelab.pesulabs.net for OAuth)
+- [x] Flowise deployment and integration (low-code LLM flow builder)
+- [x] Flowise ingress and TLS configuration (https://flowise.homelab.pesulabs.net)
+- [x] **Qdrant vector database** - Deployed and tested ✅ NEW
+  - [x] Kubernetes manifests created (infrastructure/kubernetes/databases/qdrant/)
+  - [x] Deployed to K3s (v1.12.5, 20Gi storage, HTTP + gRPC APIs)
+  - [x] Health checks passing
+  - [x] API tested and verified
+  - [x] Integration documentation created (docs/QDRANT-SETUP.md)
+- [x] **GitOps with Flux CD** - Planned and documented ✅ NEW
+  - [x] Architecture designed for multi-repository support
+  - [x] Repository structure planned
+  - [x] Complete setup guide created (docs/GITOPS-SETUP.md)
+  - [x] Implementation plan documented (docs/IMPLEMENTATION-PLAN.md)
+  - [ ] Bootstrap Flux to K3s cluster (next)
+  - [ ] Migrate existing manifests to Flux management
+- [x] **Grafana Dashboards** - Planned and documented ✅ NEW
+  - [x] Prometheus metrics analyzed (docs/METRICS-ANALYSIS.md)
+  - [x] 5 dashboards designed (Overview, K8s, Services, Compute, Databases)
+  - [x] Dashboard creation guide created (docs/GRAFANA-DASHBOARDS.md)
+  - [x] Quick start guide created (docs/QUICKSTART-DASHBOARDS.md)
+  - [ ] Import community dashboards (IDs: 1860, 15760, 3662)
+  - [ ] Create custom "Homelab Overview" dashboard
+  - [ ] Deploy postgres_exporter for database metrics
+  - [ ] Deploy redis_exporter for Redis metrics
 - [ ] Add LiteLLM credentials to N8n (manual step)
 - [ ] Create first N8n workflow using local LLM
-- [ ] Set up monitoring dashboards for LLM services (GPU utilization, tokens/s)
+- [ ] Create sample Flowise workflows with local LLMs
 - [ ] AgentStack deployment (optional)
 
 ---
@@ -123,9 +166,12 @@
 ### Service Node (asuna)
 - **Local IP**: 192.168.8.185
 - **Tailscale IP**: 100.81.76.55
-- **N8n**: http://192.168.8.185:30678 (admin/admin123)
-- **Grafana**: http://192.168.8.185:30300 (admin/admin123)
-- **Prometheus**: http://192.168.8.185:30090
+- **N8n**: http://192.168.8.185:30678 (admin/admin123) | https://n8n.homelab.pesulabs.net
+- **Flowise**: http://192.168.8.185:30850 (admin/admin123) | https://flowise.homelab.pesulabs.net
+- **Grafana**: http://192.168.8.185:30300 (admin/admin123) | https://grafana.homelab.pesulabs.net
+- **Prometheus**: http://192.168.8.185:30090 | https://prometheus.homelab.pesulabs.net
+- **Qdrant**: http://192.168.8.185:30633 (vector database API) ✅ NEW
+- **Homelab Dashboard**: http://192.168.8.185:30800 (admin/admin123) | https://homelab.pesulabs.net
 - **SSH**: ssh pesu@192.168.8.185 (passwordless sudo configured)
 
 ### Compute Node (pesubuntu)

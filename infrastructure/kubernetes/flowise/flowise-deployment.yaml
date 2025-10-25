@@ -1,0 +1,172 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flowise-config
+  namespace: homelab
+data:
+  # Database configuration
+  DATABASE_TYPE: "postgres"
+  DATABASE_HOST: "postgres.homelab.svc.cluster.local"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "flowise"
+  DATABASE_USER: "homelab"
+
+  # Flowise configuration
+  FLOWISE_USERNAME: "admin"
+  PORT: "3000"
+
+  # CORS and security
+  CORS_ORIGINS: "*"
+  IFRAME_ORIGINS: "*"
+
+  # Storage
+  APIKEY_PATH: "/root/.flowise"
+  SECRETKEY_PATH: "/root/.flowise"
+  LOG_PATH: "/root/.flowise/logs"
+  BLOB_STORAGE_PATH: "/root/.flowise/storage"
+
+  # Model configuration
+  MODEL_LIST_CONFIG_JSON: |
+    [
+      {
+        "name": "llama3.1-8b",
+        "model": "llama3.1:8b",
+        "baseURL": "http://100.72.98.106:11434"
+      },
+      {
+        "name": "mistral-7b",
+        "model": "mistral:7b-instruct-q4_K_M",
+        "baseURL": "http://100.72.98.106:11434"
+      },
+      {
+        "name": "qwen2.5-coder-14b",
+        "model": "qwen2.5-coder:14b",
+        "baseURL": "http://100.72.98.106:11434"
+      },
+      {
+        "name": "glm4-9b",
+        "model": "glm4:9b",
+        "baseURL": "http://100.72.98.106:11434"
+      }
+    ]
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: flowise-secret
+  namespace: homelab
+type: Opaque
+stringData:
+  DATABASE_PASSWORD: "homelab123"
+  FLOWISE_PASSWORD: "admin123"
+  # Optional: Add your own secret key for encryption
+  FLOWISE_SECRETKEY_OVERWRITE: "flowise-homelab-secret-key-2025"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: flowise-pvc
+  namespace: homelab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-path
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flowise
+  namespace: homelab
+spec:
+  type: NodePort
+  selector:
+    app: flowise
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      nodePort: 30850  # External access via NodePort (Flowise)
+      protocol: TCP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flowise
+  namespace: homelab
+  labels:
+    app: flowise
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flowise
+  template:
+    metadata:
+      labels:
+        app: flowise
+    spec:
+      initContainers:
+      # Create flowise database if it doesn't exist
+      - name: init-db
+        image: postgres:16-alpine
+        command:
+          - sh
+          - -c
+          - |
+            PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -U $DATABASE_USER -d homelab -tc "SELECT 1 FROM pg_database WHERE datname = 'flowise'" | grep -q 1 || \
+            PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -U $DATABASE_USER -d homelab -c "CREATE DATABASE flowise;"
+        envFrom:
+        - configMapRef:
+            name: flowise-config
+        - secretRef:
+            name: flowise-secret
+      containers:
+      - name: flowise
+        image: flowiseai/flowise:latest
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: flowise-config
+        - secretRef:
+            name: flowise-secret
+        volumeMounts:
+        - name: flowise-data
+          mountPath: /root/.flowise
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: flowise-data
+        persistentVolumeClaim:
+          claimName: flowise-pvc
+      restartPolicy: Always

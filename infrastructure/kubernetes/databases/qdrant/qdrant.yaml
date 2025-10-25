@@ -1,0 +1,143 @@
+# Qdrant Vector Database Deployment
+# Version: Qdrant v1.12.5
+# Storage: 20Gi persistent volume
+# Ports: 6333 (HTTP REST), 6334 (gRPC)
+# Use case: RAG, semantic search, vector embeddings for LLM workflows
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qdrant-pvc
+  namespace: homelab
+  labels:
+    app: qdrant
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: local-path
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant
+  namespace: homelab
+  labels:
+    app: qdrant
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6333
+      targetPort: 6333
+      protocol: TCP
+      name: http
+    - port: 6334
+      targetPort: 6334
+      protocol: TCP
+      name: grpc
+  selector:
+    app: qdrant
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-nodeport
+  namespace: homelab
+  labels:
+    app: qdrant
+spec:
+  type: NodePort
+  ports:
+    - port: 6333
+      targetPort: 6333
+      protocol: TCP
+      name: http
+      nodePort: 30633  # External access for testing/admin
+  selector:
+    app: qdrant
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: qdrant
+  namespace: homelab
+  labels:
+    app: qdrant
+spec:
+  serviceName: qdrant
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qdrant
+  template:
+    metadata:
+      labels:
+        app: qdrant
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "6333"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: qdrant
+        image: qdrant/qdrant:v1.12.5
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6333
+          name: http
+          protocol: TCP
+        - containerPort: 6334
+          name: grpc
+          protocol: TCP
+        env:
+        - name: QDRANT__SERVICE__HTTP_PORT
+          value: "6333"
+        - name: QDRANT__SERVICE__GRPC_PORT
+          value: "6334"
+        # Optional: Enable API key authentication (uncomment if needed)
+        # - name: QDRANT__SERVICE__API_KEY
+        #   valueFrom:
+        #     secretRef:
+        #       name: qdrant-secret
+        #       key: api-key
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+        volumeMounts:
+        - name: qdrant-storage
+          mountPath: /qdrant/storage
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 6333
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 6333
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+      volumes:
+      - name: qdrant-storage
+        persistentVolumeClaim:
+          claimName: qdrant-pvc
+---
+# Optional: Secret for API key authentication
+# Uncomment if you want to enable authentication
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: qdrant-secret
+#   namespace: homelab
+# type: Opaque
+# stringData:
+#   api-key: "your-secure-api-key-here"

@@ -92,6 +92,14 @@ SERVICES = [
         'icon': '⚡',
         'status_endpoint': '/health',
         'tags': ['ai', 'llm', 'api']
+    },
+    {
+        'name': 'Flowise',
+        'description': 'Low-code LLM flow builder and AI orchestration',
+        'url': 'http://100.81.76.55:30850',
+        'icon': '🌊',
+        'status_endpoint': '/',
+        'tags': ['ai', 'llm', 'workflows']
     }
 ]
 

@@ -27,13 +27,15 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 **Service Node (asuna - 192.168.8.185)**:
 - Purpose: Kubernetes orchestration and workflow automation
 - Hardware: i7-4510U, 8GB RAM, 98GB storage
-- Services: K3s v1.33.5, N8n, PostgreSQL 16.10, Redis 7.4.6, Prometheus, Grafana, Docker Registry, Homelab Dashboard, Open WebUI
+- Services: K3s v1.33.5, N8n, Flowise, PostgreSQL 16.10, Redis 7.4.6, Qdrant v1.12.5, Prometheus, Grafana, Docker Registry, Homelab Dashboard, Open WebUI
 - OS: Ubuntu 24.04.3 LTS
 - Tailscale IP: 100.81.76.55
 - K3s configured with Tailscale IP in TLS SAN for remote kubectl access
 - Database Services:
   - PostgreSQL: postgres.homelab.svc.cluster.local:5432 (User: homelab, DB: homelab, 10Gi storage)
   - Redis: redis.homelab.svc.cluster.local:6379 (ephemeral storage, AOF enabled)
+  - Qdrant: qdrant.homelab.svc.cluster.local:6333 (HTTP), :6334 (gRPC), 20Gi storage
+- GitOps: Flux CD for automated infrastructure deployment (planned)
 
 ### Networking
 
@@ -116,12 +118,84 @@ kubectl top pods -A
 
 **Access Dashboards** (via Tailscale IPs):
 - **Homelab Dashboard**: http://100.81.76.55:30800 (admin/admin123) - Unified landing page
-- N8n Workflows: http://100.81.76.55:30678 (admin/admin123)
-- Grafana: http://100.81.76.55:30300 (admin/admin123)
-- Prometheus: http://100.81.76.55:30090
-- Open WebUI: http://100.81.76.55:30080 (LLM chat interface)
+- N8n Workflows: http://100.81.76.55:30678 (admin/admin123) | https://n8n.homelab.pesulabs.net
+- Flowise LLM Flows: http://100.81.76.55:30850 (admin/admin123) | https://flowise.homelab.pesulabs.net
+- Grafana: http://100.81.76.55:30300 (admin/admin123) | https://grafana.homelab.pesulabs.net
+- Prometheus: http://100.81.76.55:30090 | https://prometheus.homelab.pesulabs.net
+- Open WebUI: http://100.81.76.55:30080 (LLM chat interface) | https://webui.homelab.pesulabs.net
+- Qdrant Vector DB: http://100.81.76.55:30633 (API access for testing)
 - Ollama API: http://100.72.98.106:11434 (compute node)
 - LiteLLM API: http://100.72.98.106:8000 (compute node)
+
+**Grafana Dashboards** (docs/GRAFANA-DASHBOARDS.md):
+- Homelab Overview: High-level cluster health and resource usage
+- Kubernetes Cluster: Detailed K8s pod/node metrics
+- Service Health: Individual service monitoring (N8n, PostgreSQL, Redis, etc.)
+- Compute Node: LLM inference node with GPU metrics
+- Database Performance: PostgreSQL and Redis monitoring (requires exporters)
+
+### Qdrant Vector Database
+
+```bash
+# Deploy Qdrant
+kubectl apply -f infrastructure/kubernetes/databases/qdrant/qdrant.yaml
+
+# Verify deployment
+kubectl get pods -n homelab -l app=qdrant
+kubectl get svc -n homelab qdrant
+
+# Test health check (via NodePort)
+curl http://100.81.76.55:30633/healthz
+
+# Create test collection
+curl -X PUT http://100.81.76.55:30633/collections/test \
+  -H 'Content-Type: application/json' \
+  -d '{"vectors": {"size": 384, "distance": "Cosine"}}'
+
+# List collections
+curl http://100.81.76.55:30633/collections
+
+# See docs/QDRANT-SETUP.md for N8n/Flowise integration
+```
+
+### GitOps with Flux CD (Planned)
+
+```bash
+# Install Flux CLI
+curl -s https://fluxcd.io/install.sh | sudo bash
+
+# Bootstrap Flux to K3s cluster
+flux bootstrap github \
+  --owner=pesuga \
+  --repository=homelab \
+  --branch=revised-version \
+  --path=./clusters/homelab \
+  --personal
+
+# Verify Flux components
+kubectl get pods -n flux-system
+flux get all
+
+# See docs/GITOPS-SETUP.md for complete setup
+```
+
+### Grafana Dashboard Management
+
+```bash
+# Access Grafana
+# http://100.81.76.55:30300 (admin/admin123)
+
+# Import recommended dashboards (via UI):
+# - ID 1860: Node Exporter Full
+# - ID 15760: Kubernetes Cluster Monitoring
+# - ID 9628: PostgreSQL (requires postgres_exporter)
+# - ID 11835: Redis (requires redis_exporter)
+
+# Query Prometheus metrics
+curl http://100.81.76.55:30090/api/v1/label/__name__/values
+
+# See docs/GRAFANA-DASHBOARDS.md for dashboard creation guide
+```
 
 ### Development Workflow
 
@@ -207,6 +281,11 @@ All services on the service node run as Kubernetes workloads:
 - `docs/architecture.md` - Detailed system architecture
 - `docs/LLM-SETUP.md` - Complete AMD GPU LLM deployment guide
 - `docs/SESSION-STATE.md` - Current session state and progress tracking
+- `docs/IMPLEMENTATION-PLAN.md` - GitOps, Qdrant, and Grafana implementation plan
+- `docs/GITOPS-SETUP.md` - Flux CD GitOps setup and multi-repo management
+- `docs/QDRANT-SETUP.md` - Qdrant vector database deployment and integration
+- `docs/GRAFANA-DASHBOARDS.md` - Grafana dashboard creation and setup guide
+- `docs/METRICS-ANALYSIS.md` - Prometheus metrics analysis and available data
 
 ### Configuration
 - `.env-example` - Environment variable template (comprehensive)
@@ -219,7 +298,12 @@ All services on the service node run as Kubernetes workloads:
 
 ### Service Configurations
 - `infrastructure/compute-node/` - Ollama and LiteLLM setup docs
-- `infrastructure/kubernetes/` - K8s manifests (minimal currently)
+- `infrastructure/kubernetes/` - K8s manifests
+  - `base/` - Namespace and core configs
+  - `databases/` - PostgreSQL, Redis, Qdrant deployments
+  - `monitoring/` - Prometheus, Grafana
+  - `monitoring/dashboards/` - Grafana dashboard JSONs and provisioning
+  - `flux/` - Flux CD GitOps resources (planned)
 - `services/llm-router/` - LiteLLM configuration
 - `services/n8n-workflows/` - N8n workflow exports (placeholder)
 - `services/agentstack-config/` - AgentStack configs (future)
@@ -267,6 +351,23 @@ This project is developed using AI-assisted pair programming with Claude Code. K
 - Secure remote access
 - Works seamlessly on mobile
 
+**Qdrant** (Vector Database):
+- High-performance vector similarity search
+- Ideal for RAG (Retrieval-Augmented Generation)
+- Native gRPC and HTTP APIs
+- Persistent storage for embeddings
+
+**Flux CD** (GitOps):
+- Declarative infrastructure management
+- Automated Git → Kubernetes deployments
+- Multi-repository support
+- Built-in drift detection and reconciliation
+
+**Prometheus + Grafana** (Observability):
+- Prometheus: Metrics collection and storage
+- Grafana: Visualization and dashboards
+- Pre-configured dashboards for cluster, services, and GPU
+
 ## Testing
 
 Currently no automated test suite. Health checks available:
@@ -284,6 +385,11 @@ kubectl get svc -A
 curl http://192.168.8.185:30678  # N8n
 curl http://192.168.8.185:30300  # Grafana
 curl http://192.168.8.185:30090  # Prometheus
+curl http://192.168.8.185:30633/healthz  # Qdrant
+
+# GitOps (when deployed)
+flux check
+flux get all
 ```
 
 ## Deployment Notes

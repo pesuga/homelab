@@ -1,0 +1,25 @@
+# Grafana Dashboard Provisioning Configuration
+# This ConfigMap tells Grafana where to find dashboard JSON files
+# Mounted at: /etc/grafana/provisioning/dashboards/
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-provider
+  namespace: homelab
+  labels:
+    app: grafana
+    component: dashboards
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'Homelab Dashboards'
+        orgId: 1
+        folder: 'Homelab'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 30
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards

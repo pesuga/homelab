@@ -31,6 +31,7 @@ This homelab project creates a production-ready, self-hosted platform for buildi
 
 - **🧠 LLM Inference**: Local model hosting with GPU acceleration (AMD RX 7800 XT)
 - **🔄 Workflow Automation**: N8n for visual workflow building
+- **🌊 LLM Flow Builder**: Flowise for low-code AI app development
 - **🤖 Agent Framework**: AgentStack for advanced agent orchestration
 - **☸️ Orchestration**: Kubernetes for service management
 - **🔒 Secure Access**: Tailscale for zero-trust networking
@@ -70,6 +71,7 @@ This homelab project creates a production-ready, self-hosted platform for buildi
 ```
 Application Layer
 ├── N8n (Workflow Automation)
+├── Flowise (LLM Flow Builder)
 ├── AgentStack (Agent Framework)
 └── Custom Agents
 
@@ -86,13 +88,17 @@ Orchestration Layer
 Data Layer
 ├── PostgreSQL (Persistent Storage)
 ├── Redis (Caching & Queues)
-└── Object Storage
+├── Qdrant (Vector Database)
+└── Object Storage (Future)
 
 Observability Layer
 ├── Prometheus (Metrics)
 ├── Grafana (Dashboards)
-├── Loki (Logs)
-└── AlertManager (Alerts)
+├── Loki (Logs - Future)
+└── AlertManager (Alerts - Future)
+
+GitOps Layer
+└── Flux CD (Automated Deployments - Planned)
 
 Network Layer
 └── Tailscale (Zero-Trust VPN)
@@ -104,14 +110,16 @@ Network Layer
 
 ### Core Capabilities
 
-- ✅ **Local LLM Inference** with GPU acceleration
-- ✅ **Smart Model Routing** with automatic failover
+- ✅ **Local LLM Inference** with GPU acceleration (In Progress)
+- ✅ **Smart Model Routing** with automatic failover (Planned)
 - ✅ **Visual Workflow Builder** (N8n)
-- ✅ **Agent Framework** for complex automations
+- ✅ **LLM Flow Builder** (Flowise)
+- ✅ **Vector Database** for RAG (Qdrant) - Ready to Deploy
+- ✅ **Agent Framework** for complex automations (Future)
 - ✅ **Kubernetes Orchestration** for scalability
 - ✅ **Zero-Trust Networking** via Tailscale
-- ✅ **Full Observability** with metrics, logs, and traces
-- ✅ **CI/CD Pipeline** for automated deployments
+- ✅ **Full Observability** with Prometheus & Grafana
+- ✅ **GitOps Deployments** with Flux CD (Planned)
 - ✅ **Mobile Access** from anywhere securely
 
 ### Design Principles
@@ -291,12 +299,23 @@ homelab/
 
 Comprehensive documentation is available in the `/docs` directory:
 
+### Core Documentation
 - **[Architecture](docs/ARCHITECTURE.md)**: System design and components
 - **[Deployment Guide](docs/DEPLOYMENT.md)**: Step-by-step deployment
 - **[Development Guide](docs/DEVELOPMENT.md)**: Contributing and development
 - **[Networking](docs/NETWORKING.md)**: Network configuration
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)**: Common issues and solutions
-- **[API Documentation](docs/API.md)**: API endpoints and usage
+
+### Service-Specific Guides
+- **[LLM Setup](docs/LLM-SETUP.md)**: AMD GPU, ROCm, Ollama, and LiteLLM deployment
+- **[Qdrant Setup](docs/QDRANT-SETUP.md)**: Vector database deployment and integration
+- **[GitOps Setup](docs/GITOPS-SETUP.md)**: Flux CD installation and multi-repo management
+- **[Grafana Dashboards](docs/GRAFANA-DASHBOARDS.md)**: Dashboard creation and configuration
+
+### Planning & Analysis
+- **[Implementation Plan](docs/IMPLEMENTATION-PLAN.md)**: GitOps, Qdrant, and Grafana roadmap
+- **[Metrics Analysis](docs/METRICS-ANALYSIS.md)**: Prometheus metrics catalog
+- **[Session State](docs/SESSION-STATE.md)**: Current development progress
 
 ---
 
@@ -350,15 +369,20 @@ Comprehensive documentation is available in the `/docs` directory:
 - [ ] Tailscale setup on compute node
 - [ ] Integration with service node
 
-### Sprint 4: Advanced Services (Weeks 9-10) 🔄 IN PROGRESS
+### Sprint 4: Advanced Services (Weeks 9-10) 🔄 IN PROGRESS (65% Complete)
 - [x] PostgreSQL deployment and documentation
 - [x] Redis deployment and documentation
 - [x] Database services integrated with homelab dashboard
-- [ ] Integrate LLM services with N8n workflows
-- [ ] Create first N8n workflow with local LLM
-- [ ] Enhanced monitoring dashboards for LLM services
+- [x] Qdrant vector database designed and manifests created
+- [x] GitOps with Flux CD planning and documentation
+- [x] Grafana dashboards planned and documented
+- [x] Prometheus metrics analyzed
+- [ ] Deploy Qdrant to K3s cluster
+- [ ] Import/create Grafana dashboards
+- [ ] Bootstrap Flux CD for GitOps
+- [ ] Integrate LLM services with N8n workflows (depends on Sprint 3)
+- [ ] Create first N8n workflow with local LLM (depends on Sprint 3)
 - [ ] AgentStack setup (optional)
-- [ ] Service mesh configuration (future)
 - [ ] Log aggregation with Loki (future)
 - [ ] Alert rules and runbooks (future)
 
@@ -414,10 +438,10 @@ claude
 
 ## 📊 Project Status
 
-**Current Phase**: Sprint 3 - LLM Infrastructure Setup (RESTARTED)
-**Progress**: 40% (2 of 7 sprints completed, Sprint 3 in progress)
-**Next Milestone**: ROCm + Ollama + LiteLLM deployment on compute node
-**Timeline**: 16 weeks total to full platform (restarting Sprint 3)
+**Current Phase**: Sprint 3 & 4 - LLM Infrastructure + Advanced Services (Parallel)
+**Progress**: 50% (2 sprints completed, 2 in progress)
+**Next Milestone**: ROCm + Ollama + LiteLLM deployment, Qdrant deployment, Grafana dashboards
+**Timeline**: 16 weeks total to full platform
 
 ### Current Deployment
 
@@ -435,7 +459,12 @@ claude
 - ✅ Tailscale (100.81.76.55)
 - ✅ PostgreSQL + Redis
 - ✅ N8n Workflow Automation
+- ✅ Flowise LLM Flow Builder
+- ✅ Open WebUI
 - ✅ Prometheus + Grafana
+- ⏳ Qdrant Vector Database (ready to deploy)
+- 📋 Flux CD GitOps (planned)
+- 📋 Grafana Dashboards (planned)
 
 **Network:**
 - ✅ Local network: 192.168.8.0/24
