@@ -46,6 +46,15 @@ data:
             replacement: $1:$2
             target_label: __address__
 
+      # Node Exporter - Compute Node
+      - job_name: 'node-exporter-compute'
+        static_configs:
+          - targets: ['100.72.98.106:9100']  # Compute node Tailscale IP
+            labels:
+              instance: '100.72.98.106:9100'
+              node: 'pesubuntu'
+              node_type: 'compute'
+
       # ROCm GPU Exporter on compute node
       - job_name: 'rocm-gpu-exporter'
         static_configs:
