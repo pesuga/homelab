@@ -38,6 +38,27 @@ spec:
             secretKeyRef:
               name: dashboard-secrets
               key: password
+        - name: ADMIN_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: dashboard-secrets
+              key: admin-email
+              optional: true
+        - name: DB_HOST
+          value: "postgres.homelab.svc.cluster.local"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "homelab"
+        - name: DB_USER
+          value: "homelab"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        - name: BEHIND_HTTPS_PROXY
+          value: "true"  # Running behind Traefik with TLS termination
         resources:
           requests:
             memory: "128Mi"
@@ -65,6 +86,7 @@ metadata:
   namespace: homelab
 type: Opaque
 stringData:
-  secret-key: "change-this-to-a-random-secret-key-in-production"
+  secret-key: "31a75bf7dc74eecf5e5c837ff698b369c65039bd7d5bdd3e90089e246e77ce25"
   username: "admin"
-  password: "admin123"
+  password: "ChangeMe!2024#Secure"  # CHANGE THIS IMMEDIATELY AFTER DEPLOYMENT
+  admin-email: "admin@pesulabs.net"  # Optional: for notifications

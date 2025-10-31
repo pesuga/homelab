@@ -11,10 +11,10 @@ spec:
   ingressClassName: traefik
   tls:
   - hosts:
-    - homelab.pesulabs.net
+    - dash.pesulabs.net
     secretName: homelab-dashboard-tls
   rules:
-  - host: homelab.pesulabs.net
+  - host: dash.pesulabs.net
     http:
       paths:
       - path: /

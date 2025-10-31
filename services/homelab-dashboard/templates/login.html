@@ -14,13 +14,19 @@
                 <p>Welcome back! Please sign in to continue.</p>
             </div>
 
-            {% if error %}
-            <div class="alert alert-error">
-                {{ error }}
-            </div>
-            {% endif %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
             <form method="POST" class="login-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required autofocus>
@@ -35,7 +41,7 @@
             </form>
 
             <div class="login-footer">
-                <p>Secured with Let's Encrypt SSL</p>
+                <p>🔒 Secured with HTTPS and CSRF Protection</p>
             </div>
         </div>
     </div>

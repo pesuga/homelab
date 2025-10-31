@@ -60,7 +60,7 @@ metadata:
 type: Opaque
 stringData:
   DATABASE_PASSWORD: "homelab123"
-  FLOWISE_PASSWORD: "admin123"
+  FLOWISE_PASSWORD: "flowise2025"
   # Optional: Add your own secret key for encryption
   FLOWISE_SECRETKEY_OVERWRITE: "flowise-homelab-secret-key-2025"
 

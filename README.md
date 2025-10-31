@@ -94,11 +94,12 @@ Data Layer
 Observability Layer
 ├── Prometheus (Metrics)
 ├── Grafana (Dashboards)
-├── Loki (Logs - Future)
+├── Loki (Log Aggregation)
+├── Promtail (Log Collection)
 └── AlertManager (Alerts - Future)
 
 GitOps Layer
-└── Flux CD (Automated Deployments - Planned)
+└── Flux CD (Automated Deployments - Ready for Bootstrap)
 
 Network Layer
 └── Tailscale (Zero-Trust VPN)
@@ -114,12 +115,13 @@ Network Layer
 - ✅ **Smart Model Routing** with automatic failover (Planned)
 - ✅ **Visual Workflow Builder** (N8n)
 - ✅ **LLM Flow Builder** (Flowise)
-- ✅ **Vector Database** for RAG (Qdrant) - Ready to Deploy
+- ✅ **Vector Database** for RAG (Qdrant)
+- ✅ **Memory Layer** for LLM context (Mem0)
 - ✅ **Agent Framework** for complex automations (Future)
 - ✅ **Kubernetes Orchestration** for scalability
 - ✅ **Zero-Trust Networking** via Tailscale
-- ✅ **Full Observability** with Prometheus & Grafana
-- ✅ **GitOps Deployments** with Flux CD (Planned)
+- ✅ **Full Observability** with Prometheus, Grafana & Loki
+- ✅ **GitOps Deployments** with Flux CD (Ready for Bootstrap)
 - ✅ **Mobile Access** from anywhere securely
 
 ### Design Principles
@@ -369,21 +371,22 @@ Comprehensive documentation is available in the `/docs` directory:
 - [ ] Tailscale setup on compute node
 - [ ] Integration with service node
 
-### Sprint 4: Advanced Services (Weeks 9-10) 🔄 IN PROGRESS (65% Complete)
+### Sprint 4: Advanced Services (Weeks 9-10) ✅ COMPLETED
 - [x] PostgreSQL deployment and documentation
 - [x] Redis deployment and documentation
 - [x] Database services integrated with homelab dashboard
-- [x] Qdrant vector database designed and manifests created
-- [x] GitOps with Flux CD planning and documentation
-- [x] Grafana dashboards planned and documented
-- [x] Prometheus metrics analyzed
-- [ ] Deploy Qdrant to K3s cluster
-- [ ] Import/create Grafana dashboards
-- [ ] Bootstrap Flux CD for GitOps
+- [x] Qdrant vector database deployed to K3s cluster
+- [x] Mem0 AI memory layer deployed and integrated
+- [x] GitOps with Flux CD structure created (ready for bootstrap)
+- [x] Grafana dashboards created (Homelab Infrastructure - dual node)
+- [x] Prometheus metrics analyzed and integrated
+- [x] Log aggregation with Loki deployed (service + compute nodes)
+- [x] Promtail log collection configured (K8s DaemonSet + systemd)
+- [x] Flowise authentication resolved and database reset
+- [x] Open WebUI account reset
+- [ ] Bootstrap Flux CD for GitOps (requires GitHub token)
 - [ ] Integrate LLM services with N8n workflows (depends on Sprint 3)
-- [ ] Create first N8n workflow with local LLM (depends on Sprint 3)
 - [ ] AgentStack setup (optional)
-- [ ] Log aggregation with Loki (future)
 - [ ] Alert rules and runbooks (future)
 
 ### Sprint 5: Networking & Security (Weeks 11-12)

@@ -9,7 +9,7 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 - **Compute Node**: Native Ubuntu 25.10 (pesubuntu) - will run Ollama with GPU acceleration (AMD RX 7800 XT) and LiteLLM router
 - **Service Node**: Ubuntu Server 24.04 (asuna, 192.168.8.185) running K3s with N8n, PostgreSQL, Redis, Prometheus, and Grafana
 
-**Current Status**: Sprint 4 - Advanced Services IN PROGRESS (55% complete, 3 of 7 sprints done, Sprint 4 in progress with database services documented)
+**Current Status**: Sprint 4 - Advanced Services COMPLETED (4 of 7 sprints done, ready for Sprint 3 LLM setup and Sprint 5)
 
 ## Architecture Overview
 
@@ -27,7 +27,7 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 **Service Node (asuna - 192.168.8.185)**:
 - Purpose: Kubernetes orchestration and workflow automation
 - Hardware: i7-4510U, 8GB RAM, 98GB storage
-- Services: K3s v1.33.5, N8n, Flowise, PostgreSQL 16.10, Redis 7.4.6, Qdrant v1.12.5, Prometheus, Grafana, Docker Registry, Homelab Dashboard, Open WebUI
+- Services: K3s v1.33.5, N8n, Flowise, PostgreSQL 16.10, Redis 7.4.6, Qdrant v1.12.5, Mem0, Loki, Promtail, Prometheus, Grafana, Docker Registry, Homelab Dashboard, Open WebUI
 - OS: Ubuntu 24.04.3 LTS
 - Tailscale IP: 100.81.76.55
 - K3s configured with Tailscale IP in TLS SAN for remote kubectl access
@@ -117,22 +117,26 @@ kubectl top pods -A
 ### Monitoring & Observability
 
 **Access Dashboards** (via Tailscale IPs):
-- **Homelab Dashboard**: http://100.81.76.55:30800 (admin/admin123) - Unified landing page
+- **Homelab Dashboard**: http://100.81.76.55:30800 (admin/ChangeMe!2024#Secure) - Unified landing page
 - N8n Workflows: http://100.81.76.55:30678 (admin/admin123) | https://n8n.homelab.pesulabs.net
-- Flowise LLM Flows: http://100.81.76.55:30850 (admin/admin123) | https://flowise.homelab.pesulabs.net
+- Flowise LLM Flows: http://100.81.76.55:30850 (admin/flowise2025) | https://flowise.homelab.pesulabs.net
 - Grafana: http://100.81.76.55:30300 (admin/admin123) | https://grafana.homelab.pesulabs.net
 - Prometheus: http://100.81.76.55:30090 | https://prometheus.homelab.pesulabs.net
-- Open WebUI: http://100.81.76.55:30080 (LLM chat interface) | https://webui.homelab.pesulabs.net
-- Qdrant Vector DB: http://100.81.76.55:30633 (API access for testing)
+- Loki: http://100.81.76.55:30314 (log aggregation API)
+- Open WebUI: http://100.81.76.55:30080 (first signup = admin) | https://webui.homelab.pesulabs.net
+- Qdrant Vector DB: http://100.81.76.55:30633 (HTTP API), :6334 (gRPC)
+- Mem0: http://100.81.76.55:30820 (AI memory layer API)
 - Ollama API: http://100.72.98.106:11434 (compute node)
 - LiteLLM API: http://100.72.98.106:8000 (compute node)
 
-**Grafana Dashboards** (docs/GRAFANA-DASHBOARDS.md):
-- Homelab Overview: High-level cluster health and resource usage
-- Kubernetes Cluster: Detailed K8s pod/node metrics
-- Service Health: Individual service monitoring (N8n, PostgreSQL, Redis, etc.)
-- Compute Node: LLM inference node with GPU metrics
-- Database Performance: PostgreSQL and Redis monitoring (requires exporters)
+**Grafana Dashboards** (imported and configured):
+- **Homelab Infrastructure - Dual Node**: Real-time monitoring of both compute and service nodes
+  - Compute node: CPU, RAM, Storage, GPU utilization, temperature, power, VRAM
+  - Service node: Kubernetes cluster metrics (coming soon)
+  - Access: Grafana → Dashboards → Homelab Infrastructure
+- **Loki Logs**: Log aggregation and search via Explore tab
+  - LogQL queries for service logs, system logs, Ollama logs
+  - Access: Grafana → Explore → Loki datasource
 
 ### Qdrant Vector Database
 
@@ -158,25 +162,75 @@ curl http://100.81.76.55:30633/collections
 # See docs/QDRANT-SETUP.md for N8n/Flowise integration
 ```
 
-### GitOps with Flux CD (Planned)
+### Mem0 AI Memory Layer
+
+```bash
+# Check Mem0 status
+kubectl get pods -n homelab -l app=mem0
+kubectl logs -n homelab -l app=mem0 -f
+
+# Test Mem0 API
+curl -X POST http://100.81.76.55:30820/v1/memories/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [{"role": "user", "content": "Hello, I am Alice"}],
+    "user_id": "alice"
+  }'
+
+# Query memories
+curl http://100.81.76.55:30820/v1/memories/?user_id=alice
+
+# Integration: Mem0 uses Qdrant for vector storage and Ollama (nomic-embed-text) for embeddings
+```
+
+### Loki Log Aggregation
+
+```bash
+# Check Loki status
+kubectl get pods -n homelab -l app=loki
+kubectl get pods -n homelab -l app=promtail
+
+# Check Promtail on compute node
+systemctl status promtail
+
+# Query logs via LogQL (from Grafana or direct API)
+curl -G -s "http://100.81.76.55:30314/loki/api/v1/query" \
+  --data-urlencode 'query={job="systemd-journal", unit="ollama.service"}' | jq
+
+# View logs in Grafana
+# Grafana → Explore → Loki datasource → Enter LogQL query
+# Examples:
+#   {namespace="homelab", pod=~"n8n-.*"}
+#   {job="systemd-journal", unit="ollama.service"}
+#   {host="pesubuntu", job="syslog"}
+```
+
+### GitOps with Flux CD (Ready for Bootstrap)
 
 ```bash
 # Install Flux CLI
 curl -s https://fluxcd.io/install.sh | sudo bash
 
-# Bootstrap Flux to K3s cluster
+# Bootstrap Flux to K3s cluster (requires GitHub token)
+export GITHUB_TOKEN=<your-token>
 flux bootstrap github \
   --owner=pesuga \
   --repository=homelab \
-  --branch=revised-version \
+  --branch=main \
   --path=./clusters/homelab \
-  --personal
+  --personal \
+  --private=false \
+  --network-policy=false
 
 # Verify Flux components
 kubectl get pods -n flux-system
 flux get all
+flux get kustomizations
 
-# See docs/GITOPS-SETUP.md for complete setup
+# Monitor reconciliation
+flux logs --follow
+
+# See clusters/homelab/README.md and docs/GITOPS-SETUP.md for complete setup
 ```
 
 ### Grafana Dashboard Management

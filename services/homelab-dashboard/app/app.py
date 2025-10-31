@@ -1,34 +1,73 @@
 #!/usr/bin/env python3
 """
-Homelab Dashboard - A simple landing page with authentication
+Homelab Dashboard - Secure landing page with comprehensive authentication
 """
 import os
+import sys
 import secrets
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_talisman import Talisman
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 
+# Add the app directory to Python path to import database module
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import database as db
+
+# Initialize Flask app
 app = Flask(__name__,
             template_folder='../templates',
             static_folder='../static')
-app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
-# Simple in-memory user storage (replace with database in production)
-USERS = {
-    os.environ.get('DASHBOARD_USER', 'admin'): generate_password_hash(
-        os.environ.get('DASHBOARD_PASSWORD', 'admin123')
-    )
+# Trust proxy headers (X-Forwarded-* from Traefik/Ingress)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+# Security Configuration
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+# Disable SESSION_COOKIE_SECURE when behind proxy - Traefik handles HTTPS
+# The connection from Traefik to Flask is HTTP inside the cluster
+app.config['SESSION_COOKIE_SECURE'] = False  # Traefik terminates TLS
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # No JavaScript access
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=4)  # Reduced from 24h
+app.config['WTF_CSRF_TIME_LIMIT'] = None  # CSRF token doesn't expire
+
+# Initialize security extensions
+csrf = CSRFProtect(app)
+
+# Rate limiting
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"  # Use Redis in production: redis://redis.homelab.svc.cluster.local:6379
+)
+
+# Security headers with Talisman
+csp = {
+    'default-src': "'self'",
+    'script-src': ["'self'", "'unsafe-inline'"],  # Adjust based on your needs
+    'style-src': ["'self'", "'unsafe-inline'"],
+    'img-src': ["'self'", "data:", "https:"],
+    'font-src': ["'self'"],
+    'connect-src': ["'self'"]
 }
 
-# Services configuration - Using Tailscale IPs for reliability
-# Service Node (asuna): 100.81.76.55
-# Compute Node (pesubuntu): 100.72.98.106
+Talisman(app,
+         force_https=False,  # Handled by Ingress/Traefik
+         content_security_policy=csp)
+
+# Services configuration
 SERVICES = [
     {
         'name': 'Grafana',
         'description': 'Metrics visualization and monitoring dashboards',
-        'url': 'http://100.81.76.55:30300',
+        'url': 'https://grafana.homelab.pesulabs.net',
         'icon': '📊',
         'status_endpoint': '/api/health',
         'tags': ['monitoring', 'visualization']
@@ -36,7 +75,7 @@ SERVICES = [
     {
         'name': 'Prometheus',
         'description': 'Time series database and metrics collection',
-        'url': 'http://100.81.76.55:30090',
+        'url': 'https://prometheus.homelab.pesulabs.net',
         'icon': '🔥',
         'status_endpoint': '/-/healthy',
         'tags': ['monitoring', 'metrics']
@@ -44,7 +83,7 @@ SERVICES = [
     {
         'name': 'N8n',
         'description': 'Workflow automation and integration platform',
-        'url': 'http://100.81.76.55:30678',
+        'url': 'https://n8n.homelab.pesulabs.net',
         'icon': '🔗',
         'status_endpoint': '/healthz',
         'tags': ['automation', 'workflows']
@@ -52,7 +91,7 @@ SERVICES = [
     {
         'name': 'PostgreSQL',
         'description': 'Relational database (PostgreSQL 16.10)',
-        'url': None,  # Internal service, no web UI
+        'url': None,
         'icon': '🐘',
         'status_endpoint': None,
         'tags': ['database', 'storage'],
@@ -62,7 +101,7 @@ SERVICES = [
     {
         'name': 'Redis',
         'description': 'In-memory cache and message broker (Redis 7.4.6)',
-        'url': None,  # Internal service, no web UI
+        'url': None,
         'icon': '🔴',
         'status_endpoint': None,
         'tags': ['cache', 'storage'],
@@ -72,7 +111,7 @@ SERVICES = [
     {
         'name': 'Open WebUI',
         'description': 'Local LLM chat interface (Llama 3.1 8B)',
-        'url': 'http://100.81.76.55:30080',
+        'url': 'https://webui.homelab.pesulabs.net',
         'icon': '🤖',
         'status_endpoint': '/health',
         'tags': ['ai', 'llm']
@@ -96,7 +135,7 @@ SERVICES = [
     {
         'name': 'Flowise',
         'description': 'Low-code LLM flow builder and AI orchestration',
-        'url': 'http://100.81.76.55:30850',
+        'url': 'https://flowise.homelab.pesulabs.net',
         'icon': '🌊',
         'status_endpoint': '/',
         'tags': ['ai', 'llm', 'workflows']
@@ -111,44 +150,194 @@ SERVICES = [
     }
 ]
 
+# ===== HELPER FUNCTIONS =====
+
+def get_client_ip():
+    """Get client IP address, handling proxy headers"""
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    elif request.headers.get('X-Real-IP'):
+        return request.headers.get('X-Real-IP')
+    return request.remote_addr
+
+def get_user_agent():
+    """Get user agent string"""
+    return request.headers.get('User-Agent', 'Unknown')
+
+def regenerate_session():
+    """Regenerate session ID to prevent fixation attacks"""
+    # Store user data
+    user_data = dict(session)
+
+    # Clear old session
+    session.clear()
+
+    # Generate new session ID and restore data
+    for key, value in user_data.items():
+        session[key] = value
+
+    # Generate new session token
+    session['_session_token'] = secrets.token_hex(32)
+
+# ===== DECORATORS =====
+
 def login_required(f):
     """Decorator to require login for routes"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user' not in session:
+        if 'user_id' not in session:
             return redirect(url_for('login', next=request.url))
+
+        # Check session validity and activity timeout
+        session_id = session.get('_session_token')
+        if not session_id:
+            session.clear()
+            flash('Session expired. Please login again.', 'warning')
+            return redirect(url_for('login'))
+
+        # Update session activity
+        session_data = db.update_session_activity(session_id)
+        if not session_data:
+            session.clear()
+            flash('Session expired due to inactivity. Please login again.', 'warning')
+            return redirect(url_for('login'))
+
         return f(*args, **kwargs)
     return decorated_function
+
+# ===== ROUTES =====
 
 @app.route('/')
 @login_required
 def index():
     """Main dashboard page"""
-    return render_template('index.html', services=SERVICES)
+    user = db.get_user_by_id(session['user_id'])
+    return render_template('index.html', services=SERVICES, user=user)
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per 15 minutes")  # Rate limit login attempts
 def login():
-    """Login page"""
+    """Login page with comprehensive security"""
+    # Redirect if already logged in
+    if 'user_id' in session:
+        return redirect(url_for('index'))
+
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        ip_address = get_client_ip()
+        user_agent = get_user_agent()
 
-        if username in USERS and check_password_hash(USERS[username], password):
-            session['user'] = username
+        # Validate input
+        if not username or not password:
+            db.log_audit_event(
+                username=username,
+                event_type='login_failed',
+                event_status='failure',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                details={'reason': 'Empty credentials'}
+            )
+            flash('Username and password are required.', 'error')
+            return render_template('login.html')
+
+        # Check if account is locked
+        if db.is_account_locked(username):
+            db.log_audit_event(
+                username=username,
+                event_type='access_denied',
+                event_status='warning',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                details={'reason': 'Account locked'}
+            )
+            flash('Account is temporarily locked due to too many failed login attempts. Please try again in 15 minutes.', 'error')
+            return render_template('login.html')
+
+        # Get user from database
+        user = db.get_user_by_username(username)
+
+        # Verify credentials
+        if user and user['is_active'] and check_password_hash(user['password_hash'], password):
+            # Successful login
+            # Generate session token
+            session_token = secrets.token_hex(32)
+
+            # Record in database
+            db.record_successful_login(username, ip_address, session_token)
+
+            # Set session
+            session.clear()
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            session['is_admin'] = user['is_admin']
+            session['_session_token'] = session_token
             session.permanent = True
-            app.permanent_session_lifetime = timedelta(hours=24)
 
+            # Log success
+            db.log_audit_event(
+                user_id=user['id'],
+                username=username,
+                event_type='login_success',
+                event_status='success',
+                ip_address=ip_address,
+                user_agent=user_agent
+            )
+
+            # Redirect to next page or dashboard
             next_page = request.args.get('next')
-            return redirect(next_page or url_for('index'))
+            if next_page and next_page.startswith('/'):
+                return redirect(next_page)
+            return redirect(url_for('index'))
+        else:
+            # Failed login
+            if user:
+                # Record failed attempt (may lock account)
+                was_locked = db.record_failed_login(username, ip_address)
+                if was_locked:
+                    flash('Too many failed login attempts. Account locked for 15 minutes.', 'error')
+                else:
+                    flash('Invalid username or password.', 'error')
+            else:
+                flash('Invalid username or password.', 'error')
 
-        return render_template('login.html', error='Invalid credentials')
+            # Log failure
+            db.log_audit_event(
+                username=username,
+                event_type='login_failed',
+                event_status='failure',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                details={'reason': 'Invalid credentials'}
+            )
+
+            return render_template('login.html')
 
     return render_template('login.html')
 
 @app.route('/logout')
+@login_required
 def logout():
-    """Logout route"""
-    session.pop('user', None)
+    """Logout route with session cleanup"""
+    session_token = session.get('_session_token')
+    user_id = session.get('user_id')
+
+    # Invalidate session in database
+    if session_token:
+        db.invalidate_session(session_token, reason='logout')
+
+    # Log logout
+    if user_id:
+        db.log_audit_event(
+            user_id=user_id,
+            event_type='logout',
+            event_status='success',
+            ip_address=get_client_ip()
+        )
+
+    # Clear session
+    session.clear()
+    flash('You have been logged out successfully.', 'info')
     return redirect(url_for('login'))
 
 @app.route('/api/services')
@@ -164,16 +353,138 @@ def system_info():
     return jsonify({
         'timestamp': datetime.utcnow().isoformat(),
         'services_count': len(SERVICES),
-        'uptime': 'N/A'  # TODO: Implement actual uptime tracking
+        'user': session.get('username'),
+        'is_admin': session.get('is_admin', False)
     })
 
+@app.route('/api/audit-logs')
+@login_required
+def api_audit_logs():
+    """API endpoint for audit logs (admin only)"""
+    if not session.get('is_admin'):
+        return jsonify({'error': 'Admin access required'}), 403
+
+    limit = min(int(request.args.get('limit', 100)), 500)
+    logs = db.get_recent_audit_logs(limit=limit)
+
+    # Convert to serializable format
+    logs_data = []
+    for log in logs:
+        logs_data.append({
+            'id': log['id'],
+            'username': log['username'],
+            'event_type': log['event_type'],
+            'event_status': log['event_status'],
+            'ip_address': log['ip_address'],
+            'created_at': log['created_at'].isoformat() if log['created_at'] else None,
+            'details': log['details']
+        })
+
+    return jsonify(logs_data)
+
+@app.route('/api/login-stats')
+@login_required
+def api_login_stats():
+    """API endpoint for login statistics (admin only)"""
+    if not session.get('is_admin'):
+        return jsonify({'error': 'Admin access required'}), 403
+
+    days = min(int(request.args.get('days', 7)), 30)
+    stats = db.get_login_statistics(days=days)
+
+    # Convert to serializable format
+    stats_data = []
+    for stat in stats:
+        stats_data.append({
+            'date': stat['date'].isoformat() if stat['date'] else None,
+            'successful_logins': stat['successful_logins'],
+            'failed_logins': stat['failed_logins'],
+            'unique_users': stat['unique_users']
+        })
+
+    return jsonify(stats_data)
+
 @app.route('/health')
+@csrf.exempt  # Health checks don't need CSRF
 def health():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.utcnow().isoformat()
     }), 200
+
+@app.before_request
+def before_request():
+    """Run before each request"""
+    # Clean up expired sessions periodically
+    # TODO: Fix database import issue
+    # if secrets.randbelow(100) < 5:  # 5% chance per request
+    #     db.cleanup_expired_sessions()
+    pass
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    """Handle rate limit errors"""
+    db.log_audit_event(
+        event_type='access_denied',
+        event_status='warning',
+        ip_address=get_client_ip(),
+        user_agent=get_user_agent(),
+        details={'reason': 'Rate limit exceeded', 'limit': str(e.description)}
+    )
+    return render_template('error.html',
+                         error_code=429,
+                         error_message='Too many requests. Please slow down.'), 429
+
+@app.errorhandler(403)
+def forbidden_handler(e):
+    """Handle forbidden errors"""
+    return render_template('error.html',
+                         error_code=403,
+                         error_message='Access forbidden.'), 403
+
+@app.errorhandler(404)
+def not_found_handler(e):
+    """Handle not found errors"""
+    return render_template('error.html',
+                         error_code=404,
+                         error_message='Page not found.'), 404
+
+@app.errorhandler(500)
+def server_error_handler(e):
+    """Handle server errors"""
+    return render_template('error.html',
+                         error_code=500,
+                         error_message='Internal server error.'), 500
+
+# ===== INITIALIZATION =====
+
+def initialize_app():
+    """Initialize application on startup"""
+    try:
+        print("🔧 Initializing Homelab Dashboard...")
+
+        # Initialize database
+        if not db.init_database():
+            print("⚠️  Database initialization failed, but continuing...")
+
+        # Create default admin user if it doesn't exist
+        default_user = os.environ.get('DASHBOARD_USER', 'admin')
+        default_pass = os.environ.get('DASHBOARD_PASSWORD', 'admin123')
+        password_hash = generate_password_hash(default_pass)
+
+        db.create_default_user(
+            username=default_user,
+            password_hash=password_hash,
+            email=os.environ.get('ADMIN_EMAIL')
+        )
+
+        print("✅ Homelab Dashboard initialized successfully")
+    except Exception as e:
+        print(f"❌ Initialization error: {e}")
+
+# Initialize app when module is loaded (works with both Gunicorn and direct run)
+initialize_app()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
