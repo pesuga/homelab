@@ -55,8 +55,8 @@ spec:
     spec:
       containers:
       - name: middleware
-        image: lobechat-mem0-middleware:latest
-        imagePullPolicy: Never  # Local image only
+        image: ghcr.io/pesuga/homelab/lobechat-mem0-middleware:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 11435
           name: http
