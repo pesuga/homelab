@@ -51,18 +51,23 @@ data:
       }
     ]
 
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: flowise-secret
-  namespace: homelab
-type: Opaque
-stringData:
-  DATABASE_PASSWORD: "homelab123"
-  FLOWISE_PASSWORD: "flowise2025"
-  # Optional: Add your own secret key for encryption
-  FLOWISE_SECRETKEY_OVERWRITE: "flowise-homelab-secret-key-2025"
+# IMPORTANT: The flowise-secret must be created manually before deploying this manifest.
+# Run: ./scripts/secrets/create-flowise-secret.sh
+# This will use the postgres-secret password and generate a secure Flowise admin password.
+#
+# Secret structure (created manually):
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: flowise-secret
+#   namespace: homelab
+# type: Opaque
+# stringData:
+#   DATABASE_PASSWORD: <SAME_AS_POSTGRES_PASSWORD>
+#   FLOWISE_PASSWORD: <GENERATED_SECURE_PASSWORD>
+#   FLOWISE_SECRETKEY_OVERWRITE: <GENERATED_ENCRYPTION_KEY>
+# ---
 
 ---
 apiVersion: v1

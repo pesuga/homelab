@@ -30,6 +30,11 @@ override.tf.json
 kubeconfig
 *-kubeconfig.yaml
 
+# Kubernetes Secrets (actual values)
+*-secret.yaml
+!*-secret-template.yaml
+!infrastructure/kubernetes/**/*-secret.yaml.example
+
 # Docker
 .dockerignore
 

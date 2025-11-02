@@ -1,3 +1,22 @@
+# Grafana Monitoring Dashboard
+# Version: 11.3.2
+#
+# IMPORTANT: The grafana-secret must be created manually before deploying this manifest.
+# Run: ./scripts/secrets/create-grafana-secret.sh
+# This will generate a secure random admin password.
+#
+# Secret structure (created manually):
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: grafana-secret
+#   namespace: homelab
+# type: Opaque
+# stringData:
+#   admin-password: <GENERATED_SECURE_PASSWORD>
+# ---
+#
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -57,7 +76,10 @@ spec:
             - name: GF_SECURITY_ADMIN_USER
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
-              value: admin123
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secret
+                  key: admin-password
             - name: GF_USERS_ALLOW_SIGN_UP
               value: "false"
             - name: GF_SERVER_ROOT_URL

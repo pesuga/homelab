@@ -2,17 +2,24 @@
 # Version: PostgreSQL 16.10
 # Storage: 10Gi persistent volume
 # Credentials: Stored in postgres-secret
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secret
-  namespace: homelab
-type: Opaque
-stringData:
-  POSTGRES_USER: homelab
-  POSTGRES_PASSWORD: homelab123
-  POSTGRES_DB: homelab
+#
+# IMPORTANT: The postgres-secret must be created manually before deploying this manifest.
+# Run: ./scripts/secrets/create-postgres-secret.sh
+# This will generate a secure random password and create the secret in the cluster.
+#
+# Secret structure (created manually):
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: postgres-secret
+#   namespace: homelab
+# type: Opaque
+# stringData:
+#   POSTGRES_USER: homelab
+#   POSTGRES_PASSWORD: <GENERATED_SECURE_PASSWORD>
+#   POSTGRES_DB: homelab
+# ---
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

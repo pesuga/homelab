@@ -78,15 +78,21 @@ spec:
             port: 5000
           initialDelaySeconds: 5
           periodSeconds: 10
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: dashboard-secrets
-  namespace: homelab
-type: Opaque
-stringData:
-  secret-key: "31a75bf7dc74eecf5e5c837ff698b369c65039bd7d5bdd3e90089e246e77ce25"
-  username: "admin"
-  password: "ChangeMe!2024#Secure"  # CHANGE THIS IMMEDIATELY AFTER DEPLOYMENT
-  admin-email: "admin@pesulabs.net"  # Optional: for notifications
+# IMPORTANT: The dashboard-secrets must be created manually before deploying this manifest.
+# Run: ./scripts/secrets/create-dashboard-secret.sh
+# This will generate a secure random password and Flask secret key.
+#
+# Secret structure (created manually):
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: dashboard-secrets
+#   namespace: homelab
+# type: Opaque
+# stringData:
+#   secret-key: <GENERATED_FLASK_SECRET_KEY>
+#   username: admin
+#   password: <GENERATED_SECURE_PASSWORD>
+#   admin-email: admin@pesulabs.net  # Optional: for notifications
+# ---

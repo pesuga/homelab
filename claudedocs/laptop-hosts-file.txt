@@ -1,0 +1,99 @@
+################################################################################
+# Homelab Hosts File for Laptop
+# Add these entries to your laptop's hosts file
+#
+# Instructions:
+# - Windows: C:\Windows\System32\drivers\etc\hosts (Run Notepad as Administrator)
+# - macOS/Linux: /etc/hosts (Use: sudo nano /etc/hosts)
+#
+# Usage:
+# 1. Copy the entries below
+# 2. Paste them into your hosts file
+# 3. Save and close
+# 4. Test with: ping chat.pesulabs.net
+#
+# Note: These use Tailscale IPs for secure remote access
+################################################################################
+
+# Service Node (asuna) - K3s Cluster with all services
+100.81.76.55    asuna
+
+# LobeChat - AI Chat Interface with Voice (NEW - HTTPS with TLS)
+100.81.76.55    chat.pesulabs.net
+100.81.76.55    chat.homelab.pesulabs.net
+
+# N8n - Workflow Automation
+100.81.76.55    n8n.pesulabs.net
+100.81.76.55    n8n.homelab.pesulabs.net
+100.81.76.55    n8n.homelab.local
+
+# Flowise - LLM Flow Builder
+100.81.76.55    flowise.pesulabs.net
+100.81.76.55    flowise.homelab.pesulabs.net
+100.81.76.55    flowise.homelab.local
+
+# Grafana - Monitoring Dashboards
+100.81.76.55    grafana.pesulabs.net
+100.81.76.55    grafana.homelab.pesulabs.net
+100.81.76.55    grafana.homelab.local
+
+# Prometheus - Metrics Collection
+100.81.76.55    prometheus.pesulabs.net
+100.81.76.55    prometheus.homelab.pesulabs.net
+100.81.76.55    prometheus.homelab.local
+
+# Open WebUI - Chat Interface
+100.81.76.55    webui.pesulabs.net
+100.81.76.55    webui.homelab.pesulabs.net
+100.81.76.55    webui.homelab.local
+
+# Homelab Dashboard - Landing Page
+100.81.76.55    dash.pesulabs.net
+100.81.76.55    dashboard.pesulabs.net
+
+# Compute Node (pesubuntu) - LLM Inference
+100.72.98.106   pesubuntu
+
+# Ollama API - LLM Inference Engine
+100.72.98.106   ollama.homelab.local
+
+# LiteLLM API - LLM Router (when deployed)
+100.72.98.106   litellm.homelab.local
+
+################################################################################
+# Quick Access URLs (HTTPS)
+################################################################################
+#
+# LobeChat (NEW):        https://chat.pesulabs.net
+# N8n Workflows:         https://n8n.pesulabs.net
+# Flowise:               https://flowise.pesulabs.net
+# Grafana Monitoring:    https://grafana.pesulabs.net
+# Prometheus:            https://prometheus.pesulabs.net
+# Open WebUI:            https://webui.pesulabs.net
+# Dashboard:             https://dash.pesulabs.net
+#
+# Credentials:
+# - LobeChat:     No auth (homelab network)
+# - N8n:          admin / admin123
+# - Flowise:      admin / flowise2025
+# - Grafana:      admin / admin123
+# - Open WebUI:   First signup becomes admin
+# - Dashboard:    admin / ChangeMe!2024#Secure
+#
+################################################################################
+# NodePort Access (Direct IP:Port - fallback if DNS doesn't work)
+################################################################################
+#
+# LobeChat:      http://100.81.76.55:30910
+# N8n:           http://100.81.76.55:30678
+# Flowise:       http://100.81.76.55:30850
+# Grafana:       http://100.81.76.55:30300
+# Prometheus:    http://100.81.76.55:30090
+# Open WebUI:    http://100.81.76.55:30080
+# Dashboard:     http://100.81.76.55:30800
+# Whisper STT:   http://100.81.76.55:30900
+# Qdrant:        http://100.81.76.55:30633
+# Mem0:          http://100.81.76.55:30820
+# Ollama:        http://100.72.98.106:11434
+#
+################################################################################
