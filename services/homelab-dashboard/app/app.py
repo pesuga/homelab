@@ -504,17 +504,20 @@ def api_services():
 @app.route('/api/services/health')
 def api_services_health():
     """API endpoint to get service health status"""
-    services_with_health = get_all_services_health()
-    health_summary = []
-    for service in services_with_health:
-        health_info = {
-            'name': service['name'],
-            'status': service['health']['status'],
-            'message': service['health']['message'],
-            'url': service['health'].get('url', '')
-        }
-        health_summary.append(health_info)
-    return jsonify(health_summary)
+    try:
+        services_with_health = get_all_services_health()
+        health_summary = []
+        for service in services_with_health:
+            health_info = {
+                'name': service['name'],
+                'status': service['health']['status'],
+                'message': service['health']['message'],
+                'url': service['health'].get('url', '')
+            }
+            health_summary.append(health_info)
+        return jsonify(health_summary)
+    except Exception as e:
+        return jsonify({'error': str(e), 'services': health_summary}), 500
 
 @app.route('/api/services/health/<service_name>')
 def api_service_health(service_name):
