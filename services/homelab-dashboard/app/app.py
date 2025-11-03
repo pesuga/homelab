@@ -511,7 +511,7 @@ def api_services_health():
             'name': service['name'],
             'status': service['health']['status'],
             'message': service['health']['message'],
-            'url': service['health']['url']
+            'url': service['health'].get('url', '')
         }
         health_summary.append(health_info)
     return jsonify(health_summary)
