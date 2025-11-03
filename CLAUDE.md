@@ -18,7 +18,7 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 **Compute Node (pesubuntu - localhost)**:
 - Purpose: LLM inference with GPU acceleration
 - Hardware: i5-12400F (6C/12T), 32GB RAM, AMD RX 7800 XT (16GB VRAM, Navi 32)
-- Services: Ollama (port 11434), LiteLLM (port 8000) - to be installed
+- Services: Ollama (port 11434), LiteLLM (port 8000), Whisper, Lobechat
 - OS: Ubuntu 25.10 (Questing Quetzal) - Native installation
 - Kernel: 6.17.0-5-generic
 - Storage: 937GB available
@@ -69,14 +69,6 @@ lspci | grep -i vga
 # Step 3: Install Ollama with ROCm support
 curl -fsSL https://ollama.com/install.sh | sh
 systemctl status ollama
-
-# Step 4: Pull models
-ollama pull mistral:7b-q4_K_M
-ollama pull codellama:7b-q4_K_M
-ollama pull llama3.1:8b-q4_K_M
-
-# Step 5: Test Ollama inference (should use GPU)
-ollama run mistral:7b-q4_K_M "Hello, who are you?"
 
 # Step 6: Install and start LiteLLM
 sudo apt install pipx
@@ -141,26 +133,6 @@ kubectl top pods -A
 ### Qdrant Vector Database
 
 ```bash
-# Deploy Qdrant
-kubectl apply -f infrastructure/kubernetes/databases/qdrant/qdrant.yaml
-
-# Verify deployment
-kubectl get pods -n homelab -l app=qdrant
-kubectl get svc -n homelab qdrant
-
-# Test health check (via NodePort)
-curl http://100.81.76.55:30633/healthz
-
-# Create test collection
-curl -X PUT http://100.81.76.55:30633/collections/test \
-  -H 'Content-Type: application/json' \
-  -d '{"vectors": {"size": 384, "distance": "Cosine"}}'
-
-# List collections
-curl http://100.81.76.55:30633/collections
-
-# See docs/QDRANT-SETUP.md for N8n/Flowise integration
-```
 
 ### Mem0 AI Memory Layer
 
@@ -513,28 +485,6 @@ curl http://COMPUTE_NODE_IP:11434/api/version
 
 ## Future Enhancements
 
-### Sprint 4: Advanced Services (Weeks 9-10)
-- AgentStack deployment for advanced agent orchestration
-- Service mesh (Istio/Linkerd) for better observability
-- Log aggregation with Loki
-- Alert rules and runbooks
-
-### Sprint 5: Networking & Security (Weeks 11-12)
-- Tailscale exit node on GL-MT2500 router
-- Enhanced authentication (OAuth/OIDC)
-- Mobile access optimization
-- TLS/HTTPS everywhere
-
-### Sprint 6: Agent Workflows (Weeks 13-14)
-- First production N8n workflows with LLM integration
-- AgentStack agent development
-- Agent templates and pattern library
-
-### Sprint 7: CI/CD & Automation (Weeks 15-16)
-- GitHub Actions for automated testing and deployment
-- Backup automation (local + Google Drive)
-- Disaster recovery procedures
-
 ## Performance Targets
 
 ### LLM Inference (Target)
@@ -567,9 +517,6 @@ When resuming work, check:
 ## Important Notes
 
 - **IP Addressing**: Documentation sometimes references 192.168.1.0/24, but actual network is 192.168.8.0/24
-- **OS Change**: Moved from Windows + WSL2 to native Ubuntu 25.10 for better GPU support
-- **Compute Node**: Fresh installation, needs ROCm + Ollama + LiteLLM setup
-- **Credentials**: Default admin/admin123 for N8n and Grafana (change in production)
 - **Storage**: Service node has limited disk (98GB) - monitor usage
 - **No root access needed**: Both nodes have passwordless sudo configured for user `pesu`
 
