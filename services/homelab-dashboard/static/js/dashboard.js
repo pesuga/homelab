@@ -1,4 +1,4 @@
-// Dashboard JavaScript for service status checking
+// Dashboard JavaScript for enhanced service status checking
 
 // Check service status on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -11,28 +11,64 @@ document.addEventListener('DOMContentLoaded', function() {
 async function checkAllServiceStatus() {
     const statusIndicators = document.querySelectorAll('.status-indicator');
 
-    statusIndicators.forEach(async (indicator) => {
-        const url = indicator.getAttribute('data-url');
-        await checkServiceStatus(url, indicator);
-    });
+    // Get all service status from API
+    try {
+        const response = await fetch('/api/services/health');
+        if (response.ok) {
+            const healthData = await response.json();
+
+            // Update each service status
+            statusIndicators.forEach(async (indicator) => {
+                const serviceName = indicator.getAttribute('data-service');
+                const healthInfo = healthData.find(h => h.name.toLowerCase() === serviceName);
+
+                if (healthInfo) {
+                    updateServiceStatus(indicator, healthInfo.status, healthInfo.message);
+                }
+            });
+        } else {
+            // Fallback to individual service checks
+            statusIndicators.forEach(async (indicator) => {
+                await checkIndividualServiceStatus(indicator);
+            });
+        }
+    } catch (error) {
+        console.log('API call failed, checking individual services:', error);
+        // Fallback to individual service checks
+        statusIndicators.forEach(async (indicator) => {
+            await checkIndividualServiceStatus(indicator);
+        });
+    }
 }
 
-async function checkServiceStatus(url, indicator) {
+async function checkIndividualServiceStatus(indicator) {
+    const serviceName = indicator.getAttribute('data-service');
+
+    try {
+        const response = await fetch(`/api/services/health/${serviceName}`);
+        if (response.ok) {
+            const healthInfo = await response.json();
+            updateServiceStatus(indicator, healthInfo.status, healthInfo.message);
+        } else {
+            updateServiceStatus(indicator, 'unknown', 'Unknown');
+        }
+    } catch (error) {
+        updateServiceStatus(indicator, 'unknown', 'Check failed');
+    }
+}
+
+function updateServiceStatus(indicator, status, message) {
     const dot = indicator.querySelector('.status-dot');
     const text = indicator.querySelector('.status-text');
 
-    try {
-        // Note: This will fail due to CORS, but in production you'd use a backend proxy
-        // For now, we'll just mark all as online if the page loaded
-        // In a real setup, this would go through your backend
+    // Remove all status classes
+    dot.classList.remove('online', 'offline', 'error', 'unknown', 'timeout');
 
-        dot.classList.add('online');
-        text.textContent = 'Online';
-    } catch (error) {
-        // Assume online for now - in production, implement proper health checking via backend
-        dot.classList.add('online');
-        text.textContent = 'Online';
-    }
+    // Add appropriate status class
+    dot.classList.add(status);
+
+    // Update text
+    text.textContent = message;
 }
 
 // Add smooth scrolling
