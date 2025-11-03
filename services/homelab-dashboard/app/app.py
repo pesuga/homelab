@@ -502,7 +502,6 @@ def api_services():
     return jsonify(sorted_services)
 
 @app.route('/api/services/health')
-@login_required
 def api_services_health():
     """API endpoint to get service health status"""
     services_with_health = get_all_services_health()
@@ -518,7 +517,6 @@ def api_services_health():
     return jsonify(health_summary)
 
 @app.route('/api/services/health/<service_name>')
-@login_required
 def api_service_health(service_name):
     """API endpoint to get health for specific service"""
     service = None
