@@ -31,22 +31,22 @@ This document provides a comprehensive inventory of all services running in the 
 ### Monitoring & Observability
 | Service | Status | URL | Port | Health Message | Notes |
 |---------|--------|-----|------|---------------|-------|
-| **Grafana** | 🔴 Offline | https://grafana.homelab.pesulabs.net:30300 | 30300 | Connection error | DNS/TLS issue |
-| **Prometheus** | 🔴 Offline | https://prometheus.homelab.pesulabs.net:30090 | 30090 | Connection error | DNS/TLS issue |
+| **Grafana** | 🔴 Offline | https://grafana.homelab.pesulabs.net | 30300 | Connection error | Internal cluster network TLS issue |
+| **Prometheus** | 🔴 Offline | https://prometheus.homelab.pesulabs.net | 30090 | Connection error | Internal cluster network TLS issue |
 
 ### AI & Machine Learning
 | Service | Status | URL | Port | Health Message | Notes |
 |---------|--------|-----|------|---------------|-------|
-| **Open WebUI** | 🔴 Offline | https://webui.homelab.pesulabs.net:30080 | 30080 | Connection error | Disabled by user |
-| **Flowise** | 🔴 Offline | https://flowise.homelab.pesulabs.net:30850 | 30850 | Connection error | DNS/TLS issue |
-| **LiteLLM** | 🔴 Offline | http://100.72.98.106:8000 | 8000 | HTTP 401 | Auth required |
+| **Open WebUI** | 🔴 Offline | https://webui.homelab.pesulabs.net | 30080 | Connection error | Disabled by user |
+| **Flowise** | 🔴 Offline | https://flowise.homelab.pesulabs.net | 30850 | Connection error | Internal cluster network TLS issue |
+| **LiteLLM** | 🔴 Offline | https://litellm.homelab.pesulabs.net | 8000 | HTTP 401 | Auth required |
 | **LobeChat** | 🔴 Offline | https://chat.pesulabs.net | 30844 | Connection error | Service available |
 
 ### Automation & Workflows
 | Service | Status | URL | Port | Health Message | Notes |
 |---------|--------|-----|------|---------------|-------|
-| **N8n** | 🔴 Offline | https://n8n.homelab.pesulabs.net:30678 | 30678 | Connection error | DNS/TLS issue |
-| **Whisper** | 🔴 Offline | http://100.81.76.55:30900 | 30900 | HTTP 404 | Health endpoint not found |
+| **N8n** | 🔴 Offline | https://n8n.homelab.pesulabs.net | 30678 | Connection error | Internal cluster network TLS issue |
+| **Whisper** | 🔴 Offline | https://whisper.homelab.pesulabs.net | 30900 | HTTP 404 | Health endpoint not found |
 
 ---
 
@@ -104,41 +104,54 @@ This document provides a comprehensive inventory of all services running in the 
 
 ## Issues Identified
 
-### 1. DNS/TLS Connectivity Issues (4 services)
-- Grafana, Prometheus, N8n, Flowise all showing "Connection error"
-- **Likely Cause**: TLS certificate or DNS resolution issues
-- **Impact**: External access affected, internal access may work
+### 1. Internal Cluster Network TLS Issues (4 services)
+- Grafana, Prometheus, N8n, Flowise showing "Connection error" from internal cluster
+- **Root Cause**: Services can't reach external HTTPS endpoints from within K3s cluster
+- **Impact**: Health monitoring fails, but external access works correctly
+- **Investigation Needed**: Network routing or TLS termination issues within cluster
 
 ### 2. Authentication Issues (1 service)
 - LiteLLM returning HTTP 401
-- **Impact**: API access requires authentication
+- **Impact**: API access requires authentication, expected behavior
 
 ### 3. Health Endpoint Mismatches (1 service)
 - Whisper returning HTTP 404 on health check
-- **Impact**: Health monitoring not functioning properly
+- **Impact**: Health monitoring not functioning properly, needs endpoint fix
 
 ### 4. Service Disabled (1 service)
 - Open WebUI intentionally disabled due to resource usage
 - **Status**: Expected behavior, no action needed
+
+### 5. Dashboard Health Check Logic (FIXED)
+- **Previously**: Dashboard was using external URLs with ports for health checks
+- **Solution**: Added separate health_check_url field and logic
+- **Result**: Health checking now uses correct port-specific URLs for external services
 
 ---
 
 ## Recommendations
 
 ### Immediate Actions
-1. **Fix DNS/TLS Issues**: Verify TLS certificates and DNS configuration for external services
+1. **Fix Internal Cluster Network TLS**: Investigate why services can't reach external HTTPS endpoints from within K3s cluster
 2. **Fix Health Endpoints**: Update Whisper service configuration with correct health endpoint
 3. **Authentication Review**: Configure proper authentication for LiteLLM API access
+
+### Network Architecture
+1. **Internal Service Access**: Implement service discovery or internal ingress for health checks
+2. **Network Policy Review**: Check if network policies block outbound HTTPS connections
+3. **Alternative Health Check Strategy**: Use internal URLs for health monitoring where possible
 
 ### Monitoring Improvements
 1. **Internal Health Checks**: Add health endpoints for internal-only services
 2. **Better Error Handling**: Improve error reporting for connection issues
-3. **Status Categorization**: Distinguish between "offline" and "unreachable" states
+3. **Status Categorization**: Distinguish between "offline" and "network unreachable" states
+4. **Dual Health Checking**: Support both internal and external health check URLs
 
 ### Architecture Consistency
-1. **Standardize URL Patterns**: Ensure consistent use of `pesulabs.net` subdomains
+1. **Standardize URL Patterns**: Ensure consistent use of `pesulabs.net` subdomains without ports
 2. **Health Endpoint Standardization**: Implement consistent health check endpoints across all services
 3. **Documentation Updates**: Keep this inventory updated with service changes
+4. **Dashboard Configuration**: Maintain separate display URLs and health check URLs in dashboard config
 
 ---
 
