@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
       - name: dashboard
-        image: 100.81.76.55:30500/homelab-dashboard:latest
-        imagePullPolicy: Always  # Pull from Tailscale registry
+        image: ghcr.io/pesuga/homelab/homelab-dashboard:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
           name: http
