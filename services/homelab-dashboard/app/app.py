@@ -79,7 +79,8 @@ SERVICES = [
         'name': 'Prometheus',
         'description': 'Time series database and metrics collection',
         'url': 'https://prometheus.homelab.pesulabs.net',
-        'external_url': 'https://prometheus.homelab.pesulabs.net:30090',
+        'external_url': 'https://prometheus.homelab.pesulabs.net',
+        'health_check_url': 'https://prometheus.homelab.pesulabs.net:30090',
         'internal_url': 'http://prometheus.homelab.svc.cluster.local:9090',
         'icon': '🔥',
         'status_endpoint': '/-/healthy',
@@ -90,7 +91,8 @@ SERVICES = [
         'name': 'N8n',
         'description': 'Workflow automation and integration platform',
         'url': 'https://n8n.homelab.pesulabs.net',
-        'external_url': 'https://n8n.homelab.pesulabs.net:30678',
+        'external_url': 'https://n8n.homelab.pesulabs.net',
+        'health_check_url': 'https://n8n.homelab.pesulabs.net:30678',
         'internal_url': 'http://n8n.homelab.svc.cluster.local:5678',
         'icon': '🔗',
         'status_endpoint': '/healthz',
@@ -147,7 +149,8 @@ SERVICES = [
         'name': 'LiteLLM',
         'description': 'OpenAI-compatible LLM API gateway',
         'url': 'http://100.72.98.106:8000',
-        'external_url': 'http://100.72.98.106:8000',
+        'external_url': 'https://litellm.homelab.pesulabs.net',
+        'health_check_url': 'http://100.72.98.106:8000',
         'internal_url': 'http://litellm.homelab.svc.cluster.local:8000',
         'icon': '⚡',
         'status_endpoint': '/health',
@@ -158,7 +161,8 @@ SERVICES = [
         'name': 'Flowise',
         'description': 'Low-code LLM flow builder and AI orchestration',
         'url': 'https://flowise.homelab.pesulabs.net',
-        'external_url': 'https://flowise.homelab.pesulabs.net:30850',
+        'external_url': 'https://flowise.homelab.pesulabs.net',
+        'health_check_url': 'https://flowise.homelab.pesulabs.net:30850',
         'internal_url': 'http://flowise.homelab.svc.cluster.local:3000',
         'icon': '🌊',
         'status_endpoint': '/',
@@ -272,8 +276,10 @@ def check_service_health(service):
         if status_endpoint is None and service.get('internal'):
             return {'status': 'unknown', 'message': 'No health endpoint configured', 'name': name}
 
-        # Use internal URL for in-cluster services, external URL for external services
-        if service.get('internal'):
+        # Use health_check_url if available, otherwise fall back to internal/external logic
+        if 'health_check_url' in service:
+            base_url = service['health_check_url']
+        elif service.get('internal'):
             base_url = service['internal_url']
         else:
             base_url = service['external_url']
