@@ -157,7 +157,7 @@ Use this in any workflow:
   "method": "POST",
   "url": "http://100.72.98.106:8000/v1/chat/completions",
   "headers": {
-    "Authorization": "Bearer sk-zwcYHyyR9rx7stuFhocu3_gErZShHqCxsnPDpcDr4m0",
+    "Authorization": "Bearer {{ $json.litellm_api_key }}",
     "Content-Type": "application/json"
   },
   "body": {
@@ -318,7 +318,7 @@ Use the **Manual Trigger** node during development, then switch to:
 
 Already configured in `litellm-test-workflow.json`:
 ```
-API Key: sk-zwcYHyyR9rx7stuFhocu3_gErZShHqCxsnPDpcDr4m0
+API Key: Set via N8n credentials (variable: litellm_api_key)
 Base URL: http://100.72.98.106:8000/v1
 ```
 
@@ -330,7 +330,7 @@ Host: postgres.homelab.svc.cluster.local
 Port: 5432
 Database: homelab
 User: homelab
-Password: homelab123
+Password: Set via N8n credentials (variable: postgres_password)
 ```
 
 **Redis**:

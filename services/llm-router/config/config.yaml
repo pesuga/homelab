@@ -4,9 +4,9 @@
 
 # General settings
 general_settings:
-  master_key: sk-zwcYHyyR9rx7stuFhocu3_gErZShHqCxsnPDpcDr4m0  # API key for authentication
+  master_key: ${LITE_LLM_MASTER_KEY}  # API key for authentication (set via environment variable)
   # Optional: Uncomment to enable additional features
-  # database_url: "postgresql://homelab:homelab123@postgres.homelab.svc.cluster.local:5432/litellm"  # For usage tracking
+  # database_url: "postgresql://homelab:${POSTGRES_PASSWORD}@postgres.homelab.svc.cluster.local:5432/litellm"  # For usage tracking (set via environment variable)
   # store_model_in_db: true
 
 # Model definitions - OpenAI-compatible endpoints
