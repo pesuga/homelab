@@ -179,8 +179,8 @@ SERVICES = [
     {
         'name': 'LobeChat',
         'description': 'AI chat interface with memory',
-        'url': 'https://chat.homelab.pesulabs.net',
-        'external_url': 'https://chat.homelab.pesulabs.net:30844',
+        'url': 'https://chat.pesulabs.net',
+        'external_url': 'https://chat.pesulabs.net',
         'internal_url': 'http://lobechat.homelab.svc.cluster.local:3000',
         'icon': '🎭',
         'status_endpoint': '/api/health',
