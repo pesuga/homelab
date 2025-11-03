@@ -12,7 +12,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app/
 COPY templates/ ./templates/
 COPY static/ ./static/
-COPY db_schema/ ./db_schema/
 
 # Create non-root user
 RUN useradd -m -u 1000 dashboard && \
