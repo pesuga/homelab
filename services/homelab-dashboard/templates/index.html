@@ -62,21 +62,40 @@
                 <div class="service-header">
                     <span class="service-icon">{{ service.icon }}</span>
                     <h3>{{ service.name }}</h3>
-                    <span class="status-indicator" data-url="{{ service.url }}{{ service.status_endpoint }}">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Checking...</span>
+                    <span class="status-indicator" data-service="{{ service.name|lower|replace(' ', '-') }}">
+                        <span class="status-dot" data-status="{{ service.health.status if service.health else 'unknown' }}"></span>
+                        <span class="status-text">{{ service.health.message if service.health else 'Unknown' }}</span>
                     </span>
                 </div>
                 <p class="service-description">{{ service.description }}</p>
+                <div class="service-connections">
+                    <div class="connection-info">
+                        <h4>🌐 External Access</h4>
+                        <p><strong>URL:</strong> {{ service.url or service.external_url or 'N/A' }}</p>
+                        <p><strong>Port:</strong> {{ service.port or 'N/A' }}</p>
+                    </div>
+                    <div class="connection-info">
+                        <h4>🏠 Internal Access</h4>
+                        <p><strong>Service:</strong> {{ service.internal_url or 'N/A' }}</p>
+                        <p><strong>Role:</strong> {{ service.tags|join(', ') }}</p>
+                    </div>
+                </div>
                 <div class="service-tags">
                     {% for tag in service.tags %}
                     <span class="tag">{{ tag }}</span>
                     {% endfor %}
                 </div>
                 <div class="service-actions">
+                    {% if service.url %}
                     <a href="{{ service.url }}" target="_blank" class="btn btn-primary">
                         Open Service →
                     </a>
+                    {% endif %}
+                    {% if service.health.url %}
+                    <a href="{{ service.health.url }}" target="_blank" class="btn btn-secondary">
+                        Health Check →
+                    </a>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

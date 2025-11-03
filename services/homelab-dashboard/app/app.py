@@ -62,93 +62,174 @@ Talisman(app,
          force_https=False,  # Handled by Ingress/Traefik
          content_security_policy=csp)
 
-# Services configuration
+# Services configuration with enhanced connectivity info
 SERVICES = [
     {
         'name': 'Grafana',
         'description': 'Metrics visualization and monitoring dashboards',
         'url': 'https://grafana.homelab.pesulabs.net',
+        'external_url': 'https://grafana.homelab.pesulabs.net:30300',
+        'internal_url': 'http://grafana.homelab.svc.cluster.local:3000',
         'icon': '📊',
         'status_endpoint': '/api/health',
+        'port': 30300,
         'tags': ['monitoring', 'visualization']
     },
     {
         'name': 'Prometheus',
         'description': 'Time series database and metrics collection',
         'url': 'https://prometheus.homelab.pesulabs.net',
+        'external_url': 'https://prometheus.homelab.pesulabs.net:30090',
+        'internal_url': 'http://prometheus.homelab.svc.cluster.local:9090',
         'icon': '🔥',
         'status_endpoint': '/-/healthy',
+        'port': 30090,
         'tags': ['monitoring', 'metrics']
     },
     {
         'name': 'N8n',
         'description': 'Workflow automation and integration platform',
         'url': 'https://n8n.homelab.pesulabs.net',
+        'external_url': 'https://n8n.homelab.pesulabs.net:30678',
+        'internal_url': 'http://n8n.homelab.svc.cluster.local:5678',
         'icon': '🔗',
         'status_endpoint': '/healthz',
+        'port': 30678,
         'tags': ['automation', 'workflows']
     },
     {
         'name': 'PostgreSQL',
         'description': 'Relational database (PostgreSQL 16.10)',
         'url': None,
+        'external_url': None,
+        'internal_url': 'postgres.homelab.svc.cluster.local:5432',
         'icon': '🐘',
         'status_endpoint': None,
+        'port': 5432,
         'tags': ['database', 'storage'],
-        'internal': True,
-        'connection': 'postgres.homelab.svc.cluster.local:5432'
+        'internal': True
     },
     {
         'name': 'Redis',
         'description': 'In-memory cache and message broker (Redis 7.4.6)',
         'url': None,
+        'external_url': None,
+        'internal_url': 'redis.homelab.svc.cluster.local:6379',
         'icon': '🔴',
         'status_endpoint': None,
+        'port': 6379,
         'tags': ['cache', 'storage'],
-        'internal': True,
-        'connection': 'redis.homelab.svc.cluster.local:6379'
+        'internal': True
     },
     {
         'name': 'Open WebUI',
         'description': 'Local LLM chat interface (Llama 3.1 8B)',
         'url': 'https://webui.homelab.pesulabs.net',
+        'external_url': 'https://webui.homelab.pesulabs.net:30080',
+        'internal_url': 'http://open-webui-pipelines.homelab.svc.cluster.local:8080',
         'icon': '🤖',
         'status_endpoint': '/health',
+        'port': 30080,
         'tags': ['ai', 'llm']
     },
     {
         'name': 'Ollama',
         'description': 'LLM inference API (direct)',
         'url': 'http://100.72.98.106:11434',
+        'external_url': 'http://100.72.98.106:11434',
+        'internal_url': 'http://ollama.homelab.svc.cluster.local:11434',
         'icon': '🦙',
         'status_endpoint': '/api/version',
+        'port': 11434,
         'tags': ['ai', 'llm', 'api']
     },
     {
         'name': 'LiteLLM',
         'description': 'OpenAI-compatible LLM API gateway',
         'url': 'http://100.72.98.106:8000',
+        'external_url': 'http://100.72.98.106:8000',
+        'internal_url': 'http://litellm.homelab.svc.cluster.local:8000',
         'icon': '⚡',
         'status_endpoint': '/health',
+        'port': 8000,
         'tags': ['ai', 'llm', 'api']
     },
     {
         'name': 'Flowise',
         'description': 'Low-code LLM flow builder and AI orchestration',
         'url': 'https://flowise.homelab.pesulabs.net',
+        'external_url': 'https://flowise.homelab.pesulabs.net:30850',
+        'internal_url': 'http://flowise.homelab.svc.cluster.local:3000',
         'icon': '🌊',
         'status_endpoint': '/',
+        'port': 30850,
         'tags': ['ai', 'llm', 'workflows']
     },
     {
         'name': 'Qdrant',
         'description': 'Vector database for RAG and semantic search (v1.12.5)',
         'url': 'http://100.81.76.55:30633/dashboard',
+        'external_url': 'http://100.81.76.55:30633',
+        'internal_url': 'http://qdrant.homelab.svc.cluster.local:6333',
         'icon': '🔍',
         'status_endpoint': '/healthz',
+        'port': 30633,
         'tags': ['database', 'vector', 'ai']
+    },
+    {
+        'name': 'LobeChat',
+        'description': 'AI chat interface with memory',
+        'url': 'https://chat.homelab.pesulabs.net',
+        'external_url': 'https://chat.homelab.pesulabs.net:30844',
+        'internal_url': 'http://lobechat.homelab.svc.cluster.local:3000',
+        'icon': '🎭',
+        'status_endpoint': '/api/health',
+        'port': 30844,
+        'tags': ['ai', 'chat', 'memory']
+    },
+    {
+        'name': 'Whisper',
+        'description': 'Speech-to-text transcription service',
+        'url': 'http://100.81.76.55:30900',
+        'external_url': 'http://100.81.76.55:30900',
+        'internal_url': 'http://whisper.homelab.svc.cluster.local:9000',
+        'icon': '🎤',
+        'status_endpoint': '/health',
+        'port': 30900,
+        'tags': ['ai', 'speech', 'transcription']
+    },
+    {
+        'name': 'Mem0',
+        'description': 'AI memory layer for contextual conversations',
+        'url': 'http://100.81.76.55:30880',
+        'external_url': 'http://100.81.76.55:30880',
+        'internal_url': 'http://mem0.homelab.svc.cluster.local:8001',
+        'icon': '🧠',
+        'status_endpoint': '/health',
+        'port': 30880,
+        'tags': ['ai', 'memory', 'context']
+    },
+    {
+        'name': 'Loki',
+        'description': 'Log aggregation and search system',
+        'url': 'http://100.81.76.55:30314',
+        'external_url': 'http://100.81.76.55:30314',
+        'internal_url': 'http://loki.homelab.svc.cluster.local:3100',
+        'icon': '📋',
+        'status_endpoint': '/ready',
+        'port': 30314,
+        'tags': ['logging', 'monitoring']
     }
 ]
+
+# Service categories for better organization
+SERVICE_CATEGORIES = {
+    'Monitoring & Observability': ['Grafana', 'Prometheus', 'Loki'],
+    'AI & Machine Learning': ['Open WebUI', 'Ollama', 'LiteLLM', 'Flowise', 'Whisper', 'Mem0'],
+    'Automation & Workflows': ['N8n', 'LobeChat'],
+    'Databases & Storage': ['PostgreSQL', 'Redis', 'Qdrant'],
+    'Infrastructure': []
+}
 
 # ===== HELPER FUNCTIONS =====
 
@@ -178,6 +259,62 @@ def regenerate_session():
 
     # Generate new session token
     session['_session_token'] = secrets.token_hex(32)
+
+# ===== HEALTH CHECKING FUNCTIONS =====
+
+def check_service_health(service):
+    """Check if a service is healthy"""
+    try:
+        name = service['name']
+        status_endpoint = service.get('status_endpoint')
+
+        # Skip health check for internal-only services without endpoints
+        if status_endpoint is None and service.get('internal'):
+            return {'status': 'unknown', 'message': 'No health endpoint configured', 'name': name}
+
+        # Use internal URL for in-cluster services, external URL for external services
+        if service.get('internal'):
+            base_url = service['internal_url']
+        else:
+            base_url = service['external_url']
+
+        # Skip health check if no endpoint available
+        if status_endpoint is None:
+            return {'status': 'unknown', 'message': 'No health endpoint', 'name': name}
+
+        # Construct full URL for health check
+        if status_endpoint.startswith('http'):
+            url = status_endpoint
+        else:
+            url = f"{base_url}{status_endpoint}"
+
+        # Health check with timeout
+        import requests
+        try:
+            response = requests.get(url, timeout=10, allow_redirects=True)
+            if response.status_code == 200:
+                return {'status': 'online', 'message': f'HTTP {response.status_code}', 'name': name, 'url': url}
+            else:
+                return {'status': 'offline', 'message': f'HTTP {response.status_code}', 'name': name, 'url': url}
+        except requests.exceptions.Timeout:
+            return {'status': 'timeout', 'message': 'Connection timeout', 'name': name, 'url': url}
+        except requests.exceptions.ConnectionError:
+            return {'status': 'offline', 'message': 'Connection error', 'name': name, 'url': url}
+        except requests.exceptions.RequestException as e:
+            return {'status': 'offline', 'message': str(e), 'name': name, 'url': url}
+
+    except Exception as e:
+        return {'status': 'error', 'message': str(e), 'name': name}
+
+def get_all_services_health():
+    """Get health status for all services"""
+    health_results = []
+    for service in SERVICES:
+        health = check_service_health(service)
+        service_copy = service.copy()
+        service_copy['health'] = health
+        health_results.append(service_copy)
+    return health_results
 
 # ===== DECORATORS =====
 
@@ -210,9 +347,25 @@ def login_required(f):
 @app.route('/')
 @login_required
 def index():
-    """Main dashboard page"""
+    """Main dashboard page with health checking and sorting"""
     user = db.get_user_by_id(session['user_id'])
-    return render_template('index.html', services=SERVICES, user=user)
+
+    # Get services with health status and sort by online/offline
+    services_with_health = get_all_services_health()
+
+    # Sort services: online first, then offline, then unknown
+    def get_sort_key(service):
+        health_status = service['health']['status']
+        if health_status == 'online':
+            return 0
+        elif health_status == 'offline':
+            return 1
+        else:  # unknown, error, timeout
+            return 2
+
+    sorted_services = sorted(services_with_health, key=get_sort_key)
+
+    return render_template('index.html', services=sorted_services, user=user)
 
 @app.route('/login', methods=['GET', 'POST'])
 @limiter.limit("5 per 15 minutes")  # Rate limit login attempts
@@ -343,8 +496,42 @@ def logout():
 @app.route('/api/services')
 @login_required
 def api_services():
-    """API endpoint to get services info"""
-    return jsonify(SERVICES)
+    """API endpoint to get services info with health status"""
+    services_with_health = get_all_services_health()
+    sorted_services = sorted(services_with_health, key=lambda s: s['health']['status'])
+    return jsonify(sorted_services)
+
+@app.route('/api/services/health')
+@login_required
+def api_services_health():
+    """API endpoint to get service health status"""
+    services_with_health = get_all_services_health()
+    health_summary = []
+    for service in services_with_health:
+        health_info = {
+            'name': service['name'],
+            'status': service['health']['status'],
+            'message': service['health']['message'],
+            'url': service['health']['url']
+        }
+        health_summary.append(health_info)
+    return jsonify(health_summary)
+
+@app.route('/api/services/health/<service_name>')
+@login_required
+def api_service_health(service_name):
+    """API endpoint to get health for specific service"""
+    service = None
+    for s in SERVICES:
+        if s['name'].lower() == service_name.lower():
+            service = s
+            break
+
+    if not service:
+        return jsonify({'error': 'Service not found'}), 404
+
+    health = check_service_health(service)
+    return jsonify(health)
 
 @app.route('/api/system-info')
 @login_required
