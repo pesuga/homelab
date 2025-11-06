@@ -1,0 +1,120 @@
+# Whisper Speech-to-Text Service Deployment
+# Version: Phase 1 - CPU-Based Inference
+# Model: Medium (balanced accuracy/performance)
+# Engine: faster_whisper (CPU-optimized)
+#
+# Resource Requirements:
+#   - CPU: 1-2 cores
+#   - RAM: 3-4GB
+#   - Storage: 5Gi PVC for model cache
+#
+# Access:
+#   - Internal: http://whisper.homelab.svc.cluster.local:9000
+#   - External (Tailscale): http://100.81.76.55:30900
+#
+# API Endpoints:
+#   - POST /asr - Transcription endpoint
+#   - GET / - Health check
+#
+# Integration:
+#   - N8n workflows via ClusterIP service
+#   - LobeChat voice input
+#   - External clients via NodePort 30900
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: whisper-models-pvc
+  namespace: homelab
+  labels:
+    app: whisper
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-path
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whisper
+  namespace: homelab
+  labels:
+    app: whisper
+spec:
+  type: NodePort
+  ports:
+    - port: 9000
+      targetPort: 9000
+      nodePort: 30900
+      protocol: TCP
+      name: whisper-api
+  selector:
+    app: whisper
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whisper
+  namespace: homelab
+  labels:
+    app: whisper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whisper
+  template:
+    metadata:
+      labels:
+        app: whisper
+    spec:
+      containers:
+      - name: whisper
+        # Using openai-whisper-asr-webservice with faster_whisper engine
+        # Supports CPU-optimized inference for service node deployment
+        image: onerahmet/openai-whisper-asr-webservice:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+          name: api
+        env:
+        - name: ASR_MODEL
+          value: "medium"  # Options: tiny, base, small, medium, large-v3
+        - name: ASR_ENGINE
+          value: "faster_whisper"  # CPU-optimized engine
+        - name: ASR_MODEL_PATH
+          value: "/root/.cache/whisper"
+        resources:
+          requests:
+            cpu: 1000m      # 1 CPU core minimum
+            memory: 3Gi     # 3GB for medium model + overhead
+          limits:
+            cpu: 2000m      # 2 CPU cores max
+            memory: 4Gi     # 4GB max to prevent OOM
+        volumeMounts:
+        - name: models-storage
+          mountPath: /root/.cache/whisper
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: models-storage
+        persistentVolumeClaim:
+          claimName: whisper-models-pvc

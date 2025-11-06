@@ -37,6 +37,9 @@ kubeconfig
 
 # Docker
 .dockerignore
+*.tar
+*.tar.gz
+!**/*.tar.gz
 
 # LLM Models (large files)
 *.gguf
@@ -159,6 +162,10 @@ target/
 bin/
 obj/
 out/
+
+# Rust build artifacts
+**/target/
+Cargo.lock
 
 # Cache
 .cache/

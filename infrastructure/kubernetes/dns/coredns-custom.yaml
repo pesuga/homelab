@@ -1,0 +1,156 @@
+# CoreDNS Custom DNS Server for Tailscale Split DNS
+# Purpose: Resolve *.pesulabs.net domains to Tailscale IPs
+#
+# This CoreDNS deployment provides DNS resolution for homelab services
+# accessible via Tailscale. All *.pesulabs.net queries resolve to the
+# service node's Tailscale IP (100.81.76.55).
+#
+# Integration with Tailscale:
+# - Configure Tailscale split DNS to forward pesulabs.net queries here
+# - Nameserver: 100.81.76.55 (standard port 53 via HostPort)
+# - Search domain: pesulabs.net
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: homelab
+  labels:
+    app: coredns-custom
+data:
+  Corefile: |
+    pesulabs.net:53 {
+      log
+      errors
+      health :8080
+      ready :8181
+
+      # Wildcard: all *.pesulabs.net → 100.81.76.55
+      template IN A pesulabs.net {
+        match ".*pesulabs\.net\.$"
+        answer "{{ .Name }} 60 IN A 100.81.76.55"
+      }
+
+      # Whoami for testing
+      whoami
+
+      cache 30
+    }
+
+    homelab.local:53 {
+      log
+      errors
+
+      template IN A homelab.local {
+        match ".*homelab\.local\.$"
+        answer "{{ .Name }} 60 IN A 192.168.8.185"
+      }
+
+      whoami
+      cache 30
+    }
+
+    .:53 {
+      forward . 1.1.1.1 8.8.8.8
+      cache 30
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredns-custom
+  namespace: homelab
+  labels:
+    app: coredns-custom
+spec:
+  replicas: 1  # Single replica on service node
+  selector:
+    matchLabels:
+      app: coredns-custom
+  template:
+    metadata:
+      labels:
+        app: coredns-custom
+    spec:
+      containers:
+      - name: coredns
+        image: coredns/coredns:1.11.1
+        args: [ "-conf", "/etc/coredns/Corefile" ]
+        volumeMounts:
+        - name: config
+          mountPath: /etc/coredns
+          readOnly: true
+        ports:
+        - containerPort: 53
+          protocol: UDP
+          name: dns-udp
+        - containerPort: 53
+          protocol: TCP
+          name: dns-tcp
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8181
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: coredns-custom
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coredns-custom
+  namespace: homelab
+  labels:
+    app: coredns-custom
+spec:
+  type: NodePort
+  selector:
+    app: coredns-custom
+  ports:
+    - port: 53
+      targetPort: 53
+      nodePort: 30053
+      protocol: UDP
+      name: dns-udp
+    - port: 53
+      targetPort: 53
+      nodePort: 30053
+      protocol: TCP
+      name: dns-tcp
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coredns-custom-internal
+  namespace: homelab
+  labels:
+    app: coredns-custom
+spec:
+  type: ClusterIP
+  selector:
+    app: coredns-custom
+  ports:
+    - port: 53
+      targetPort: 53
+      protocol: UDP
+      name: dns-udp
+    - port: 53
+      targetPort: 53
+      protocol: TCP
+      name: dns-tcp
