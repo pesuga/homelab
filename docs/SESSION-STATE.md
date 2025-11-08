@@ -71,11 +71,10 @@
   - llama3.1:8b (4.9GB) - General purpose
   - mistral:7b-instruct-q4_K_M (4.4GB) - Fast inference
   - nomic-embed-text (274MB) - Embeddings for Mem0
-- ✅ **LiteLLM 1.78.6**: OpenAI-compatible API running on port 8000
-  - ✅ API key authentication configured
-  - ✅ Master key: sk-zwcYHyyR9rx7stuFhocu3_gErZShHqCxsnPDpcDr4m0
+- ✅ **Ollama HTTP API**: Direct API access (port 11434)
+  - ✅ K8s deployment manifests created (with Traefik HTTPS)
   - ✅ Ready for N8n integration
-- ✅ **Systemd Services**: Ollama and LiteLLM auto-start on boot
+- ✅ **Systemd Services**: Ollama auto-start on boot
 - ✅ **Promtail**: Log collector for Ollama and system logs
 - ✅ **Tailscale**: Connected (100.72.98.106)
 - ✅ **Docker 28.5.1**: Configured with insecure registry for Tailscale IP
@@ -116,8 +115,8 @@
 - **SSH**: ssh pesu@192.168.8.185
 
 ### Compute Node (pesubuntu - 100.72.98.106)
-- **Ollama API**: http://100.72.98.106:11434
-- **LiteLLM API**: http://100.72.98.106:8000
+- **Ollama API (local)**: http://100.72.98.106:11434
+- **Ollama API (K8s)**: https://ollama.homelab.pesulabs.net (when deployed)
 - **Promtail Logs**: journalctl -u promtail -f
 - **SSH**: Direct access (local machine)
 
@@ -129,10 +128,12 @@
 **Goal**: Complete LLM setup on compute node
 
 Remaining tasks:
+- [ ] Deploy Ollama to K8s with Traefik HTTPS ingress
+- [ ] Configure TLS certificate for ollama.homelab.pesulabs.net
 - [ ] Benchmark GPU-accelerated inference performance
 - [ ] Monitor GPU metrics via ROCm exporter
-- [ ] Integrate LLM endpoint with N8n workflows
-- [ ] Create first production N8n workflow with local LLM
+- [ ] Integrate Ollama API with N8n workflows
+- [ ] Create first production N8n workflow with Ollama
 - [ ] Test Mem0 memory persistence with LLM conversations
 
 ### Option 2: Start Sprint 5 (Networking & Security)
@@ -171,7 +172,8 @@ Prometheus, Grafana
 ### Sprint 3: LLM Infrastructure 🔄 IN PROGRESS
 - ✅ Ubuntu 25.10 installation
 - ✅ ROCm + GPU setup
-- ✅ Ollama + LiteLLM deployment
+- ✅ Ollama deployment (local)
+- ✅ K8s manifests created for Ollama
 - ✅ Model downloads
 - ✅ Embedding model (nomic-embed-text)
 - ⏳ Performance benchmarking

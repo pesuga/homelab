@@ -37,9 +37,6 @@ kubeconfig
 
 # Docker
 .dockerignore
-*.tar
-*.tar.gz
-!**/*.tar.gz
 
 # LLM Models (large files)
 *.gguf
@@ -123,6 +120,9 @@ yarn-error.log*
 backup/
 *.sql
 *.dump
+*.tar
+*.tar.gz
+*.tgz
 
 # Temporary files
 tmp/
@@ -163,9 +163,18 @@ bin/
 obj/
 out/
 
-# Rust build artifacts
-**/target/
-Cargo.lock
+# Binaries
+kubectl
+*.exe
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.ico
+*.svg
 
 # Cache
 .cache/

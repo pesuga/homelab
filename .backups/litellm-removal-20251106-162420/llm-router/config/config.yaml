@@ -1,0 +1,36 @@
+# LiteLLM Configuration for Homelab
+# API Base: http://100.72.98.106:8000 (compute node)
+# Authentication: Bearer token required
+
+# General settings
+general_settings:
+  master_key: ${LITE_LLM_MASTER_KEY}  # API key for authentication (set via environment variable)
+  # Optional: Uncomment to enable additional features
+  # database_url: "postgresql://homelab:${POSTGRES_PASSWORD}@postgres.homelab.svc.cluster.local:5432/litellm"  # For usage tracking (set via environment variable)
+  # store_model_in_db: true
+
+# Model definitions - OpenAI-compatible endpoints
+model_list:
+  # Primary model - aliased as gpt-3.5-turbo for compatibility
+  - model_name: gpt-3.5-turbo
+    litellm_params:
+      model: ollama/llama3.1:8b
+      api_base: http://127.0.0.1:11434
+
+  # Fast instruction model
+  - model_name: mistral
+    litellm_params:
+      model: ollama/mistral:7b-instruct-q4_K_M
+      api_base: http://127.0.0.1:11434
+
+  # Code generation specialist
+  - model_name: qwen-coder
+    litellm_params:
+      model: ollama/qwen2.5-coder:14b
+      api_base: http://127.0.0.1:11434
+
+# Router configuration
+router_settings:
+  routing_strategy: simple-shuffle  # Random selection from available models
+  num_retries: 2                    # Retry failed requests
+  timeout: 300                       # 5 minute timeout for long responses

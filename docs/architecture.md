@@ -54,8 +54,7 @@ This document describes the complete system architecture of the homelab agentic 
 
 **Planned Services**:
 - ROCm 6.4.1+ (AMD GPU Runtime)
-- Ollama (LLM Server with GPU acceleration)
-- LiteLLM (Model Router)
+- Ollama (LLM Server with GPU acceleration via K8s)
 - Development Environment (Claude Code)
 - Docker Engine (optional)
 - Tailscale (VPN client)
@@ -140,10 +139,10 @@ This document describes the complete system architecture of the homelab agentic 
 ├─────────────────────────────────────────────────────────┤
 │  LLM Stack             │  Data Stack                    │
 ├────────────────────────┼────────────────────────────────┤
-│  • Ollama              │  • PostgreSQL (HA)             │
-│  • Model Storage       │  • Redis (Cluster)             │
+│  • Ollama (K8s)        │  • PostgreSQL (HA)             │
+│  • Model Storage (PVC) │  • Redis (Cluster)             │
 │  • GPU Compute         │  • S3-compatible Storage       │
-│  • vLLM (optional)     │  • Backup System               │
+│  • Traefik Ingress     │  • Backup System               │
 └────────────────────────┴────────────────────────────────┘
 ```
 
@@ -155,9 +154,9 @@ This document describes the complete system architecture of the homelab agentic 
 ├─────────────────────────────────────────────────────────┤
 │  Routing      │  Workflows    │  Agents                 │
 ├───────────────┼───────────────┼─────────────────────────┤
-│  • LiteLLM    │  • N8n        │  • AgentStack           │
-│  • Traefik    │  • Temporal   │  • Custom Agents        │
-│  • Ingress    │  • Workflows  │  • Agent Tools          │
+│  • Traefik    │  • N8n        │  • AgentStack           │
+│  • Ingress    │  • Temporal   │  • Custom Agents        │
+│  • HTTPS/TLS  │  • Workflows  │  • Agent Tools          │
 └───────────────┴───────────────┴─────────────────────────┘
 ```
 
@@ -228,9 +227,10 @@ Tailscale Mesh (100.64.0.0/10)
 
 | Port | Service | Protocol | Description |
 |------|---------|----------|-------------|
-| 11434 | Ollama | HTTP | LLM Inference API |
-| 8000 | LiteLLM | HTTP | Model Router API |
+| 11434 | Ollama | HTTP | LLM Inference API (local) |
 | 22 | SSH | TCP | Remote Access |
+
+**Note**: Ollama is also accessible via K8s Ingress at https://ollama.homelab.pesulabs.net
 
 #### Service Node (192.168.1.20)
 
@@ -257,20 +257,16 @@ User Request
 [N8n Workflow]
      │
      ▼
-[LiteLLM Router] ─────┐
-     │                │
-     │                ▼
-     │         [Load Balancer]
-     │                │
-     ▼                ▼
-[Ollama Instance 1] [Ollama Instance 2]
-     │                │
-     ▼                ▼
-[GPU Compute]   [GPU Compute]
-     │                │
-     └────────┬───────┘
-              ▼
-         [Response]
+[Traefik Ingress] (HTTPS)
+     │
+     ▼
+[Ollama Service] (K8s)
+     │
+     ▼
+[Ollama Pod] → [GPU Compute]
+     │
+     ▼
+[Response]
 ```
 
 ### Agent Workflow Flow
@@ -498,12 +494,7 @@ Developer
 - REST API for easy integration
 - Active development
 - Automatic GPU detection
-
-**LiteLLM**:
-- Unified interface across model providers
-- Built-in load balancing and fallback
-- Cost tracking and logging
-- Easy to configure
+- No proxy needed for single-GPU homelab
 
 **K3s**:
 - Lightweight Kubernetes
@@ -560,8 +551,7 @@ grafana.homelab.local       → Grafana (monitoring)
 prometheus.homelab.local    → Prometheus (metrics)
 n8n.homelab.local          → N8n (workflows)
 webui.homelab.local        → Open WebUI (LLM chat)
-ollama.homelab.local       → Ollama API (via proxy)
-litellm.homelab.local      → LiteLLM API
+ollama.homelab.pesulabs.net → Ollama API (Traefik HTTPS)
 ```
 
 ### Authentication Strategy

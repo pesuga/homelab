@@ -1,6 +1,6 @@
 #!/bin/bash
 # Real-time monitoring script for compute node during LLM inference
-# Shows GPU metrics, CPU usage, memory, and Ollama/LiteLLM status
+# Shows GPU metrics, CPU usage, memory, and Ollama status
 
 set -e
 
@@ -74,9 +74,9 @@ while true; do
         echo -e "${RED}Status: Not Running${NC}"
     fi
 
-    # LiteLLM Status
-    print_header "LiteLLM Service"
-    if systemctl is-active --quiet litellm 2>/dev/null; then
+    # Ollama K8s Status
+    print_header "Ollama K8s Service"
+    if kubectl get pods -n ollama &>/dev/null; then
         echo -e "${GREEN}Status: Running${NC}"
         if command_exists ss; then
             echo "Listening: $(ss -tlnp 2>/dev/null | grep :8000 || echo 'Not found')"
@@ -87,7 +87,7 @@ while true; do
         fi
     else
         echo -e "${YELLOW}Status: Not a systemd service or not running${NC}"
-        if pgrep -f "litellm" > /dev/null; then
+        if kubectl get pods -n ollama -l app=ollama 2>/dev/null | grep -q "Running"; then
             echo -e "${GREEN}Process: Running (background)${NC}"
         fi
     fi
@@ -101,7 +101,7 @@ while true; do
     if command_exists ss; then
         echo "Ollama (11434):"
         ss -tn 2>/dev/null | grep :11434 | wc -l | awk '{print "  Active connections: " $1}'
-        echo "LiteLLM (8000):"
+        echo "Ollama K8s:"
         ss -tn 2>/dev/null | grep :8000 | wc -l | awk '{print "  Active connections: " $1}'
     fi
 

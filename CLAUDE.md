@@ -18,7 +18,7 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 **Compute Node (pesubuntu - localhost)**:
 - Purpose: LLM inference with GPU acceleration
 - Hardware: i5-12400F (6C/12T), 32GB RAM, AMD RX 7800 XT (16GB VRAM, Navi 32)
-- Services: Ollama (port 11434), LiteLLM (port 8000), Whisper, Lobechat
+- Services: Ollama (via K8s DaemonSet), Whisper, Lobechat
 - OS: Ubuntu 25.10 (Questing Quetzal) - Native installation
 - Kernel: 6.17.0-5-generic
 - Storage: 937GB available
@@ -52,59 +52,18 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 
 **IMPORTANT: Compute node needs setup first!**
 
-```bash
-# Step 1: Install ROCm (AMD GPU drivers)
-# See infrastructure/compute-node/README.md for full instructions
-wget https://repo.radeon.com/amdgpu-install/latest/ubuntu/jammy/amdgpu-install_6.4.60401-1_all.deb
-sudo apt install ./amdgpu-install_6.4.60401-1_all.deb
-sudo amdgpu-install --usecase=rocm
-sudo usermod -a -G render,video $USER
-# Log out and back in
+For complete ROCm installation, Ollama deployment, and GPU configuration instructions, see:
+- `infrastructure/compute-node/README.md` - Full AMD GPU setup guide
+- `docs/LLM-SETUP.md` - Complete deployment walkthrough
 
-# Step 2: Verify GPU detection
-rocm-smi
-rocminfo
-lspci | grep -i vga
-
-# Step 3: Install Ollama with ROCm support
-curl -fsSL https://ollama.com/install.sh | sh
-systemctl status ollama
-
-# Step 6: Install and start LiteLLM
-sudo apt install pipx
-pipx install 'litellm[proxy]'
-cd services/llm-router/config
-litellm --config config.yaml --port 8000
-
-# Step 7: Test LiteLLM endpoint
-curl -X POST http://localhost:8000/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{"model": "llama3", "messages": [{"role": "user", "content": "Hello!"}]}'
-
-# Step 8: Run health check
-./infrastructure/compute-node/scripts/health-check.sh
-```
+**Health Check Script**: Run `./infrastructure/compute-node/scripts/health-check.sh` to verify LLM services status
 
 ### Service Node Operations
 
-```bash
-# SSH to service node
-ssh pesu@192.168.8.185
-
-# Check K3s cluster status
-kubectl get nodes
-kubectl get pods -A
-
-# View N8n logs
-kubectl logs -n homelab -l app=n8n -f
-
-# Check service endpoints
-kubectl get svc -n homelab
-
-# Monitor resource usage
-kubectl top nodes
-kubectl top pods -A
-```
+Standard Kubernetes operations for monitoring and managing services:
+- SSH access: `ssh pesu@192.168.8.185`
+- See `docs/` for operational procedures
+- Use `kubectl` commands for cluster management
 
 ### Monitoring & Observability
 
@@ -118,8 +77,8 @@ kubectl top pods -A
 - Open WebUI: http://100.81.76.55:30080 (first signup = admin) | https://webui.homelab.pesulabs.net
 - Qdrant Vector DB: http://100.81.76.55:30633 (HTTP API), :6334 (gRPC)
 - Mem0: http://100.81.76.55:30820 (AI memory layer API)
-- Ollama API: http://100.72.98.106:11434 (compute node)
-- LiteLLM API: http://100.72.98.106:8000 (compute node)
+- Ollama API (local): http://100.72.98.106:11434 (compute node)
+- Ollama API (K8s): https://ollama.homelab.pesulabs.net (Traefik HTTPS)
 
 **Grafana Dashboards** (imported and configured):
 - **Homelab Infrastructure - Dual Node**: Real-time monitoring of both compute and service nodes
@@ -132,125 +91,58 @@ kubectl top pods -A
 
 ### Qdrant Vector Database
 
-```bash
+Qdrant provides vector similarity search for RAG applications. See `docs/QDRANT-SETUP.md` for deployment and integration details.
+
+**Integration**: Mem0 uses Qdrant for vector storage and Ollama (nomic-embed-text) for embeddings
 
 ### Mem0 AI Memory Layer
 
-```bash
-# Check Mem0 status
-kubectl get pods -n homelab -l app=mem0
-kubectl logs -n homelab -l app=mem0 -f
-
-# Test Mem0 API
-curl -X POST http://100.81.76.55:30820/v1/memories/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "messages": [{"role": "user", "content": "Hello, I am Alice"}],
-    "user_id": "alice"
-  }'
-
-# Query memories
-curl http://100.81.76.55:30820/v1/memories/?user_id=alice
-
-# Integration: Mem0 uses Qdrant for vector storage and Ollama (nomic-embed-text) for embeddings
-```
+Mem0 provides AI memory management using Qdrant for storage and Ollama for embeddings. Access via API endpoint at http://100.81.76.55:30820
 
 ### Loki Log Aggregation
 
-```bash
-# Check Loki status
-kubectl get pods -n homelab -l app=loki
-kubectl get pods -n homelab -l app=promtail
+Loki aggregates logs from all services and nodes. Query logs via:
+- **Grafana UI**: Grafana → Explore → Loki datasource → Enter LogQL query
+- **Direct API**: Loki API endpoint at http://100.81.76.55:30314
 
-# Check Promtail on compute node
-systemctl status promtail
-
-# Query logs via LogQL (from Grafana or direct API)
-curl -G -s "http://100.81.76.55:30314/loki/api/v1/query" \
-  --data-urlencode 'query={job="systemd-journal", unit="ollama.service"}' | jq
-
-# View logs in Grafana
-# Grafana → Explore → Loki datasource → Enter LogQL query
-# Examples:
-#   {namespace="homelab", pod=~"n8n-.*"}
-#   {job="systemd-journal", unit="ollama.service"}
-#   {host="pesubuntu", job="syslog"}
-```
+Common log sources: homelab namespace pods, systemd services (Ollama), system logs
 
 ### GitOps with Flux CD (Ready for Bootstrap)
 
-```bash
-# Install Flux CLI
-curl -s https://fluxcd.io/install.sh | sudo bash
+Flux CD enables declarative infrastructure management via Git. See `docs/GITOPS-SETUP.md` for complete bootstrap and configuration instructions.
 
-# Bootstrap Flux to K3s cluster (requires GitHub token)
-export GITHUB_TOKEN=<your-token>
-flux bootstrap github \
-  --owner=pesuga \
-  --repository=homelab \
-  --branch=main \
-  --path=./clusters/homelab \
-  --personal \
-  --private=false \
-  --network-policy=false
-
-# Verify Flux components
-kubectl get pods -n flux-system
-flux get all
-flux get kustomizations
-
-# Monitor reconciliation
-flux logs --follow
-
-# See clusters/homelab/README.md and docs/GITOPS-SETUP.md for complete setup
-```
+Required setup:
+- Flux CLI installation
+- GitHub token with repo access
+- Bootstrap to K3s cluster
+- Repository structure in `clusters/homelab/`
 
 ### Grafana Dashboard Management
 
-```bash
-# Access Grafana
-# http://100.81.76.55:30300 (admin/admin123)
+Grafana provides visualization for Prometheus metrics and Loki logs. See `docs/GRAFANA-DASHBOARDS.md` for dashboard creation guide.
 
-# Import recommended dashboards (via UI):
-# - ID 1860: Node Exporter Full
-# - ID 15760: Kubernetes Cluster Monitoring
-# - ID 9628: PostgreSQL (requires postgres_exporter)
-# - ID 11835: Redis (requires redis_exporter)
-
-# Query Prometheus metrics
-curl http://100.81.76.55:30090/api/v1/label/__name__/values
-
-# See docs/GRAFANA-DASHBOARDS.md for dashboard creation guide
-```
+**Recommended Dashboards** (import via Grafana UI):
+- ID 1860: Node Exporter Full
+- ID 15760: Kubernetes Cluster Monitoring
+- ID 9628: PostgreSQL (requires postgres_exporter)
+- ID 11835: Redis (requires redis_exporter)
 
 ### Development Workflow
 
-```bash
-# Clone and setup (already done)
-git clone https://github.com/pesuga/homelab.git
-cd homelab
-git checkout revised-version
-
-# Copy environment template
-cp .env-example .env
-# Edit .env with your values
-
-# Run setup script (minimal - needs expansion)
-./scripts/setup.sh
-```
+1. Clone repository: `git clone https://github.com/pesuga/homelab.git`
+2. Checkout working branch: `git checkout revised-version`
+3. Copy and configure environment: `.env-example` → `.env`
+4. Run setup script: `./scripts/setup.sh` (minimal - needs expansion)
 
 ## Key Architecture Patterns
 
 ### LLM Request Flow
 
-```
-User/N8n → LiteLLM (port 8000) → Ollama (port 11434) → LLM Model → GPU/CPU
-          ↓
-     OpenAI-compatible API
-     (allows drop-in replacement)
-```
+**Request Path**: User/N8n → Traefik Ingress (HTTPS) → Ollama Service (K8s) → Ollama Pod → LLM Model → GPU
 
-**Why LiteLLM?**: Provides unified OpenAI-compatible interface, load balancing, fallback routing, and usage tracking across multiple LLM backends.
+**Endpoint**: https://ollama.homelab.pesulabs.net (Ollama HTTP API)
+
+**Architecture**: Direct Ollama API access via Kubernetes with Traefik for HTTPS termination and routing. Simplified stack eliminates unnecessary proxy layers for single-GPU homelab setup.
 
 ### Service Deployment Pattern
 
@@ -281,17 +173,17 @@ All services on the service node run as Kubernetes workloads:
 4. ⏳ Deploy Ollama with GPU acceleration
 5. ⏳ Load production models: Mistral 7B, CodeLlama 7B, Llama 3.1 8B
 6. ⏳ Benchmark GPU-accelerated inference
-7. ⏳ Install and configure LiteLLM router
+7. ⏳ Deploy Ollama to K8s with Traefik HTTPS ingress
 8. ⏳ Set up Tailscale on compute node
-9. ⏳ Integrate LLM endpoint with N8n workflows
+9. ⏳ Integrate Ollama API with N8n workflows
 
 **Success Criteria**:
 - ✅ Native Ubuntu installation complete
 - ✅ GPU detected via lspci
 - ⏳ ROCm detects and uses RX 7800 XT
 - ⏳ GPU-accelerated inference achieving 20+ tokens/second on 7B models
-- ⏳ LiteLLM routing requests to appropriate models
-- ⏳ N8n can call LLM via OpenAI API
+- ⏳ Ollama accessible via HTTPS (ollama.homelab.pesulabs.net)
+- ⏳ N8n can call Ollama API directly
 - ⏳ Monitoring shows GPU utilization
 
 **Benefits of Native Ubuntu**:
@@ -305,7 +197,7 @@ All services on the service node run as Kubernetes workloads:
 ### Documentation
 - `README.md` - Main project overview and status
 - `docs/architecture.md` - Detailed system architecture
-- `docs/LLM-SETUP.md` - Complete AMD GPU LLM deployment guide
+- `docs/LLM-SETUP.md` - Complete AMD GPU + K8s Ollama deployment guide
 - `docs/SESSION-STATE.md` - Current session state and progress tracking
 - `docs/IMPLEMENTATION-PLAN.md` - GitOps, Qdrant, and Grafana implementation plan
 - `docs/GITOPS-SETUP.md` - Flux CD GitOps setup and multi-repo management
@@ -315,7 +207,7 @@ All services on the service node run as Kubernetes workloads:
 
 ### Configuration
 - `.env-example` - Environment variable template (comprehensive)
-- `services/llm-router/config/config.yaml` - LiteLLM model routing configuration
+- `infrastructure/kubernetes/ollama/` - Ollama K8s deployment manifests
 - `infrastructure/kubernetes/base/namespace.yaml` - K8s namespace definition
 
 ### Scripts
@@ -330,7 +222,7 @@ All services on the service node run as Kubernetes workloads:
   - `monitoring/` - Prometheus, Grafana
   - `monitoring/dashboards/` - Grafana dashboard JSONs and provisioning
   - `flux/` - Flux CD GitOps resources (planned)
-- `services/llm-router/` - LiteLLM configuration
+- `infrastructure/kubernetes/ollama/` - Ollama K8s manifests
 - `services/n8n-workflows/` - N8n workflow exports (placeholder)
 - `services/agentstack-config/` - AgentStack configs (future)
 
@@ -356,11 +248,7 @@ This project is developed using AI-assisted pair programming with Claude Code. K
 - Simple model management with REST API
 - AMD GPU support via ROCm
 - Active development and community
-
-**LiteLLM** (API Gateway):
-- Unified interface across model providers
-- Built-in load balancing and fallback
-- OpenAI-compatible endpoints
+- Native HTTP API (no proxy needed)
 
 **K3s** (Kubernetes):
 - Lightweight K8s perfect for single-node homelab
@@ -396,27 +284,19 @@ This project is developed using AI-assisted pair programming with Claude Code. K
 
 ## Testing
 
-Currently no automated test suite. Health checks available:
+Currently no automated test suite. Manual health checks available:
 
-```bash
-# LLM services health check
-./infrastructure/compute-node/scripts/health-check.sh
+**Health Check Scripts**:
+- `./infrastructure/compute-node/scripts/health-check.sh` - LLM services verification
 
-# Kubernetes cluster health
-kubectl get nodes
-kubectl get pods -A
-kubectl get svc -A
+**Service Connectivity Tests**:
+- N8n: http://192.168.8.185:30678
+- Grafana: http://192.168.8.185:30300
+- Prometheus: http://192.168.8.185:30090
+- Qdrant: http://192.168.8.185:30633/healthz
 
-# Service connectivity
-curl http://192.168.8.185:30678  # N8n
-curl http://192.168.8.185:30300  # Grafana
-curl http://192.168.8.185:30090  # Prometheus
-curl http://192.168.8.185:30633/healthz  # Qdrant
-
-# GitOps (when deployed)
-flux check
-flux get all
-```
+**Kubernetes Health**: Use standard `kubectl` commands for cluster status
+**GitOps Health**: Use `flux check` and `flux get all` when deployed
 
 ## Deployment Notes
 
@@ -441,47 +321,21 @@ Currently manual installation:
 ## Troubleshooting
 
 ### LLM Inference Issues
-```bash
-# Check if Ollama is running
-systemctl status ollama
-
-# Restart Ollama
-systemctl restart ollama
-
-# Check GPU detection (when ROCm installed)
-rocm-smi
-rocminfo
-
-# View Ollama logs
-journalctl -u ollama -f
-```
+- Check Ollama service status via `systemctl`
+- Verify GPU detection using `rocm-smi` and `rocminfo` (when ROCm installed)
+- View Ollama logs via `journalctl`
+- See `docs/LLM-SETUP.md` for detailed troubleshooting steps
 
 ### Service Node Issues
-```bash
-# SSH to service node
-ssh pesu@192.168.8.185
-
-# Check K3s
-systemctl status k3s
-
-# View pod logs
-kubectl logs -n homelab POD_NAME
-
-# Restart a deployment
-kubectl rollout restart deployment/n8n -n homelab
-```
+- SSH access: `ssh pesu@192.168.8.185`
+- Check K3s status via `systemctl`
+- View pod logs using `kubectl logs`
+- Restart deployments using `kubectl rollout restart`
 
 ### Network Connectivity
-```bash
-# Check Tailscale status
-tailscale status
-
-# Test local network
-ping 192.168.8.185
-
-# Test from service node to compute node (LLM endpoint)
-curl http://COMPUTE_NODE_IP:11434/api/version
-```
+- Verify Tailscale mesh status
+- Test local network connectivity (192.168.8.0/24)
+- Test inter-node communication (Tailscale IPs)
 
 ## Future Enhancements
 

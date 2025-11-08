@@ -48,25 +48,28 @@
 
 ---
 
-### Phase 2: Production Stack
-**Goal**: Deploy LiteLLM router and multiple models
+### Phase 2: Kubernetes Deployment
+**Goal**: Deploy Ollama to K8s with HTTPS ingress
 
 **Steps:**
-1. Deploy LiteLLM as API gateway
-2. Configure OpenAI-compatible endpoints
-3. Load production models:
+1. Create K8s Deployment for Ollama (DaemonSet on compute node)
+2. Configure GPU device plugin for AMD
+3. Create Service (ClusterIP for internal access)
+4. Create Ingress with Traefik for HTTPS
+5. Configure subdomain: ollama.homelab.pesulabs.net
+6. Load production models:
    - Mistral 7B Q4_K_M (general purpose)
    - CodeLlama 7B Q4_K_M (coding)
    - Llama 3.1 8B Q4_K_M (chat/reasoning)
-4. Set up model routing rules
-5. Configure health checks and monitoring
-6. Integrate with N8n on service node
+7. Configure health checks and monitoring
+8. Integrate with N8n on service node
 
 **Success Criteria:**
-- LiteLLM routes requests to appropriate models
-- N8n can call LLM via OpenAI API
+- Ollama accessible via HTTPS subdomain
+- N8n can call Ollama API directly
 - Models load and unload efficiently
 - Monitoring shows GPU utilization
+- Traefik routes traffic securely
 
 ---
 
@@ -103,15 +106,15 @@
   - Built-in quantization support
 - **Installation**: Official binary with ROCm
 
-#### 3. LiteLLM
-- **Version**: Latest
-- **Purpose**: API gateway and router
+#### 3. Kubernetes Integration
+- **Deployment**: DaemonSet or Deployment
+- **Purpose**: Orchestrate Ollama on compute node
 - **Features**:
-  - Unified API interface
-  - Load balancing
-  - Fallback routing
-  - Usage tracking
-- **Deployment**: Docker or direct install
+  - GPU device plugin integration
+  - Persistent model storage
+  - HTTPS ingress via Traefik
+  - Service discovery
+- **Networking**: ClusterIP + Ingress with TLS
 
 ---
 
@@ -185,11 +188,11 @@
 - [ ] Benchmark performance
 
 ### LiteLLM Setup
-- [ ] Install LiteLLM
-- [ ] Create configuration file
-- [ ] Set up model routing
-- [ ] Configure API endpoints
-- [ ] Test OpenAI compatibility
+- [ ] Deploy Ollama to Kubernetes
+- [ ] Create Traefik IngressRoute
+- [ ] Configure TLS certificate
+- [ ] Set up subdomain DNS
+- [ ] Test HTTPS access
 - [ ] Document API endpoints
 
 ### Integration
@@ -218,36 +221,32 @@ export LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIBRARY_PATH
 # Start Ollama
 ollama serve
 
-# API endpoint
+# API endpoint (direct)
 http://localhost:11434
+
+# API endpoint (via K8s Ingress)
+https://ollama.homelab.pesulabs.net
 
 # Pull models
 ollama pull mistral:7b-q4_K_M
 ollama pull codellama:7b-q4_K_M
 ollama pull llama3.1:8b-q4_K_M
 
-# Test inference
+# Test inference (local)
 ollama run mistral:7b-q4_K_M "Hello, who are you?"
+
+# Test inference (via API)
+curl https://ollama.homelab.pesulabs.net/api/generate \
+  -d '{"model": "mistral:7b-q4_K_M", "prompt": "Hello!"}'
 ```
 
-### LiteLLM Configuration
+### Kubernetes Configuration
 ```yaml
-# litellm-config.yaml
-model_list:
-  - model_name: gpt-3.5-turbo
-    litellm_params:
-      model: ollama/mistral:7b-q4_K_M
-      api_base: http://localhost:11434
-
-  - model_name: gpt-4
-    litellm_params:
-      model: ollama/llama3.1:8b-q4_K_M
-      api_base: http://localhost:11434
-
-  - model_name: code
-    litellm_params:
-      model: ollama/codellama:7b-q4_K_M
-      api_base: http://localhost:11434
+# See infrastructure/kubernetes/ollama/ for full manifests
+# - deployment.yaml: Ollama pod with GPU
+# - service.yaml: ClusterIP service
+# - ingress.yaml: Traefik HTTPS ingress
+# - pvc.yaml: Persistent storage for models
 ```
 
 ---
@@ -306,15 +305,15 @@ echo $HSA_OVERRIDE_GFX_VERSION
 ## 🔗 Integration Points
 
 ### N8n Workflows
-- **Endpoint**: http://compute-node:11434 (via Ollama)
-- **Endpoint**: http://compute-node:8000 (via LiteLLM)
-- **API Type**: OpenAI-compatible
-- **Auth**: Optional API key
+- **Endpoint**: https://ollama.homelab.pesulabs.net (via Traefik)
+- **Internal**: http://ollama.ollama.svc.cluster.local:11434
+- **API Type**: Ollama HTTP API
+- **Auth**: Optional (can add via Traefik middleware)
 
 ### AgentStack
-- **Integration**: Via LiteLLM proxy
+- **Integration**: Direct Ollama API calls
 - **Models**: All available models
-- **Routing**: Automatic based on task
+- **Discovery**: Kubernetes service discovery
 
 ### Monitoring
 - **Prometheus**: GPU metrics via ROCm exporter
@@ -353,10 +352,11 @@ echo $HSA_OVERRIDE_GFX_VERSION
 7. ⏳ Install and test Ollama with ROCm
 8. ⏳ Deploy first model (Mistral 7B)
 9. ⏳ Benchmark performance (target 20+ tok/s)
-10. ⏳ Set up LiteLLM router
-11. ⏳ Install Tailscale for remote access
-12. ⏳ Integrate with N8n on service node
-13. ⏳ Create sample workflows
+10. ⏳ Deploy Ollama to Kubernetes with GPU
+11. ⏳ Configure Traefik Ingress with HTTPS
+12. ⏳ Install Tailscale for remote access
+13. ⏳ Integrate with N8n on service node
+14. ⏳ Create sample workflows
 
 ---
 

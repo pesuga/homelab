@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: ollama
+  labels:
+    app: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      # Schedule on compute node (pesubuntu) using node selector or label
+      # nodeSelector:
+      #   kubernetes.io/hostname: pesubuntu
+      #   gpu: "true"
+
+      containers:
+      - name: ollama
+        image: ollama/ollama:latest
+        ports:
+        - containerPort: 11434
+          name: http
+          protocol: TCP
+
+        env:
+        # ROCm environment for AMD GPU
+        - name: HSA_OVERRIDE_GFX_VERSION
+          value: "11.0.0"  # For RX 7800 XT (gfx1101)
+        - name: ROCM_PATH
+          value: "/opt/rocm"
+
+        volumeMounts:
+        - name: ollama-models
+          mountPath: /root/.ollama  # Ollama model storage
+
+        # Resource requests for GPU
+        resources:
+          requests:
+            memory: "8Gi"
+            cpu: "2"
+          limits:
+            memory: "16Gi"
+            cpu: "4"
+            # GPU resource limit (requires AMD GPU device plugin)
+            # amd.com/gpu: 1
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 11434
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 11434
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+      volumes:
+      - name: ollama-models
+        persistentVolumeClaim:
+          claimName: ollama-models
+
+      # Restart policy
+      restartPolicy: Always

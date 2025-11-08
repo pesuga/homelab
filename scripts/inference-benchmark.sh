@@ -1,6 +1,6 @@
 #!/bin/bash
 # Benchmark script for testing LLM inference performance with monitoring
-# Tests both Ollama and LiteLLM endpoints while monitoring GPU usage
+# Tests Ollama endpoints (local and K8s) while monitoring GPU usage
 
 set -e
 
@@ -22,7 +22,7 @@ echo -e "${CYAN}========================================${NC}"
 echo ""
 echo -e "${BLUE}Configuration:${NC}"
 echo -e "  Ollama URL: ${OLLAMA_URL}"
-echo -e "  LiteLLM URL: ${LITELLM_URL}"
+echo -e "  Ollama K8s URL: https://ollama.homelab.pesulabs.net"
 echo -e "  Model: ${MODEL}"
 echo ""
 
@@ -72,9 +72,9 @@ if 'eval_count' in data and 'eval_duration' in data:
     capture_gpu_metrics "After Inference"
 }
 
-# Function to test LiteLLM endpoint
-test_litellm() {
-    echo -e "\n${CYAN}=== Testing LiteLLM OpenAI-Compatible API ===${NC}"
+# Function to test Ollama K8s endpoint
+test_ollama_k8s() {
+    echo -e "\n${CYAN}=== Testing Ollama K8s HTTPS Endpoint ===${NC}"
 
     # Capture metrics before
     capture_gpu_metrics "Before Inference"
@@ -150,7 +150,7 @@ continuous_load_test() {
 # Main menu
 echo -e "\n${CYAN}Select test mode:${NC}"
 echo "1) Test Ollama endpoint"
-echo "2) Test LiteLLM endpoint"
+echo "2) Test Ollama K8s endpoint"
 echo "3) Test both endpoints"
 echo "4) Continuous load test (60s)"
 echo "5) Exit"
@@ -162,11 +162,11 @@ case $choice in
         test_ollama
         ;;
     2)
-        test_litellm
+        test_ollama_k8s
         ;;
     3)
         test_ollama
-        test_litellm
+        test_ollama_k8s
         ;;
     4)
         echo ""

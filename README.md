@@ -54,13 +54,13 @@ This homelab project creates a production-ready, self-hosted platform for buildi
         │                                       │
 ┌───────▼──────────┐                  ┌────────▼───────────┐
 │  Compute Node    │                  │   Service Node     │
-│  (WSL/Ubuntu)    │                  │   (Linux Server)   │
+│  (Ubuntu Native) │                  │   (Linux Server)   │
 ├──────────────────┤                  ├────────────────────┤
 │ • LLM Inference  │                  │ • K8s Cluster      │
-│ • Ollama/vLLM    │                  │ • N8n              │
-│ • LiteLLM Router │                  │ • AgentStack       │
-│ • GPU (RX 7800XT)│                  │ • PostgreSQL       │
-│ • Development    │                  │ • Redis            │
+│ • Ollama API     │                  │ • N8n              │
+│ • GPU (RX 7800XT)│                  │ • AgentStack       │
+│ • Development    │                  │ • PostgreSQL       │
+│                  │                  │ • Redis            │
 │                  │                  │ • Observability    │
 └──────────────────┘                  └────────────────────┘
   i5-12400F, 32GB                       i7, 16GB RAM
@@ -76,8 +76,7 @@ Application Layer
 └── Custom Agents
 
 Inference Layer
-├── Ollama (Model Management)
-├── LiteLLM (Router & Load Balancer)
+├── Ollama (Model Management & API)
 └── Local LLM Models
 
 Orchestration Layer
@@ -254,7 +253,6 @@ homelab/
 │   │   └── compute/              # Compute resources
 │   ├── compute-node/             # Compute node setup
 │   │   ├── ollama/               # Ollama configs
-│   │   ├── litellm/              # LiteLLM configs
 │   │   └── scripts/              # Setup scripts
 │   └── service-node/             # Service node setup
 │       ├── k8s-setup/            # K8s installation
@@ -264,12 +262,9 @@ homelab/
 │   ├── n8n-workflows/            # N8n workflow exports
 │   │   ├── templates/            # Workflow templates
 │   │   └── custom/               # Custom workflows
-│   ├── agentstack-config/        # AgentStack configs
-│   │   ├── agents/               # Agent definitions
-│   │   └── tools/                # Agent tools
-│   └── llm-router/               # LiteLLM configuration
-│       ├── models.yaml           # Model definitions
-│       └── routes.yaml           # Routing rules
+│   └── agentstack-config/        # AgentStack configs
+│       ├── agents/               # Agent definitions
+│       └── tools/                # Agent tools
 │
 ├── agents/                       # Custom agent implementations
 │   ├── examples/                 # Example agents
@@ -365,11 +360,11 @@ Comprehensive documentation is available in the `/docs` directory:
 - [x] GPU detection verified (AMD RX 7800 XT)
 - [ ] ROCm installation (AMD GPU drivers)
 - [ ] Ollama installation with GPU support
-- [ ] LiteLLM deployment
+- [ ] Deploy Ollama to K8s with Traefik HTTPS ingress
 - [ ] Model management and testing
 - [ ] Performance benchmarking
 - [ ] Tailscale setup on compute node
-- [ ] Integration with service node
+- [ ] Integration with N8n workflows
 
 ### Sprint 4: Advanced Services (Weeks 9-10) ✅ COMPLETED
 - [x] PostgreSQL deployment and documentation

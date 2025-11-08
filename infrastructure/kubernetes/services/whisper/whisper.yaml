@@ -103,6 +103,39 @@ spec:
     spec:
       nodeSelector:
         workload-type: compute-intensive  # Run on compute node (pesubuntu)
+      initContainers:
+      - name: model-downloader
+        image: python:3.10-slim
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "Starting model download..."
+            pip install -q huggingface-hub && \
+            python3 -c "
+            from huggingface_hub import snapshot_download
+            import os
+            model_path = '/app/models/large-v3'
+            if os.path.exists(model_path) and os.listdir(model_path):
+                print('Model already exists, skipping download')
+            else:
+                print('Downloading model from HuggingFace...')
+                snapshot_download(
+                    repo_id='Systran/faster-whisper-large-v3',
+                    local_dir=model_path,
+                    local_dir_use_symlinks=False
+                )
+                print('Model downloaded successfully')
+            "
+        volumeMounts:
+        - name: models
+          mountPath: /app/models
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
       containers:
       - name: whisper
         # Using faster-whisper optimized container
@@ -112,6 +145,9 @@ spec:
         - containerPort: 9000
           name: http
           protocol: TCP
+        env:
+        - name: ASR_MODEL_PATH
+          value: "/app/models/large-v3"
         envFrom:
         - configMapRef:
             name: whisper-config
@@ -121,10 +157,10 @@ spec:
         resources:
           requests:
             cpu: 250m
-            memory: 2Gi
+            memory: 4Gi
           limits:
             cpu: 2000m  # Allow bursting for transcription
-            memory: 4Gi  # Increased for large-v3 model (~3GB)
+            memory: 8Gi  # Increased for large-v3 model with runtime overhead
         # Health probes disabled - this image doesn't have a /health endpoint
         # Application starts successfully on port 9000
         # livenessProbe:
