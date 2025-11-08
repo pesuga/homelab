@@ -71,16 +71,14 @@ List of all testing scripts:
 **Access Dashboards** (via Tailscale IPs):
 - **Homelab Dashboard**: http://100.81.76.55:30800 (admin/ChangeMe!2024#Secure) - Unified landing page
 - **N8n Workflows**: http://100.81.76.55:30678 (admin/admin123) | https://n8n.homelab.pesulabs.net
-- **Grafana**: http://100.81.76.55:30300 (admin/admin123) | https://grafana.homelab.pesulabs.net
 - **Prometheus**: http://100.81.76.55:30090 | https://prometheus.homelab.pesulabs.net
-- **Flowise LLM Flows**: http://100.81.76.55:30850 (admin/flowise2025) | https://flowise.homelab.pesulabs.net
-- **Open WebUI**: http://100.81.76.55:30080 (first signup = admin) | https://webui.homelab.pesulabs.net
 - **Loki**: http://100.81.76.55:30314 (log aggregation API)
 - **Qdrant Vector DB**: http://100.81.76.55:30633 (HTTP API), :6334 (gRPC)
-- **Mem0 AI Memory**: http://100.81.76.55:30820 (AI memory layer API)
+- **Mem0 AI Memory**: http://100.81.76.55:30880 (AI memory layer API)
 - **Docker Registry**: http://100.81.76.55:30500 (insecure registry)
-- **Ollama API (local)**: http://100.72.98.106:11434 (compute node, GPU-accelerated)
-- **Ollama API (K8s)**: https://ollama.homelab.pesulabs.net (when deployed with Traefik)
+- **LobeChat**: http://100.81.76.55:30910 (AI chat interface with memory)
+- **Ollama API (K8s)**: http://100.81.76.55:30277 (Kubernetes deployment, GPU-accelerated)
+- **Whisper STT**: http://100.81.76.55:30900 (speech-to-text service)
 
 ### Qdrant Vector Database
 
@@ -156,13 +154,12 @@ All services on the service node run as Kubernetes workloads:
 2. ✅ Deploy Redis 7.4.6 with AOF persistence
 3. ✅ Deploy Qdrant v1.12.5 vector database (20Gi storage)
 4. ✅ Deploy Mem0 AI memory layer with Qdrant integration
-5. ✅ Deploy Flowise low-code LLM flow builder
-6. ✅ Deploy Open WebUI LLM chat interface
-7. ✅ Deploy Loki 2.9.3 log aggregation (20Gi storage, 7-day retention)
-8. ✅ Configure Promtail log collection on both nodes
-9. ✅ Update Grafana dashboards with dual-node metrics
-10. ✅ Create Flux CD repository structure
-11. ✅ Fix service authentication and security issues
+5. ✅ Deploy Loki 2.9.3 log aggregation (20Gi storage, 7-day retention)
+6. ✅ Configure Promtail log collection on both nodes
+7. ✅ Create Flux CD repository structure
+8. ✅ Fix service authentication and security issues
+9. ✅ Remove deprecated services (Grafana, Flowise, Open WebUI)
+10. ✅ Deploy Ollama to Kubernetes with GPU scheduling
 
 ### Sprint 3: LLM Infrastructure - ✅ COMPLETED
 
@@ -175,11 +172,13 @@ All services on the service node run as Kubernetes workloads:
 6. ✅ Configure Ollama systemd service for auto-start
 7. ✅ Set up Tailscale on compute node
 8. ✅ Create Ollama K8s deployment manifests (ready for Traefik HTTPS)
+9. ✅ Deploy Ollama to Kubernetes with proper GPU scheduling
+10. ✅ Create comprehensive health check scripts
 
 **Next Steps**: Choose one of the following:
-- **Option A**: Deploy Ollama to K8s with Traefik HTTPS ingress
+- **Option A**: Deploy Traefik HTTPS ingress for all services
 - **Option B**: Start Sprint 5 (Networking & Security)
-- **Option C**: Bootstrap Flux CD for GitOps automation
+- **Option C**: Resolve Flux CD network connectivity issues
 
 ## Important Files & Locations
 
@@ -296,7 +295,7 @@ kubectl get pods -n flux-system     # Flux controllers
 kubectl get gitrepositories -n flux-system  # Git sync status
 ```
 
-**Current Service Status** (as of last check):
+**Current Service Status** (as of latest check):
 - ✅ N8n: Healthy (port 30678)
 - ✅ Prometheus: Healthy (port 30090)
 - ✅ Loki: Healthy (port 30314)
@@ -305,11 +304,11 @@ kubectl get gitrepositories -n flux-system  # Git sync status
 - ✅ Homelab Dashboard: Healthy (port 30800)
 - ✅ LobeChat: Healthy (port 30910)
 - ✅ Mem0: Responding (port 30880)
-- ❌ Compute Node (Ollama): Currently inaccessible via network
-- ❌ Grafana: Not deployed
-- ❌ Open WebUI: Not deployed
-- ❌ Flowise: Not deployed
-- ❌ Whisper: Experiencing pod restart issues
+- ✅ Ollama: ✨ **NEW** - Healthy (port 30277, K8s deployment)
+- ✅ Whisper: ✨ **FIXED** - Healthy (port 30900, single replica)
+- ❌ Grafana: Removed (moved to trash)
+- ❌ Open WebUI: Removed (StatefulSet deleted)
+- ❌ Flowise: Removed (moved to trash)
 
 ## Deployment Notes
 
@@ -321,15 +320,48 @@ Current deployments in `homelab` namespace:
 - Redis (redis:7-alpine)
 - N8n (n8nio/n8n)
 - Prometheus (prom/prometheus)
-- Grafana (grafana/grafana)
+- Qdrant (qdrant/qdrant)
+- Loki (grafana/loki)
+- Homelab Dashboard (custom)
+- LobeChat (lobechat/lobechat)
+- Mem0 (mem0/mem0)
+- Whisper (onerahmet/openai-whisper-asr-webservice)
 
-### Compute Node Deployment (In Progress)
-Currently manual installation:
-1. Ollama installed via official installer
-2. LiteLLM installed via pipx
-3. Services started manually (systemd service files exist but not active)
+### Compute Node Deployment (Completed)
+Services deployed in Kubernetes `ollama` namespace:
+1. ✅ Ollama (ollama/ollama) deployed with GPU scheduling
+2. ✅ Accessible via NodePort service (port 30277)
+3. ✅ GPU acceleration configured via ROCm environment variables
+4. ✅ Persistent volume for model storage (10Gi)
 
-**Future**: Systemd services for auto-start, monitoring integration
+**Note**: Native Ollama still available on compute node, K8s deployment now preferred
+
+### GitOps Status
+
+**Current Status**: ⚠️ Partially Functional
+
+**✅ Working Components**:
+- Flux CD controllers deployed (6/6 pods healthy)
+- Repository structure created in `clusters/homelab/`
+- GitRepository configured (network connectivity issues identified)
+- Infrastructure manifests organized and updated
+
+**⚠️ Issues Identified**:
+- GitRepository sync failing due to TLS handshake timeouts
+- Network connectivity between cluster and GitHub blocked
+- Infrastructure Kustomization conflicts with existing services
+- Manual cleanup required for failed deployments
+
+**🔧 Resolution Options**:
+1. **Network Fix**: Configure firewall/proxy rules for GitHub access
+2. **Manual Bootstrap**: Use `flux bootstrap` with GitHub token
+3. **Local Development**: Work with current deployed state
+
+**Recent Changes Committed**:
+- ✅ Fixed Prometheus port conflicts (30190 vs 30090)
+- ✅ Updated Ollama K8s deployment with GPU scheduling
+- ✅ Removed deprecated services (Grafana, Flowise, Open WebUI)
+- ✅ Created comprehensive health check scripts
 
 ## Troubleshooting
 

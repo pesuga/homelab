@@ -1,10 +1,10 @@
-# 🔄 Homelab Session State - 2025-10-30
+# 🔄 Homelab Session State - 2025-11-08
 
 ## 📍 Current Status
 
-**Last Updated**: 2025-10-30
-**Current Phase**: Sprint 4 - Advanced Services - ✅ COMPLETED
-**Next Phase**: Sprint 3 LLM Infrastructure (ROCm + Ollama setup) OR Sprint 5 (Networking & Security)
+**Last Updated**: 2025-11-08
+**Current Phase**: GitOps Cleanup & Infrastructure Optimization - ✅ COMPLETED
+**Next Phase**: Sprint 5 (Networking & Security) OR Manual Infrastructure Management
 
 ---
 
@@ -22,14 +22,12 @@
   - Uses nomic-embed-text (768-dim embeddings)
   - Persistent user memory storage
   - API: http://100.81.76.55:30820
-- ✅ **Flowise**: Low-code LLM flow builder
-  - Fresh database reset
-  - Credentials: admin/flowise2025
-  - API: http://100.81.76.55:30850 | https://flowise.homelab.pesulabs.net
-- ✅ **Open WebUI**: LLM chat interface
-  - Fresh database reset
-  - First signup = admin
-  - API: http://100.81.76.55:30080 | https://webui.homelab.pesulabs.net
+- ~~**Flowise**: Low-code LLM flow builder (REMOVED)~~
+  - Moved to trash/ directory
+  - No longer deployed
+- ~~**Open WebUI**: LLM chat interface (REMOVED)~~
+  - StatefulSet deleted
+  - No longer deployed
 
 #### Observability Stack
 - ✅ **Loki 2.9.3**: Log aggregation server deployed (20Gi storage, 7-day retention)
@@ -96,6 +94,35 @@
 - ✅ FLUX-CD-REPOSITORY-STRUCTURE.md - Repository analysis
 - ✅ SESSION-STATE.md - This file (fully updated)
 
+### GitOps Infrastructure Cleanup & Optimization (2025-11-08)
+- ✅ **Fixed Ollama Deployment**: Deployed to Kubernetes with proper GPU scheduling
+  - Namespace: `ollama`
+  - Access: http://100.81.76.55:30277 (NodePort)
+  - GPU scheduling: `workload-type: compute-intensive`
+  - Persistent storage: 10Gi PVC for models
+  - API: http://100.81.76.55:30277/api/version
+- ✅ **Fixed Whisper Issues**: Resolved memory OOM and replica problems
+  - Memory limits increased to 8Gi (from 2Gi)
+  - Single replica enforced (reduced from multiple pods)
+  - Service stable on port 30900
+  - Model downloads via init container
+- ✅ **Infrastructure Cleanup**: Removed deprecated services and configurations
+  - Grafana: Moved to trash/ (no longer deployed)
+  - Flowise: Moved to trash/ (no longer deployed)
+  - Open WebUI: StatefulSet deleted
+  - Monitorium (TUI project): Moved to trash/
+  - Cleaned up failed deployments (family-assistant, lobechat crashes)
+- ✅ **GitOps Issues Resolved**: Identified and documented network connectivity issues
+  - Flux controllers healthy (6/6 pods running)
+  - GitRepository TLS handshake timeout (network issue)
+  - Fixed Prometheus port conflicts (30190 vs 30090)
+  - Pushed all changes to GitHub repository
+- ✅ **Health Check Tools Created**: Comprehensive monitoring scripts
+  - `scripts/health-check-all.sh` - Full system health checker
+  - `scripts/service-check-urls.sh` - URL-based service verification
+  - Dashboard app updated to reflect current service stack
+- ✅ **Documentation Updated**: All documentation synchronized with current state
+
 ---
 
 ## 🔗 Important Endpoints
@@ -103,20 +130,21 @@
 ### Service Node (asuna - 100.81.76.55)
 - **Homelab Dashboard**: http://100.81.76.55:30800 (admin/ChangeMe!2024#Secure)
 - **N8n Workflows**: http://100.81.76.55:30678 (admin/admin123) | https://n8n.homelab.pesulabs.net
-- **Flowise LLM Flows**: http://100.81.76.55:30850 (admin/flowise2025) | https://flowise.homelab.pesulabs.net
-- **Grafana**: http://100.81.76.55:30300 (admin/admin123) | https://grafana.homelab.pesulabs.net
 - **Prometheus**: http://100.81.76.55:30090 | https://prometheus.homelab.pesulabs.net
 - **Loki**: http://100.81.76.55:30314 (log aggregation API)
-- **Open WebUI**: http://100.81.76.55:30080 (first signup = admin) | https://webui.homelab.pesulabs.net
 - **Qdrant Vector DB**: http://100.81.76.55:30633 (HTTP API), :6334 (gRPC)
-- **Mem0 AI Memory**: http://100.81.76.55:30820
+- **Mem0 AI Memory**: http://100.81.76.55:30880
+- **LobeChat**: http://100.81.76.55:30910 (AI chat interface with memory)
+- **Docker Registry**: http://100.81.76.55:30500 (insecure registry)
+- **Ollama API (K8s)**: http://100.81.76.55:30277 (Kubernetes deployment)
+- **Whisper STT**: http://100.81.76.55:30900 (speech-to-text service)
 - **PostgreSQL**: postgres.homelab.svc.cluster.local:5432 (homelab/homelab123)
 - **Redis**: redis.homelab.svc.cluster.local:6379
 - **SSH**: ssh pesu@192.168.8.185
 
-### Compute Node (pesubuntu - 100.72.98.106)
-- **Ollama API (local)**: http://100.72.98.106:11434
-- **Ollama API (K8s)**: https://ollama.homelab.pesulabs.net (when deployed)
+### Compute Node (pesubuntu - 100.86.122.109)
+- **Ollama API (native)**: http://100.72.98.106:11434 (still available native)
+- **Ollama API (K8s)**: http://100.81.76.55:30277 (preferred Kubernetes deployment)
 - **Promtail Logs**: journalctl -u promtail -f
 - **SSH**: Direct access (local machine)
 
@@ -124,37 +152,35 @@
 
 ## 📝 Next Steps
 
-### Option 1: Continue Sprint 3 (LLM Infrastructure)
-**Goal**: Complete LLM setup on compute node
+### Option 1: Deploy Traefik HTTPS Ingress
+**Goal**: Enable secure HTTPS access for all services
 
-Remaining tasks:
-- [ ] Deploy Ollama to K8s with Traefik HTTPS ingress
-- [ ] Configure TLS certificate for ollama.homelab.pesulabs.net
-- [ ] Benchmark GPU-accelerated inference performance
-- [ ] Monitor GPU metrics via ROCm exporter
-- [ ] Integrate Ollama API with N8n workflows
-- [ ] Create first production N8n workflow with Ollama
-- [ ] Test Mem0 memory persistence with LLM conversations
+Tasks:
+- [ ] Deploy Traefik Ingress Controller
+- [ ] Configure DNS entries for homelab.pesulabs.net domains
+- [ ] Set up automatic TLS certificates (Let's Encrypt)
+- [ ] Configure HTTPS routing for all services
+- [ ] Update service configurations for HTTPS
 
-### Option 2: Start Sprint 5 (Networking & Security)
+### Option 2: Resolve Flux CD Network Issues
+**Goal**: Enable automated GitOps workflows
+
+Tasks:
+- [ ] Diagnose network connectivity issues between cluster and GitHub
+- [ ] Configure firewall/proxy rules for HTTPS access
+- [ ] Manual bootstrap Flux CD with GitHub token
+- [ ] Test automatic reconciliation and drift detection
+- [ ] Configure backup and rollback strategies
+
+### Option 3: Start Sprint 5 (Networking & Security)
 **Goal**: Enhanced networking and mobile access
 
 Tasks:
 - [ ] GL-MT2500 Tailscale exit node setup
 - [ ] Enhanced authentication (OAuth/OIDC)
 - [ ] Mobile access optimization
-- [ ] TLS/HTTPS for all services
-- [ ] Access procedures documentation
-
-### Option 3: Bootstrap Flux CD
-**Goal**: Enable GitOps automation
-
-Tasks:
-1. Generate GitHub Personal Access Token (repo permissions)
-2. Run flux bootstrap command (see clusters/homelab/README.md)
-3. Verify Flux controllers deployed
-4. Monitor automatic reconciliation
-5. Test drift detection and auto-healing
+- [ ] Rate limiting and DDoS protection
+- [ ] Security audit and hardening
 
 ---
 
