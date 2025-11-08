@@ -68,25 +68,25 @@ SERVICES = [
     {
         'name': 'Prometheus',
         'description': 'Time series database and metrics collection',
-        'url': 'http://100.81.76.55:30190',
-        'external_url': 'http://100.81.76.55:30190',
-        'health_check_url': 'http://100.81.76.55:30190',
+        'url': 'https://prometheus.homelab.pesulabs.net',
+        'external_url': 'https://prometheus.homelab.pesulabs.net',
+        'health_check_url': 'https://prometheus.homelab.pesulabs.net',
         'internal_url': 'http://prometheus.homelab.svc.cluster.local:9090',
         'icon': '🔥',
         'status_endpoint': '/-/healthy',
-        'port': 30190,
+        'port': 443,
         'tags': ['monitoring', 'metrics']
     },
     {
         'name': 'N8n',
         'description': 'Workflow automation and integration platform',
-        'url': 'http://100.81.76.55:30678',
-        'external_url': 'http://100.81.76.55:30678',
-        'health_check_url': 'http://100.81.76.55:30678',
+        'url': 'https://n8n.homelab.pesulabs.net',
+        'external_url': 'https://n8n.homelab.pesulabs.net',
+        'health_check_url': 'https://n8n.homelab.pesulabs.net',
         'internal_url': 'http://n8n.homelab.svc.cluster.local:5678',
         'icon': '🔗',
         'status_endpoint': '/healthz',
-        'port': 30678,
+        'port': 443,
         'tags': ['automation', 'workflows']
     },
     {
@@ -143,13 +143,13 @@ SERVICES = [
     {
         'name': 'LobeChat',
         'description': 'AI chat interface with memory',
-        'url': 'http://100.81.76.55:30910',
-        'external_url': 'http://100.81.76.55:30910',
-        'health_check_url': 'http://100.81.76.55:30910',
+        'url': 'https://chat.homelab.pesulabs.net',
+        'external_url': 'https://chat.homelab.pesulabs.net',
+        'health_check_url': 'https://chat.homelab.pesulabs.net',
         'internal_url': 'http://lobechat.homelab.svc.cluster.local:3000',
         'icon': '🎭',
         'status_endpoint': '/',
-        'port': 30910,
+        'port': 443,
         'tags': ['ai', 'chat', 'memory']
     },
     # Removed Whisper - currently experiencing issues (pods crashing)

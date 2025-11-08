@@ -53,32 +53,29 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 
 ### LLM Infrastructure (Compute Node)
 
-**IMPORTANT: Compute node needs setup first!**
-
-For complete ROCm installation, Ollama deployment, and GPU configuration instructions, see:
-- `infrastructure/compute-node/README.md` - Full AMD GPU setup guide
-- `docs/LLM-SETUP.md` - Complete deployment walkthrough
-
 **Health Check and testing scripts**
 List of all testing scripts:
 - Health checks `./infrastructure/compute-node/scripts/health-check.sh` to verify LLM services status
 
-
-### Service Node Operations
+### Homelab Dashboard
+- The dashboard app should always be up to date with the cluster services
+- Always use and show the https pesulabs.net urls for services
 
 ### Monitoring & Observability
 
-**Access Dashboards** (via Tailscale IPs):
-- **Homelab Dashboard**: http://100.81.76.55:30800 (admin/4er58uCyJLPFgnFOzqqZ) - Unified landing page
-- **N8n Workflows**: http://100.81.76.55:30678 (admin/admin123) | https://n8n.homelab.pesulabs.net
-- **Prometheus**: http://100.81.76.55:30190 | https://prometheus.homelab.pesulabs.net
+**Access Dashboards** (HTTPS URLs):
+- **Homelab Dashboard**: https://dash.pesulabs.net (admin/4er58uCyJLPFgnFOzqqZ) - Unified landing page
+- **N8n Workflows**: https://n8n.homelab.pesulabs.net (admin/admin123)
+- **Prometheus**: https://prometheus.homelab.pesulabs.net
+- **LobeChat**: https://chat.homelab.pesulabs.net (AI chat interface with memory)
+- **Family Assistant**: https://assistant.homelab.pesulabs.net
+
+**Internal Services** (NodePort access for development):
 - **Loki**: http://100.81.76.55:30314 (log aggregation API)
 - **Qdrant Vector DB**: http://100.81.76.55:30633 (HTTP API), :6334 (gRPC)
 - **Mem0 AI Memory**: http://100.81.76.55:30880 (AI memory layer API)
 - **Docker Registry**: http://100.81.76.55:30500 (insecure registry)
-- **LobeChat**: http://100.81.76.55:30910 (AI chat interface with memory)
 - **Ollama API (K8s)**: http://100.81.76.55:30277 (Kubernetes deployment, GPU-accelerated)
-- **Whisper STT**: http://100.81.76.55:30900 (speech-to-text service)
 
 ### Qdrant Vector Database
 
