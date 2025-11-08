@@ -69,9 +69,9 @@ List of all testing scripts:
 ### Monitoring & Observability
 
 **Access Dashboards** (via Tailscale IPs):
-- **Homelab Dashboard**: http://100.81.76.55:30800 (admin/ChangeMe!2024#Secure) - Unified landing page
+- **Homelab Dashboard**: http://100.81.76.55:30800 (admin/4er58uCyJLPFgnFOzqqZ) - Unified landing page
 - **N8n Workflows**: http://100.81.76.55:30678 (admin/admin123) | https://n8n.homelab.pesulabs.net
-- **Prometheus**: http://100.81.76.55:30090 | https://prometheus.homelab.pesulabs.net
+- **Prometheus**: http://100.81.76.55:30190 | https://prometheus.homelab.pesulabs.net
 - **Loki**: http://100.81.76.55:30314 (log aggregation API)
 - **Qdrant Vector DB**: http://100.81.76.55:30633 (HTTP API), :6334 (gRPC)
 - **Mem0 AI Memory**: http://100.81.76.55:30880 (AI memory layer API)

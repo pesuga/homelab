@@ -68,21 +68,21 @@ SERVICES = [
     {
         'name': 'Prometheus',
         'description': 'Time series database and metrics collection',
-        'url': 'https://prometheus.homelab.pesulabs.net',
-        'external_url': 'https://prometheus.homelab.pesulabs.net',
-        'health_check_url': 'https://prometheus.homelab.pesulabs.net:30090',
+        'url': 'http://100.81.76.55:30190',
+        'external_url': 'http://100.81.76.55:30190',
+        'health_check_url': 'http://100.81.76.55:30190',
         'internal_url': 'http://prometheus.homelab.svc.cluster.local:9090',
         'icon': '🔥',
         'status_endpoint': '/-/healthy',
-        'port': 30090,
+        'port': 30190,
         'tags': ['monitoring', 'metrics']
     },
     {
         'name': 'N8n',
         'description': 'Workflow automation and integration platform',
-        'url': 'https://n8n.homelab.pesulabs.net',
-        'external_url': 'https://n8n.homelab.pesulabs.net',
-        'health_check_url': 'https://n8n.homelab.pesulabs.net:30678',
+        'url': 'http://100.81.76.55:30678',
+        'external_url': 'http://100.81.76.55:30678',
+        'health_check_url': 'http://100.81.76.55:30678',
         'internal_url': 'http://n8n.homelab.svc.cluster.local:5678',
         'icon': '🔗',
         'status_endpoint': '/healthz',
@@ -114,28 +114,18 @@ SERVICES = [
         'internal': True
     },
       # Removed Open WebUI - currently not deployed
+    # Removed LiteLLM - currently not deployed
     {
         'name': 'Ollama',
-        'description': 'LLM inference API (direct)',
-        'url': 'http://100.72.98.106:11434',
-        'external_url': 'http://100.72.98.106:11434',
-        'internal_url': 'http://ollama.homelab.svc.cluster.local:11434',
+        'description': 'LLM inference API (Kubernetes deployment)',
+        'url': 'http://100.81.76.55:30277',
+        'external_url': 'http://100.81.76.55:30277',
+        'health_check_url': 'http://100.81.76.55:30277',
+        'internal_url': 'http://ollama.ollama.svc.cluster.local:11434',
         'icon': '🦙',
         'status_endpoint': '/api/version',
-        'port': 11434,
-        'tags': ['ai', 'llm', 'api']
-    },
-    {
-        'name': 'LiteLLM',
-        'description': 'OpenAI-compatible LLM API gateway',
-        'url': 'http://100.72.98.106:8000',
-        'external_url': 'https://litellm.homelab.pesulabs.net',
-        'health_check_url': 'http://100.72.98.106:8000',
-        'internal_url': 'http://litellm.homelab.svc.cluster.local:8000',
-        'icon': '⚡',
-        'status_endpoint': '/health',
-        'port': 8000,
-        'tags': ['ai', 'llm', 'api']
+        'port': 30277,
+        'tags': ['ai', 'llm', 'api', 'gpu']
     },
     # Removed Flowise - currently not deployed
     {
@@ -204,7 +194,7 @@ SERVICES = [
 # Service categories for better organization
 SERVICE_CATEGORIES = {
     'Monitoring & Observability': ['Prometheus', 'Loki'],
-    'AI & Machine Learning': ['Ollama', 'LiteLLM', 'Mem0', 'LobeChat'],
+    'AI & Machine Learning': ['Ollama', 'Mem0', 'LobeChat'],
     'Automation & Workflows': ['N8n'],
     'Databases & Storage': ['PostgreSQL', 'Redis', 'Qdrant'],
     'Infrastructure': ['Docker Registry']
