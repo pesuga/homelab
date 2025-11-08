@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: family-assistant-config
+  namespace: homelab
+  labels:
+    app: family-assistant
+data:
+  # Add your non-sensitive config here
+  LOG_LEVEL: "info"
+  # Other public config values
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: family-assistant
+  namespace: homelab
+  labels:
+    app: family-assistant
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: family-assistant
+  template:
+    metadata:
+      labels:
+        app: family-assistant
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: family-assistant
+        image: ghcr.io/pesuga/homelab/family-assistant:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8001
+          name: http
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: family-assistant-config
+        - secretRef:
+            name: family-assistant-secret
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: family-assistant
+  namespace: homelab
+  labels:
+    app: family-assistant
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8001
+      targetPort: 8001
+      protocol: TCP
+      name: http
+  selector:
+    app: family-assistant
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: family-assistant-nodeport
+  namespace: homelab
+  labels:
+    app: family-assistant
+spec:
+  type: NodePort
+  ports:
+    - port: 8001
+      targetPort: 8001
+      protocol: TCP
+      name: http
+      nodePort: 30801
+  selector:
+    app: family-assistant

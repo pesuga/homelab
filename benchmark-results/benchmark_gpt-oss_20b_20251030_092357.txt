@@ -1,0 +1,21 @@
+Ollama Model Benchmark Report
+==============================
+Model: gpt-oss:20b
+Date: Thu Oct 30 09:23:57 -03 2025
+Host: pesubuntu
+Iterations: 1
+
+System Information
+==================
+CPU: 12th Gen Intel(R) Core(TM) i5-12400F
+Cores: 12
+Memory: 30Gi
+GPU:  Advanced Micro Devices, Inc. [AMD/ATI] Navi 32 [Radeon RX 7700 XT / 7800 XT] (rev c8)
+
+[short - Iteration 1]
+  Total Duration: 1.317s
+  Load Duration: 0.153s
+  Prompt Tokens: 73 (1764.53 tok/s)
+  Response Tokens: 91 (83.44 tok/s)
+  Wall Clock Time: 1.327s
+

@@ -1,0 +1,98 @@
+# N8n Workflow Automation Platform
+# Version: Latest
+# Storage: 5Gi persistent volume
+# Health Probes: HTTP-based liveness and readiness checks
+# Prometheus: Annotations for metrics scraping
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: n8n-pvc
+  namespace: homelab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-path
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n
+  namespace: homelab
+  labels:
+    app: n8n
+spec:
+  type: NodePort
+  ports:
+    - port: 5678
+      targetPort: 5678
+      nodePort: 30678
+      protocol: TCP
+      name: http
+  selector:
+    app: n8n
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  namespace: homelab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n
+  template:
+    metadata:
+      labels:
+        app: n8n
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5678"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: n8n
+        image: n8nio/n8n:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5678
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: n8n-config
+        - secretRef:
+            name: n8n-secret
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        volumeMounts:
+        - mountPath: /home/node/.n8n
+          name: n8n-data
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 5678
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 5678
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: n8n-data
+        persistentVolumeClaim:
+          claimName: n8n-pvc

@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-storage
+  namespace: homelab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: loki
+  namespace: homelab
+  labels:
+    app: loki
+spec:
+  serviceName: loki
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      containers:
+      - name: loki
+        image: grafana/loki:2.9.3
+        args:
+          - -config.file=/etc/loki/loki.yaml
+        ports:
+        - containerPort: 3100
+          name: http
+          protocol: TCP
+        - containerPort: 9096
+          name: grpc
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        volumeMounts:
+        - name: config
+          mountPath: /etc/loki
+        - name: storage
+          mountPath: /loki
+        livenessProbe:
+          httpGet:
+            path: /ready
+            port: 3100
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3100
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+      volumes:
+      - name: config
+        configMap:
+          name: loki-config
+      - name: storage
+        persistentVolumeClaim:
+          claimName: loki-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  namespace: homelab
+  labels:
+    app: loki
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3100
+    targetPort: 3100
+    protocol: TCP
+    name: http
+  - port: 9096
+    targetPort: 9096
+    protocol: TCP
+    name: grpc
+  selector:
+    app: loki
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki-nodeport
+  namespace: homelab
+  labels:
+    app: loki
+spec:
+  type: NodePort
+  ports:
+  - port: 3100
+    targetPort: 3100
+    nodePort: 30314
+    protocol: TCP
+    name: http
+  selector:
+    app: loki

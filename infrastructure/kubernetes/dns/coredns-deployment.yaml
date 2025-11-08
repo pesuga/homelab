@@ -1,0 +1,122 @@
+---
+# CoreDNS deployment for homelab DNS resolution
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-homelab
+  namespace: homelab
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health {
+            lameduck 5s
+        }
+        ready
+
+        # Homelab domain resolution
+        template IN A homelab.local {
+            match "^(.+)\\.homelab\\.local\\.$"
+            answer "{{ .Name }} 60 IN A 100.81.76.55"
+            fallthrough
+        }
+
+        # Specific service records (higher priority)
+        hosts {
+            100.81.76.55 grafana.homelab.local
+            100.81.76.55 prometheus.homelab.local
+            100.81.76.55 n8n.homelab.local
+            100.81.76.55 webui.homelab.local
+            fallthrough
+        }
+
+        # Forward all other queries to upstream DNS
+        forward . 1.1.1.1 9.9.9.9 {
+            max_concurrent 1000
+        }
+
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredns-homelab
+  namespace: homelab
+  labels:
+    app: coredns-homelab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coredns-homelab
+  template:
+    metadata:
+      labels:
+        app: coredns-homelab
+    spec:
+      containers:
+        - name: coredns
+          image: coredns/coredns:1.11.1
+          args:
+            - -conf
+            - /etc/coredns/Corefile
+          ports:
+            - containerPort: 53
+              name: dns-tcp
+              protocol: TCP
+            - containerPort: 53
+              name: dns-udp
+              protocol: UDP
+          volumeMounts:
+            - name: config
+              mountPath: /etc/coredns
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8181
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: config
+          configMap:
+            name: coredns-homelab
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coredns-homelab
+  namespace: homelab
+  labels:
+    app: coredns-homelab
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 100.81.76.55
+  ports:
+    - port: 53
+      targetPort: 53
+      protocol: TCP
+      name: dns-tcp
+    - port: 53
+      targetPort: 53
+      protocol: UDP
+      name: dns-udp
+  selector:
+    app: coredns-homelab

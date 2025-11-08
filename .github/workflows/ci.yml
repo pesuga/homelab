@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, revised-version ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run tests
+        run: echo "Tests will run here"
+        
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run linting
+        run: echo "Linting will run here"

@@ -1,0 +1,43 @@
+Security Remediation - Files Modified Summary
+Date: 2025-10-31
+
+KUBERNETES MANIFESTS (All hardcoded credentials removed)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. /home/pesu/Rakuflow/systems/homelab/infrastructure/kubernetes/databases/postgres/postgres.yaml
+   Changes: Removed Secret manifest with hardcoded POSTGRES_PASSWORD
+   Lines: 12-15 removed, replaced with documentation (6-22)
+
+2. /home/pesu/Rakuflow/systems/homelab/infrastructure/kubernetes/services/lobechat/lobechat.yaml
+   Changes: 
+   - Removed hardcoded DATABASE_URL from ConfigMap (line 16)
+   - Removed Secret manifest with hardcoded DB_PASSWORD (lines 68-83)
+   - Updated init container to use secret reference (lines 169-174)
+   - Added DATABASE_URL env var with substitution (lines 183-191)
+
+3. /home/pesu/Rakuflow/systems/homelab/infrastructure/kubernetes/monitoring/grafana-deployment.yaml
+   Changes:
+   - Added documentation header (lines 1-19)
+   - Updated GF_SECURITY_ADMIN_PASSWORD to use secretKeyRef (lines 59-63)
+
+4. /home/pesu/Rakuflow/systems/homelab/services/homelab-dashboard/k8s/deployment.yaml
+   Changes: Removed Secret manifest with hardcoded password and Flask key
+   Lines: 82-92 removed, replaced with documentation (81-98)
+
+5. /home/pesu/Rakuflow/systems/homelab/infrastructure/kubernetes/flowise/flowise-deployment.yaml
+   Changes: Removed Secret manifest with hardcoded passwords
+   Lines: 55-65 removed, replaced with documentation (54-70)
+
+DOCUMENTATION CREATED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+6. /home/pesu/Rakuflow/systems/homelab/claudedocs/SECURITY-CHANGES-APPLIED.md (NEW)
+   Content: Complete change log, verification results, migration checklist
+
+SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Total files modified: 5 Kubernetes manifests
+Total documentation: 1 comprehensive guide
+Credentials removed: 8 hardcoded values
+Status: ✅ All changes complete, ready for review

@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homelab-dashboard
+  namespace: homelab
+  labels:
+    app: homelab-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homelab-dashboard
+  template:
+    metadata:
+      labels:
+        app: homelab-dashboard
+    spec:
+      containers:
+      - name: dashboard
+        image: ghcr.io/pesuga/homelab/homelab-dashboard:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: dashboard-secrets
+              key: secret-key
+        - name: DASHBOARD_USER
+          valueFrom:
+            secretKeyRef:
+              name: dashboard-secrets
+              key: username
+        - name: DASHBOARD_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dashboard-secrets
+              key: password
+        - name: ADMIN_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: dashboard-secrets
+              key: admin-email
+              optional: true
+        - name: DB_HOST
+          value: "postgres.homelab.svc.cluster.local"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "homelab"
+        - name: DB_USER
+          value: "homelab"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        - name: BEHIND_HTTPS_PROXY
+          value: "true"  # Running behind Traefik with TLS termination
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+# IMPORTANT: The dashboard-secrets must be created manually before deploying this manifest.
+# Run: ./scripts/secrets/create-dashboard-secret.sh
+# This will generate a secure random password and Flask secret key.
+#
+# Secret structure (created manually):
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: dashboard-secrets
+#   namespace: homelab
+# type: Opaque
+# stringData:
+#   secret-key: <GENERATED_FLASK_SECRET_KEY>
+#   username: admin
+#   password: <GENERATED_SECURE_PASSWORD>
+#   admin-email: admin@pesulabs.net  # Optional: for notifications
+# ---

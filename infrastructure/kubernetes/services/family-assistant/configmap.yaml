@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: family-assistant-config
+  namespace: homelab
+  labels:
+    app: family-assistant
+data:
+  # LLM Configuration
+  OLLAMA_BASE_URL: "http://100.72.98.106:11434"
+  OLLAMA_MODEL: "llama3.1:8b"
+  OLLAMA_TEMPERATURE: "0.7"
+  OLLAMA_MAX_TOKENS: "2048"
+
+  # PostgreSQL
+  POSTGRES_HOST: "postgres.homelab.svc.cluster.local"
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: "homelab"
+  POSTGRES_DB: "homelab"
+
+  # Redis
+  REDIS_HOST: "redis.homelab.svc.cluster.local"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+
+  # Mem0
+  MEM0_API_URL: "http://mem0.homelab.svc.cluster.local:8080"
+
+  # Qdrant
+  QDRANT_URL: "http://qdrant.homelab.svc.cluster.local:6333"
+  QDRANT_COLLECTION: "family_assistant_memories"
+
+  # N8n
+  N8N_BASE_URL: "http://n8n.homelab.svc.cluster.local:5678"
+  N8N_WEBHOOK_PATH: "/webhook"
+
+  # API Configuration
+  API_HOST: "0.0.0.0"
+  API_PORT: "8001"
+  API_WORKERS: "4"
+  API_RELOAD: "false"
+  LOG_LEVEL: "info"
+
+  # Observability
+  ENABLE_METRICS: "true"
+  ENABLE_AUDIT_LOG: "true"
+
+  # Development
+  DEBUG: "false"
+  TESTING: "false"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: family-assistant-secret
+  namespace: homelab
+  labels:
+    app: family-assistant
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: "homelab123"
+  SECRET_KEY: "supersecretkey123456789012345678901234567890"

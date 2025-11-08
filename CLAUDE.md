@@ -1,0 +1,391 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+This is a **homelab agentic workflow platform** - a self-hosted infrastructure for running AI agents and workflows with local LLM inference. The platform consists of two primary nodes:
+
+- **Compute Node**: Native Ubuntu 25.10 (pesubuntu) - will run Ollama with GPU acceleration (AMD RX 7800 XT) and LiteLLM router
+- **Service Node**: Ubuntu Server 24.04 (asuna, 192.168.8.185) running K3s with N8n, PostgreSQL, Redis, Prometheus, and Grafana
+
+**Current Status**: Sprint 4 - Advanced Services COMPLETED (4 of 7 sprints done, ready for Sprint 3 LLM setup and Sprint 5)
+
+## Architecture Overview
+
+### Two-Node Architecture
+
+**Compute Node (pesubuntu - localhost)**:
+- Purpose: LLM inference with GPU acceleration
+- Hardware: i5-12400F (6C/12T), 32GB RAM, AMD RX 7800 XT (16GB VRAM, Navi 32)
+- Services: Ollama (via K8s DaemonSet), Whisper, Lobechat
+- OS: Ubuntu 25.10 (Questing Quetzal) - Native installation
+- Kernel: 6.17.0-5-generic
+- Storage: 937GB available
+- Current State: Fresh Ubuntu installation, GPU detected, ready for ROCm + Ollama setup
+
+**Service Node (asuna - 192.168.8.185)**:
+- Purpose: Kubernetes orchestration and workflow automation
+- Hardware: i7-4510U, 8GB RAM, 98GB storage
+- Services: K3s v1.33.5, N8n, Flowise, PostgreSQL 16.10, Redis 7.4.6, Qdrant v1.12.5, Mem0, Loki, Promtail, Prometheus, Grafana, Docker Registry, Homelab Dashboard, Open WebUI
+- OS: Ubuntu 24.04.3 LTS
+- Tailscale IP: 100.81.76.55
+- K3s configured with Tailscale IP in TLS SAN for remote kubectl access
+- Database Services:
+  - PostgreSQL: postgres.homelab.svc.cluster.local:5432 (User: homelab, DB: homelab, 10Gi storage)
+  - Redis: redis.homelab.svc.cluster.local:6379 (ephemeral storage, AOF enabled)
+  - Qdrant: qdrant.homelab.svc.cluster.local:6333 (HTTP), :6334 (gRPC), 20Gi storage
+- GitOps: Flux CD for automated infrastructure deployment (planned)
+
+### Networking
+
+- **IMPORTANT**: Always use Tailscale IPs for inter-node communication
+- Local Network: 192.168.8.0/24 (note: some docs reference 192.168.1.0/24, actual is 192.168.8.0/24)
+- Tailscale Mesh: 100.64.0.0/10 for secure remote access
+- Service Node (asuna): 100.81.76.55
+- Compute Node (pesubuntu): 100.72.98.106
+- Service Node routes: Subnet routing enabled for 192.168.86.0/24
+
+## Common Commands
+
+### LLM Infrastructure (Compute Node)
+
+**IMPORTANT: Compute node needs setup first!**
+
+For complete ROCm installation, Ollama deployment, and GPU configuration instructions, see:
+- `infrastructure/compute-node/README.md` - Full AMD GPU setup guide
+- `docs/LLM-SETUP.md` - Complete deployment walkthrough
+
+**Health Check Script**: Run `./infrastructure/compute-node/scripts/health-check.sh` to verify LLM services status
+
+### Service Node Operations
+
+Standard Kubernetes operations for monitoring and managing services:
+- SSH access: `ssh pesu@192.168.8.185`
+- See `docs/` for operational procedures
+- Use `kubectl` commands for cluster management
+
+### Monitoring & Observability
+
+**Access Dashboards** (via Tailscale IPs):
+- **Homelab Dashboard**: http://100.81.76.55:30800 (admin/ChangeMe!2024#Secure) - Unified landing page
+- N8n Workflows: http://100.81.76.55:30678 (admin/admin123) | https://n8n.homelab.pesulabs.net
+- Flowise LLM Flows: http://100.81.76.55:30850 (admin/flowise2025) | https://flowise.homelab.pesulabs.net
+- Grafana: http://100.81.76.55:30300 (admin/admin123) | https://grafana.homelab.pesulabs.net
+- Prometheus: http://100.81.76.55:30090 | https://prometheus.homelab.pesulabs.net
+- Loki: http://100.81.76.55:30314 (log aggregation API)
+- Open WebUI: http://100.81.76.55:30080 (first signup = admin) | https://webui.homelab.pesulabs.net
+- Qdrant Vector DB: http://100.81.76.55:30633 (HTTP API), :6334 (gRPC)
+- Mem0: http://100.81.76.55:30820 (AI memory layer API)
+- Ollama API (local): http://100.72.98.106:11434 (compute node)
+- Ollama API (K8s): https://ollama.homelab.pesulabs.net (Traefik HTTPS)
+
+**Grafana Dashboards** (imported and configured):
+- **Homelab Infrastructure - Dual Node**: Real-time monitoring of both compute and service nodes
+  - Compute node: CPU, RAM, Storage, GPU utilization, temperature, power, VRAM
+  - Service node: Kubernetes cluster metrics (coming soon)
+  - Access: Grafana → Dashboards → Homelab Infrastructure
+- **Loki Logs**: Log aggregation and search via Explore tab
+  - LogQL queries for service logs, system logs, Ollama logs
+  - Access: Grafana → Explore → Loki datasource
+
+### Qdrant Vector Database
+
+Qdrant provides vector similarity search for RAG applications. See `docs/QDRANT-SETUP.md` for deployment and integration details.
+
+**Integration**: Mem0 uses Qdrant for vector storage and Ollama (nomic-embed-text) for embeddings
+
+### Mem0 AI Memory Layer
+
+Mem0 provides AI memory management using Qdrant for storage and Ollama for embeddings. Access via API endpoint at http://100.81.76.55:30820
+
+### Loki Log Aggregation
+
+Loki aggregates logs from all services and nodes. Query logs via:
+- **Grafana UI**: Grafana → Explore → Loki datasource → Enter LogQL query
+- **Direct API**: Loki API endpoint at http://100.81.76.55:30314
+
+Common log sources: homelab namespace pods, systemd services (Ollama), system logs
+
+### GitOps with Flux CD (Ready for Bootstrap)
+
+Flux CD enables declarative infrastructure management via Git. See `docs/GITOPS-SETUP.md` for complete bootstrap and configuration instructions.
+
+Required setup:
+- Flux CLI installation
+- GitHub token with repo access
+- Bootstrap to K3s cluster
+- Repository structure in `clusters/homelab/`
+
+### Grafana Dashboard Management
+
+Grafana provides visualization for Prometheus metrics and Loki logs. See `docs/GRAFANA-DASHBOARDS.md` for dashboard creation guide.
+
+**Recommended Dashboards** (import via Grafana UI):
+- ID 1860: Node Exporter Full
+- ID 15760: Kubernetes Cluster Monitoring
+- ID 9628: PostgreSQL (requires postgres_exporter)
+- ID 11835: Redis (requires redis_exporter)
+
+### Development Workflow
+
+1. Clone repository: `git clone https://github.com/pesuga/homelab.git`
+2. Checkout working branch: `git checkout revised-version`
+3. Copy and configure environment: `.env-example` → `.env`
+4. Run setup script: `./scripts/setup.sh` (minimal - needs expansion)
+
+## Key Architecture Patterns
+
+### LLM Request Flow
+
+**Request Path**: User/N8n → Traefik Ingress (HTTPS) → Ollama Service (K8s) → Ollama Pod → LLM Model → GPU
+
+**Endpoint**: https://ollama.homelab.pesulabs.net (Ollama HTTP API)
+
+**Architecture**: Direct Ollama API access via Kubernetes with Traefik for HTTPS termination and routing. Simplified stack eliminates unnecessary proxy layers for single-GPU homelab setup.
+
+### Service Deployment Pattern
+
+All services on the service node run as Kubernetes workloads:
+- Base namespace: `homelab`
+- Storage: Persistent Volume Claims (10Gi for PostgreSQL, 5Gi for N8n/Grafana)
+- Networking: ClusterIP for internal, NodePort for external access
+- No Ingress controller yet - direct NodePort access
+
+### Data Persistence Strategy
+
+- **PostgreSQL**: Used by N8n for workflow storage, uses PVC
+- **Redis**: In-memory cache and job queue, uses PVC
+- **LLM Models**: Stored in Ollama's model directory (managed by Ollama)
+- **Grafana Dashboards**: Stored in PVC
+- **Prometheus Metrics**: 10Gi retention with PVC
+
+## Current Sprint Goals
+
+### Sprint 3: LLM Infrastructure (Current - Week 7-8) - RESTARTED
+
+**Major Change**: Moved from Windows + WSL2 to native Ubuntu 25.10 installation due to AMD GPU driver limitations in WSL2.
+
+**Objectives**:
+1. ✅ Install fresh Ubuntu 25.10 on compute node
+2. ✅ Verify GPU detection (AMD RX 7800 XT)
+3. ⏳ Install ROCm 6.4.1+ for AMD GPU support (NEXT)
+4. ⏳ Deploy Ollama with GPU acceleration
+5. ⏳ Load production models: Mistral 7B, CodeLlama 7B, Llama 3.1 8B
+6. ⏳ Benchmark GPU-accelerated inference
+7. ⏳ Deploy Ollama to K8s with Traefik HTTPS ingress
+8. ⏳ Set up Tailscale on compute node
+9. ⏳ Integrate Ollama API with N8n workflows
+
+**Success Criteria**:
+- ✅ Native Ubuntu installation complete
+- ✅ GPU detected via lspci
+- ⏳ ROCm detects and uses RX 7800 XT
+- ⏳ GPU-accelerated inference achieving 20+ tokens/second on 7B models
+- ⏳ Ollama accessible via HTTPS (ollama.homelab.pesulabs.net)
+- ⏳ N8n can call Ollama API directly
+- ⏳ Monitoring shows GPU utilization
+
+**Benefits of Native Ubuntu**:
+- Full ROCm support without WSL2 limitations
+- Better GPU performance
+- Native hardware access
+- Simplified troubleshooting
+
+## Important Files & Locations
+
+### Documentation
+- `README.md` - Main project overview and status
+- `docs/architecture.md` - Detailed system architecture
+- `docs/LLM-SETUP.md` - Complete AMD GPU + K8s Ollama deployment guide
+- `docs/SESSION-STATE.md` - Current session state and progress tracking
+- `docs/IMPLEMENTATION-PLAN.md` - GitOps, Qdrant, and Grafana implementation plan
+- `docs/GITOPS-SETUP.md` - Flux CD GitOps setup and multi-repo management
+- `docs/QDRANT-SETUP.md` - Qdrant vector database deployment and integration
+- `docs/GRAFANA-DASHBOARDS.md` - Grafana dashboard creation and setup guide
+- `docs/METRICS-ANALYSIS.md` - Prometheus metrics analysis and available data
+
+### Configuration
+- `.env-example` - Environment variable template (comprehensive)
+- `infrastructure/kubernetes/ollama/` - Ollama K8s deployment manifests
+- `infrastructure/kubernetes/base/namespace.yaml` - K8s namespace definition
+
+### Scripts
+- `infrastructure/compute-node/scripts/health-check.sh` - LLM services health check
+- `scripts/setup.sh` - Basic setup script (needs expansion)
+
+### Service Configurations
+- `infrastructure/compute-node/` - Ollama and LiteLLM setup docs
+- `infrastructure/kubernetes/` - K8s manifests
+  - `base/` - Namespace and core configs
+  - `databases/` - PostgreSQL, Redis, Qdrant deployments
+  - `monitoring/` - Prometheus, Grafana
+  - `monitoring/dashboards/` - Grafana dashboard JSONs and provisioning
+  - `flux/` - Flux CD GitOps resources (planned)
+- `infrastructure/kubernetes/ollama/` - Ollama K8s manifests
+- `services/n8n-workflows/` - N8n workflow exports (placeholder)
+- `services/agentstack-config/` - AgentStack configs (future)
+
+## Development Context
+
+### Built With Claude Code
+This project is developed using AI-assisted pair programming with Claude Code. Key practices:
+- Comprehensive documentation maintained throughout
+- Session state tracking in `docs/SESSION-STATE.md`
+- Sprint-based development (16-week roadmap)
+- Infrastructure-as-code approach
+
+### Design Principles
+1. **Local-First**: All compute and data stays on-premises
+2. **Observable**: Everything logged and monitored via Prometheus/Grafana
+3. **Modular**: Services are independent and composable
+4. **Open Source**: Built on OSS, no proprietary lock-in
+5. **Automated**: Manual work is scripted away
+
+### Technology Choices
+
+**Ollama** (LLM Inference):
+- Simple model management with REST API
+- AMD GPU support via ROCm
+- Active development and community
+- Native HTTP API (no proxy needed)
+
+**K3s** (Kubernetes):
+- Lightweight K8s perfect for single-node homelab
+- Full K8s compatibility
+- Easy installation and maintenance
+
+**N8n** (Workflow Automation):
+- Low-code workflow builder with 400+ integrations
+- Self-hostable
+- Perfect for agentic workflows
+
+**Tailscale** (VPN):
+- Zero-config WireGuard-based mesh VPN
+- Secure remote access
+- Works seamlessly on mobile
+
+**Qdrant** (Vector Database):
+- High-performance vector similarity search
+- Ideal for RAG (Retrieval-Augmented Generation)
+- Native gRPC and HTTP APIs
+- Persistent storage for embeddings
+
+**Flux CD** (GitOps):
+- Declarative infrastructure management
+- Automated Git → Kubernetes deployments
+- Multi-repository support
+- Built-in drift detection and reconciliation
+
+**Prometheus + Grafana** (Observability):
+- Prometheus: Metrics collection and storage
+- Grafana: Visualization and dashboards
+- Pre-configured dashboards for cluster, services, and GPU
+
+## Testing
+
+Currently no automated test suite. Manual health checks available:
+
+**Health Check Scripts**:
+- `./infrastructure/compute-node/scripts/health-check.sh` - LLM services verification
+
+**Service Connectivity Tests**:
+- N8n: http://192.168.8.185:30678
+- Grafana: http://192.168.8.185:30300
+- Prometheus: http://192.168.8.185:30090
+- Qdrant: http://192.168.8.185:30633/healthz
+
+**Kubernetes Health**: Use standard `kubectl` commands for cluster status
+**GitOps Health**: Use `flux check` and `flux get all` when deployed
+
+## Deployment Notes
+
+### Service Node Deployment (Completed)
+All services deployed via `kubectl apply` to K3s cluster. No GitOps or Helm charts yet.
+
+Current deployments in `homelab` namespace:
+- PostgreSQL (postgres:16-alpine)
+- Redis (redis:7-alpine)
+- N8n (n8nio/n8n)
+- Prometheus (prom/prometheus)
+- Grafana (grafana/grafana)
+
+### Compute Node Deployment (In Progress)
+Currently manual installation:
+1. Ollama installed via official installer
+2. LiteLLM installed via pipx
+3. Services started manually (systemd service files exist but not active)
+
+**Future**: Systemd services for auto-start, monitoring integration
+
+## Troubleshooting
+
+### LLM Inference Issues
+- Check Ollama service status via `systemctl`
+- Verify GPU detection using `rocm-smi` and `rocminfo` (when ROCm installed)
+- View Ollama logs via `journalctl`
+- See `docs/LLM-SETUP.md` for detailed troubleshooting steps
+
+### Service Node Issues
+- SSH access: `ssh pesu@192.168.8.185`
+- Check K3s status via `systemctl`
+- View pod logs using `kubectl logs`
+- Restart deployments using `kubectl rollout restart`
+
+### Network Connectivity
+- Verify Tailscale mesh status
+- Test local network connectivity (192.168.8.0/24)
+- Test inter-node communication (Tailscale IPs)
+
+## Future Enhancements
+
+## Performance Targets
+
+### LLM Inference (Target)
+- Latency: < 2s for first token
+- Throughput: > 20 tokens/second on 7B models
+- GPU Utilization: 60-80%
+- Model Loading: < 10s
+
+### System Performance (Target)
+- API Response: < 200ms (P95)
+- Workflow Execution: < 5 seconds (P95)
+- CPU Usage: < 70% average
+- Memory Usage: < 75% average
+
+### Expected Performance (Post-Setup)
+- GPU-accelerated inference: 20-30 tokens/second on 7B models (target)
+- VRAM usage: ~6-7GB for Q4 quantized 7B models
+- CPU fallback if needed: ~2-5 tokens/second
+- Current state: No LLM services installed yet
+
+## Session Continuity
+
+When resuming work, check:
+1. `docs/SESSION-STATE.md` for current task and progress
+2. `README.md` roadmap section for sprint status
+3. Git branch (should be `revised-version`)
+4. Service health: N8n, Grafana, Prometheus accessible
+5. LLM health: `./infrastructure/compute-node/scripts/health-check.sh`
+
+## Important Notes
+
+- **IP Addressing**: Documentation sometimes references 192.168.1.0/24, but actual network is 192.168.8.0/24
+- **Storage**: Service node has limited disk (98GB) - monitor usage
+- **No root access needed**: Both nodes have passwordless sudo configured for user `pesu`
+
+## Git Workflow
+
+- Main development branch: `revised-version`
+- Commit messages should be descriptive and reference sprint/task when relevant
+- All infrastructure and configuration is version controlled
+- Secrets go in `.env` (gitignored), not in code
+
+## Support Resources
+
+- **Project Issues**: https://github.com/pesuga/homelab/issues
+- **Ollama Docs**: https://github.com/ollama/ollama
+- **LiteLLM Docs**: https://docs.litellm.ai
+- **N8n Docs**: https://docs.n8n.io
+- **K3s Docs**: https://docs.k3s.io
+- **ROCm Docs**: https://rocm.docs.amd.com

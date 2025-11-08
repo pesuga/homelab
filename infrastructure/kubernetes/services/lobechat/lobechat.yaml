@@ -1,0 +1,259 @@
+# LobeChat - Modern AI Chat Interface
+# Version: Latest
+# Purpose: Chat UI with native mem0, Ollama, and voice support
+# Features: Spanish STT/TTS, RAG, Memory, Mobile PWA
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lobechat-config
+  namespace: homelab
+  labels:
+    app: lobechat
+data:
+  # Database configuration
+  DATABASE_DRIVER: "node"
+  # DATABASE_URL is constructed in the deployment using environment variable substitution
+  # Format: postgresql://homelab:$(DB_PASSWORD)@postgres.homelab.svc.cluster.local:5432/lobechat
+  # DB_PASSWORD is injected from lobechat-secret
+
+  # LLM Provider - Ollama
+  OLLAMA_PROXY_URL: "http://100.72.98.106:11434"  # Compute node via Tailscale
+  DEFAULT_AGENT_CONFIG: |
+    {
+      "model": "gpt-oss:20b",
+      "temperature": 0.7,
+      "historyCount": 10
+    }
+
+  # Available models list
+  OLLAMA_MODEL_LIST: "gpt-oss:20b,llama3.1:8b,mistral:7b-instruct-q4_K_M,qwen2.5-coder:14b,glm4:9b"
+
+  # mem0 Memory Integration
+  ENABLE_LANGFUSE: "0"  # Disable Langfuse (using mem0 instead)
+
+  # Voice Configuration
+  # STT (Speech-to-Text) - Browser-based Web Speech API
+  # LobeChat uses browser's built-in speech recognition, not server-side STT
+  ENABLE_STT: "1"
+
+  # TTS (Text-to-Speech) - OpenAI compatible or local
+  TTS_SERVER_URL: "edge"  # Use Edge TTS (free, multilingual)
+  ENABLE_TTS: "1"
+
+  # Default language
+  DEFAULT_LANG: "es-ES"  # Spanish
+
+  # RAG - Vector Database (Qdrant)
+  QDRANT_URL: "http://qdrant.homelab.svc.cluster.local:6333"
+  VECTOR_DB_PROVIDER: "qdrant"
+
+  # Feature flags
+  ENABLE_OAUTH_SSO: "0"  # Disable for homelab
+  ENABLE_NEXT_AUTH: "0"
+  ACCESS_CODE: ""  # No access code (internal network only)
+
+  # Application settings
+  APP_URL: "http://100.81.76.55:30910"  # Tailscale NodePort
+  PORT: "3210"
+
+  # Security
+  KEY_VAULTS_SECRET: "lobechat-homelab-secret-2025"  # Change in production
+
+  # Analytics (disabled)
+  ENABLE_TELEMETRY: "0"
+  POSTHOG_KEY: ""
+  POSTHOG_HOST: ""
+
+# IMPORTANT: The lobechat-secret must be created manually before deploying this manifest.
+# Run: ./scripts/secrets/create-lobechat-secret.sh
+# This will generate a secure random password (must match postgres-secret POSTGRES_PASSWORD)
+#
+# Secret structure (created manually):
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: lobechat-secret
+#   namespace: homelab
+# type: Opaque
+# stringData:
+#   DB_PASSWORD: <SAME_AS_POSTGRES_PASSWORD>
+#   OPENAI_API_KEY: ""  # Not needed with Ollama
+#   MEM0_API_URL: "http://mem0.homelab.svc.cluster.local:8080"
+#   MEM0_API_KEY: ""  # Add if mem0 requires auth
+# ---
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lobechat-pvc
+  namespace: homelab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi  # User data, chat history
+  storageClassName: local-path
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lobechat
+  namespace: homelab
+  labels:
+    app: lobechat
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3210
+      targetPort: 3210
+      protocol: TCP
+      name: http
+  selector:
+    app: lobechat
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lobechat-nodeport
+  namespace: homelab
+  labels:
+    app: lobechat
+spec:
+  type: NodePort
+  ports:
+    - port: 3210
+      targetPort: 3210
+      protocol: TCP
+      name: http
+      nodePort: 30910  # External access via Tailscale
+  selector:
+    app: lobechat
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lobechat
+  namespace: homelab
+  labels:
+    app: lobechat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lobechat
+  template:
+    metadata:
+      labels:
+        app: lobechat
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3210"
+    spec:
+      initContainers:
+      # Create lobechat database if it doesn't exist
+      - name: init-db
+        image: postgres:16-alpine
+        command:
+          - sh
+          - -c
+          - |
+            PGPASSWORD=$DB_PASSWORD psql -h postgres.homelab.svc.cluster.local -U homelab -d homelab -tc "SELECT 1 FROM pg_database WHERE datname = 'lobechat'" | grep -q 1 || \
+            PGPASSWORD=$DB_PASSWORD psql -h postgres.homelab.svc.cluster.local -U homelab -d homelab -c "CREATE DATABASE lobechat;"
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: lobechat-secret
+              key: DB_PASSWORD
+      containers:
+      - name: lobechat
+        image: lobehub/lobe-chat:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3210
+          name: http
+          protocol: TCP
+        env:
+        # Database URL with password substitution
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: lobechat-secret
+              key: DB_PASSWORD
+        - name: DATABASE_URL
+          value: "postgresql://homelab:$(DB_PASSWORD)@postgres.homelab.svc.cluster.local:5432/lobechat"
+        envFrom:
+        - configMapRef:
+            name: lobechat-config
+        - secretRef:
+            name: lobechat-secret
+        volumeMounts:
+        - name: data
+          mountPath: /app/.next/cache
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi  # Increased from 256Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi  # Increased from 1Gi - Next.js 15 needs more memory
+        # Health probes disabled - /api/health endpoint returns 404
+        # Application starts successfully on port 3210
+        # livenessProbe:
+        #   httpGet:
+        #     path: /api/health
+        #     port: 3210
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        #   timeoutSeconds: 5
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   httpGet:
+        #     path: /api/health
+        #     port: 3210
+        #   initialDelaySeconds: 10
+        #   periodSeconds: 5
+        #   timeoutSeconds: 3
+        #   failureThreshold: 3
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: lobechat-pvc
+      restartPolicy: Always
+
+---
+# Ingress - HTTPS access via Traefik with Let's Encrypt
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lobechat-ingress
+  namespace: homelab
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.middlewares: homelab-https-redirect@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - chat.homelab.pesulabs.net
+    secretName: lobechat-tls
+  rules:
+  - host: chat.homelab.pesulabs.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: lobechat
+            port:
+              number: 3210

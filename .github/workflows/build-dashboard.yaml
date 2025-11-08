@@ -1,0 +1,115 @@
+name: Build and Push Dashboard
+
+on:
+  push:
+    branches: [ main, clean-ghcr-migration ]
+    paths:
+      - 'services/homelab-dashboard/**'
+      - '.github/workflows/build-dashboard.yaml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'homelab'
+        type: choice
+        options:
+          - homelab
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/homelab-dashboard
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix={{branch}}-
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/homelab-dashboard
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  deploy-to-homelab:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/clean-ghcr-migration'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Flux CLI
+        uses: fluxcd/flux2-action@v2
+        with:
+          version: 'v2.7.3'
+
+      - name: Update deployment with new image
+        run: |
+          # Apply the updated deployment to the cluster
+          kubectl apply -f services/homelab-dashboard/k8s/deployment.yaml
+
+          # Wait for deployment to complete
+          kubectl rollout status deployment/homelab-dashboard -n homelab --timeout=300s
+
+          echo "✅ Deployment completed successfully!"
+
+      - name: Verify deployment
+        run: |
+          # Check pod status
+          kubectl get pods -n homelab -l app=homelab-dashboard
+
+          # Check service availability
+          kubectl get svc -n homelab homelab-dashboard
+
+          echo "✅ Deployment verification completed!"

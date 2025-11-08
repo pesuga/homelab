@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homelab Dashboard - PesuLabs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>🏠 PesuLabs Homelab</h1>
+            </div>
+            <div class="nav-menu">
+                <span class="nav-user">{{ session.user }}</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Welcome to Your Homelab</h2>
+            <p>Your self-hosted services and infrastructure management hub</p>
+        </section>
+
+        <section class="system-info">
+            <div class="info-card">
+                <span class="info-icon">🔧</span>
+                <div>
+                    <h3>Services</h3>
+                    <p id="services-count">{{ services|length }}</p>
+                </div>
+            </div>
+            <div class="info-card">
+                <span class="info-icon">🌐</span>
+                <div>
+                    <h3>Network</h3>
+                    <p>Tailscale VPN</p>
+                </div>
+            </div>
+            <div class="info-card">
+                <span class="info-icon">🔒</span>
+                <div>
+                    <h3>Security</h3>
+                    <p>Let's Encrypt SSL</p>
+                </div>
+            </div>
+            <div class="info-card">
+                <span class="info-icon">☁️</span>
+                <div>
+                    <h3>DNS</h3>
+                    <p>Cloudflare</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="services-grid">
+            {% for service in services %}
+            <div class="service-card">
+                <div class="service-header">
+                    <span class="service-icon">{{ service.icon }}</span>
+                    <h3>{{ service.name }}</h3>
+                    <span class="status-indicator" data-service="{{ service.name|lower|replace(' ', '-') }}">
+                        <span class="status-dot" data-status="{{ service.health.status if service.health else 'unknown' }}"></span>
+                        <span class="status-text">{{ service.health.message if service.health else 'Unknown' }}</span>
+                    </span>
+                </div>
+                <p class="service-description">{{ service.description }}</p>
+                <div class="service-connections">
+                    <div class="connection-info">
+                        <h4>🌐 External Access</h4>
+                        <p><strong>URL:</strong> {{ service.url or service.external_url or 'N/A' }}</p>
+                        <p><strong>Port:</strong> {{ service.port or 'N/A' }}</p>
+                    </div>
+                    <div class="connection-info">
+                        <h4>🏠 Internal Access</h4>
+                        <p><strong>Service:</strong> {{ service.internal_url or 'N/A' }}</p>
+                        <p><strong>Role:</strong> {{ service.tags|join(', ') }}</p>
+                    </div>
+                </div>
+                <div class="service-tags">
+                    {% for tag in service.tags %}
+                    <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                <div class="service-actions">
+                    {% if service.url %}
+                    <a href="{{ service.url }}" target="_blank" class="btn btn-primary">
+                        Open Service →
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+
+        <section class="info-section">
+            <h2>📊 System Information</h2>
+            <div class="info-grid">
+                <div class="info-box">
+                    <h4>Compute Node</h4>
+                    <ul>
+                        <li><strong>CPU:</strong> i5-12400F (6C/12T)</li>
+                        <li><strong>RAM:</strong> 32GB DDR4</li>
+                        <li><strong>GPU:</strong> AMD RX 7800 XT (16GB VRAM)</li>
+                        <li><strong>Role:</strong> LLM Inference (Ollama + LiteLLM)</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h4>Service Node</h4>
+                    <ul>
+                        <li><strong>CPU:</strong> i7-4510U</li>
+                        <li><strong>RAM:</strong> 8GB DDR3</li>
+                        <li><strong>Storage:</strong> 98GB SSD</li>
+                        <li><strong>Role:</strong> K3s Kubernetes Cluster</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h4>LLM Models</h4>
+                    <ul>
+                        <li><strong>Llama 3.1 8B:</strong> 128K context</li>
+                        <li><strong>Qwen2.5-Coder 14B:</strong> 32K context</li>
+                        <li><strong>Mistral 7B Instruct:</strong> Q4 quantized</li>
+                        <li><strong>Access:</strong> Via LiteLLM & Continue</li>
+                    </ul>
+                </div>
+                <div class="info-box">
+                    <h4>Infrastructure</h4>
+                    <ul>
+                        <li><strong>Kubernetes:</strong> K3s v1.33.5</li>
+                        <li><strong>Ingress:</strong> Traefik</li>
+                        <li><strong>Certificates:</strong> cert-manager + Let's Encrypt</li>
+                        <li><strong>VPN:</strong> Tailscale Mesh Network</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>PesuLabs Homelab &copy; 2025 | Powered by K3s, Ollama & LiteLLM</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
