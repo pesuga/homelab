@@ -64,7 +64,7 @@ List of all testing scripts:
 ### Monitoring & Observability
 
 **Access Dashboards** (HTTPS URLs):
-- **Homelab Dashboard**: https://dash.pesulabs.net (admin/4er58uCyJLPFgnFOzqqZ) - Unified landing page
+- **Homelab Dashboard**: https://dash.pesulabs.net (admin/admin) - Unified landing page
 - **N8n Workflows**: https://n8n.homelab.pesulabs.net (admin/admin123)
 - **Prometheus**: https://prometheus.homelab.pesulabs.net
 - **LobeChat**: https://chat.homelab.pesulabs.net (AI chat interface with memory)
