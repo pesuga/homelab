@@ -15,10 +15,9 @@ spec:
       labels:
         app: ollama
     spec:
-      # Schedule on compute node (pesubuntu) using node selector or label
-      # nodeSelector:
-      #   kubernetes.io/hostname: pesubuntu
-      #   gpu: "true"
+      # Schedule on compute node (pesubuntu)
+      nodeSelector:
+        workload-type: "compute-intensive"
 
       containers:
       - name: ollama

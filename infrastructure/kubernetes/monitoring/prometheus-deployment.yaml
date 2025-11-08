@@ -236,7 +236,7 @@ spec:
   ports:
     - port: 9090
       targetPort: 9090
-      nodePort: 30090
+      nodePort: 30190
       name: http
   selector:
     app: prometheus

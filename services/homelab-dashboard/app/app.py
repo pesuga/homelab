@@ -64,17 +64,7 @@ Talisman(app,
 
 # Services configuration with enhanced connectivity info
 SERVICES = [
-    {
-        'name': 'Grafana',
-        'description': 'Metrics visualization and monitoring dashboards',
-        'url': 'https://grafana.homelab.pesulabs.net',
-        'external_url': 'https://grafana.homelab.pesulabs.net:30300',
-        'internal_url': 'http://grafana.homelab.svc.cluster.local:3000',
-        'icon': '📊',
-        'status_endpoint': '/api/health',
-        'port': 30300,
-        'tags': ['monitoring', 'visualization']
-    },
+    # Removed Grafana - currently not deployed
     {
         'name': 'Prometheus',
         'description': 'Time series database and metrics collection',
@@ -123,17 +113,7 @@ SERVICES = [
         'tags': ['cache', 'storage'],
         'internal': True
     },
-    {
-        'name': 'Open WebUI',
-        'description': 'Local LLM chat interface (Llama 3.1 8B)',
-        'url': 'https://webui.homelab.pesulabs.net',
-        'external_url': 'https://webui.homelab.pesulabs.net:30080',
-        'internal_url': 'http://open-webui-pipelines.homelab.svc.cluster.local:8080',
-        'icon': '🤖',
-        'status_endpoint': '/health',
-        'port': 30080,
-        'tags': ['ai', 'llm']
-    },
+      # Removed Open WebUI - currently not deployed
     {
         'name': 'Ollama',
         'description': 'LLM inference API (direct)',
@@ -157,59 +137,41 @@ SERVICES = [
         'port': 8000,
         'tags': ['ai', 'llm', 'api']
     },
-    {
-        'name': 'Flowise',
-        'description': 'Low-code LLM flow builder and AI orchestration',
-        'url': 'https://flowise.homelab.pesulabs.net',
-        'external_url': 'https://flowise.homelab.pesulabs.net',
-        'health_check_url': 'https://flowise.homelab.pesulabs.net:30850',
-        'internal_url': 'http://flowise.homelab.svc.cluster.local:3000',
-        'icon': '🌊',
-        'status_endpoint': '/',
-        'port': 30850,
-        'tags': ['ai', 'llm', 'workflows']
-    },
+    # Removed Flowise - currently not deployed
     {
         'name': 'Qdrant',
         'description': 'Vector database for RAG and semantic search (v1.12.5)',
-        'url': 'http://100.81.76.55:30633/dashboard',
+        'url': 'http://100.81.76.55:30633',
         'external_url': 'http://100.81.76.55:30633',
+        'health_check_url': 'http://100.81.76.55:30633',
         'internal_url': 'http://qdrant.homelab.svc.cluster.local:6333',
         'icon': '🔍',
-        'status_endpoint': '/healthz',
+        'status_endpoint': '/collections',
         'port': 30633,
         'tags': ['database', 'vector', 'ai']
     },
     {
         'name': 'LobeChat',
         'description': 'AI chat interface with memory',
-        'url': 'https://chat.pesulabs.net',
-        'external_url': 'https://chat.pesulabs.net',
+        'url': 'http://100.81.76.55:30910',
+        'external_url': 'http://100.81.76.55:30910',
+        'health_check_url': 'http://100.81.76.55:30910',
         'internal_url': 'http://lobechat.homelab.svc.cluster.local:3000',
         'icon': '🎭',
-        'status_endpoint': '/api/health',
-        'port': 30844,
+        'status_endpoint': '/',
+        'port': 30910,
         'tags': ['ai', 'chat', 'memory']
     },
-    {
-        'name': 'Whisper',
-        'description': 'Speech-to-text transcription service',
-        'url': 'http://100.81.76.55:30900',
-        'external_url': 'http://100.81.76.55:30900',
-        'internal_url': 'http://whisper.homelab.svc.cluster.local:9000',
-        'icon': '🎤',
-        'status_endpoint': '/health',
-        'port': 30900,
-        'tags': ['ai', 'speech', 'transcription']
-    },
+    # Removed Whisper - currently experiencing issues (pods crashing)
     {
         'name': 'Mem0',
         'description': 'AI memory layer for contextual conversations',
         'url': 'http://100.81.76.55:30880',
         'external_url': 'http://100.81.76.55:30880',
+        'health_check_url': 'http://100.81.76.55:30880',
         'internal_url': 'http://mem0.homelab.svc.cluster.local:8001',
         'icon': '🧠',
-        'status_endpoint': '/health',
+        'status_endpoint': '/docs',
         'port': 30880,
         'tags': ['ai', 'memory', 'context']
     },
@@ -218,21 +180,34 @@ SERVICES = [
         'description': 'Log aggregation and search system',
         'url': 'http://100.81.76.55:30314',
         'external_url': 'http://100.81.76.55:30314',
+        'health_check_url': 'http://100.81.76.55:30314',
         'internal_url': 'http://loki.homelab.svc.cluster.local:3100',
         'icon': '📋',
         'status_endpoint': '/ready',
         'port': 30314,
         'tags': ['logging', 'monitoring']
+    },
+    {
+        'name': 'Docker Registry',
+        'description': 'Private container image registry',
+        'url': 'http://100.81.76.55:30500',
+        'external_url': 'http://100.81.76.55:30500',
+        'health_check_url': 'http://100.81.76.55:30500',
+        'internal_url': 'http://docker-registry.homelab.svc.cluster.local:5000',
+        'icon': '📦',
+        'status_endpoint': '/v2/',
+        'port': 30500,
+        'tags': ['infrastructure', 'registry', 'storage']
     }
 ]
 
 # Service categories for better organization
 SERVICE_CATEGORIES = {
-    'Monitoring & Observability': ['Grafana', 'Prometheus', 'Loki'],
-    'AI & Machine Learning': ['Open WebUI', 'Ollama', 'LiteLLM', 'Flowise', 'Whisper', 'Mem0'],
-    'Automation & Workflows': ['N8n', 'LobeChat'],
+    'Monitoring & Observability': ['Prometheus', 'Loki'],
+    'AI & Machine Learning': ['Ollama', 'LiteLLM', 'Mem0', 'LobeChat'],
+    'Automation & Workflows': ['N8n'],
     'Databases & Storage': ['PostgreSQL', 'Redis', 'Qdrant'],
-    'Infrastructure': []
+    'Infrastructure': ['Docker Registry']
 }
 
 # ===== HELPER FUNCTIONS =====
