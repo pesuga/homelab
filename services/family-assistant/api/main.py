@@ -10,14 +10,14 @@ from datetime import datetime
 from config.settings import settings
 
 # Import multimodal models and services
-from api.models.multimodal import (
+from models.multimodal import (
     MultimodalChatRequest, MultimodalChatResponse, ChatMessage,
     ContentType, ProcessingStatus, MultimodalContent,
     TextContent, ImageContent, AudioContent, DocumentContent,
     FamilyMemberProfile
 )
-from api.services.content_processor import ContentProcessor, ContentProcessorError, content_processor
-from api.services.telegram_service import create_telegram_service
+from services.content_processor import ContentProcessor, ContentProcessorError, content_processor
+from services.telegram_service import create_telegram_service
 
 # Import feature flags
 from config.feature_flags import feature_flags
