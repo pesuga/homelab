@@ -1,5 +1,71 @@
 # Telegram Bot Setup Guide for Family Assistant
 
+## 🚀 **QUICK START - Bot Already Configured!**
+
+**Your bot token is already configured**: `8583815346:AAFyvoLl0BE2iqaAUu81itFnmj3zuhRGWeQ`
+
+**Just follow these 3 quick steps:**
+
+### **Step 1: Find and Test Your Bot (2 minutes)**
+1. Open Telegram and search for your bot by its username (ending in `bot`)
+2. Start a chat and send: `Hello!`
+3. You should get a response from the Family Assistant! ✅
+
+**Note**: If the bot doesn't respond, the multimodal version may still be deploying. You can use the basic text version while the new features are being set up.
+
+### **Step 2: Set Up Webhook (Choose ONE option)**
+Since Telegram requires HTTPS, choose one of these:
+
+#### **Option A: Tailscale HTTPS (Recommended)**
+```bash
+# On your compute node (pesubuntu)
+sudo tailscale set --https=443
+
+# Then set webhook with your Tailscale name
+curl -X POST "https://api.telegram.org/bot8583815346:AAFyvoLl0BE2iqaAUu81itFnmj3zuhRGWeQ/setWebhook" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "url": "https://pesubuntu.ts.net/telegram/webhook",
+       "secret_token": "family_assistant_webhook_secret_2024"
+     }'
+```
+
+#### **Option B: Ngrok (Quick Testing)**
+```bash
+# Install ngrok
+curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc
+echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+sudo apt update && sudo apt install ngrok
+
+# Start tunnel on service node
+ssh pesu@100.81.76.55 "ngrok http 30801" &
+
+# Use the ngrok URL it provides
+```
+
+### **Step 3: Test Multimodal Features**
+Once webhook is set up, try:
+- 📸 **Send a photo** - AI will analyze and describe it
+- 🎙️ **Send voice message** - Will be transcribed to text
+- 📄 **Send document** - Text will be extracted and analyzed
+
+### **Verification:**
+```bash
+# Check webhook status
+curl -X GET "https://api.telegram.org/bot8583815346:AAFyvoLl0BE2iqaAUu81itFnmj3zuhRGWeQ/getWebhookInfo"
+
+# Check Family Assistant is running
+curl -s http://100.81.76.55:30801/health
+```
+
+---
+
+**That's it! Your Family Assistant Telegram bot is ready!** 🎉
+
+---
+
+*For detailed setup and advanced configuration, continue reading below...*
+
 This guide will walk you through setting up a Telegram bot to use with your Family Assistant multimodal platform.
 
 ## 🎯 Overview
