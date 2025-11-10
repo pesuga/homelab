@@ -18,10 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create symbolic links for proper module resolution
-RUN ln -sf api/models models && ln -sf api/services services
-
-# Set Python path
+# Set Python path to include app root
 ENV PYTHONPATH=/app
 
 # Expose API port
