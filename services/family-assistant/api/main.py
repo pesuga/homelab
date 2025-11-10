@@ -1,12 +1,16 @@
 """FastAPI application for Family Assistant Agent with multimodal support."""
 
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 import uuid
 import asyncpg
 from datetime import datetime
+import psutil
+import subprocess
+import json
+import asyncio
 from config.settings import settings
 
 # Import multimodal models and services
@@ -104,6 +108,260 @@ class EnhancedChatRequest(BaseModel):
     enable_document_extraction: bool = True
     family_context: Optional[Dict[str, Any]] = None
 
+
+# Dashboard System Models
+class ServiceStatus(BaseModel):
+    """Service status model for dashboard."""
+    name: str
+    status: str  # running, error, warning, stopped
+    url: Optional[str] = None
+    response_time: Optional[int] = None
+    cpu_usage: Optional[float] = None
+    memory_usage: Optional[float] = None
+
+class SystemMetrics(BaseModel):
+    """System metrics model."""
+    cpu: Dict[str, float]
+    memory: Dict[str, Any]
+    disk: Dict[str, Any]
+    network: Dict[str, float]
+    uptime: float
+
+class SystemHealth(BaseModel):
+    """System health model."""
+    status: str  # healthy, warning, error
+    timestamp: str
+    system: SystemMetrics
+    services: List[ServiceStatus]
+    alerts: List[Dict[str, Any]] = []
+
+class ArchitectureInfo(BaseModel):
+    """Architecture documentation model."""
+    title: str
+    content: str
+    last_updated: str
+    sections: List[Dict[str, Any]]
+
+# WebSocket connection manager
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(message)
+            except:
+                # Remove disconnected clients
+                self.active_connections.remove(connection)
+
+manager = ConnectionManager()
+
+# System health monitoring functions
+async def get_system_metrics() -> SystemMetrics:
+    """Get current system metrics."""
+    # CPU metrics
+    cpu_percent = psutil.cpu_percent(interval=1)
+    cpu_count = psutil.cpu_count()
+    cpu_freq = psutil.cpu_freq()
+
+    cpu_data = {
+        "usage": cpu_percent,
+        "cores": cpu_count,
+        "frequency": cpu_freq.current if cpu_freq else 0
+    }
+
+    # Memory metrics
+    memory = psutil.virtual_memory()
+    memory_data = {
+        "total": memory.total,
+        "available": memory.available,
+        "used": memory.used,
+        "percentage": memory.percent
+    }
+
+    # Disk metrics
+    disk = psutil.disk_usage('/')
+    disk_data = {
+        "total": disk.total,
+        "used": disk.used,
+        "free": disk.free,
+        "percentage": (disk.used / disk.total) * 100
+    }
+
+    # Network metrics
+    network = psutil.net_io_counters()
+    network_data = {
+        "bytes_sent": network.bytes_sent,
+        "bytes_recv": network.bytes_recv,
+        "packets_sent": network.packets_sent,
+        "packets_recv": network.packets_recv,
+        "upload": network.bytes_sent / (1024 * 1024),  # MB
+        "download": network.bytes_recv / (1024 * 1024)  # MB
+    }
+
+    # System uptime
+    uptime = psutil.boot_time()
+
+    return SystemMetrics(
+        cpu=cpu_data,
+        memory=memory_data,
+        disk=disk_data,
+        network=network_data,
+        uptime=uptime
+    )
+
+async def get_service_status() -> List[ServiceStatus]:
+    """Get status of homelab services."""
+    services = []
+
+    # Ollama service
+    try:
+        # Check if Ollama is responding
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{settings.ollama_base_url}/api/tags", timeout=aiohttp.ClientTimeout(total=5)) as response:
+                if response.status == 200:
+                    services.append(ServiceStatus(
+                        name="Ollama",
+                        status="running",
+                        url=settings.ollama_base_url
+                    ))
+                else:
+                    services.append(ServiceStatus(
+                        name="Ollama",
+                        status="error",
+                        url=settings.ollama_base_url
+                    ))
+    except:
+        services.append(ServiceStatus(
+            name="Ollama",
+            status="warning",
+            url=settings.ollama_base_url
+        ))
+
+    # Database services (PostgreSQL, Redis)
+    try:
+        # Test PostgreSQL connection
+        if db_pool:
+            async with db_pool.acquire() as conn:
+                await conn.fetchval("SELECT 1")
+                services.append(ServiceStatus(
+                    name="PostgreSQL",
+                    status="running",
+                    url=f"{settings.postgres_host}:{settings.postgres_port}"
+                ))
+        else:
+            services.append(ServiceStatus(
+                name="PostgreSQL",
+                status="error"
+            ))
+    except:
+        services.append(ServiceStatus(
+            name="PostgreSQL",
+            status="error"
+        ))
+
+    # Redis (simplified check)
+    services.append(ServiceStatus(
+        name="Redis",
+        status="running",  # Assuming Redis is running
+        url=f"{settings.redis_host}:{settings.redis_port}"
+    ))
+
+    # Mem0
+    try:
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{settings.mem0_api_url}/health", timeout=aiohttp.ClientTimeout(total=5)) as response:
+                if response.status == 200:
+                    services.append(ServiceStatus(
+                        name="Mem0",
+                        status="running",
+                        url=settings.mem0_api_url
+                    ))
+                else:
+                    services.append(ServiceStatus(
+                        name="Mem0",
+                        status="warning",
+                        url=settings.mem0_api_url
+                    ))
+    except:
+        services.append(ServiceStatus(
+            name="Mem0",
+            status="warning",
+            url=settings.mem0_api_url
+        ))
+
+    return services
+
+async def read_architecture_docs() -> List[ArchitectureInfo]:
+    """Read architecture documentation from markdown files."""
+    import os
+    from pathlib import Path
+
+    docs = []
+    docs_path = Path("/home/pesu/Rakuflow/systems/homelab")
+
+    # Look for markdown files
+    for md_file in docs_path.glob("**/*.md"):
+        if "CLAUDE.md" in md_file.name or "README.md" in md_file.name:
+            try:
+                with open(md_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Simple section parsing
+                sections = []
+                lines = content.split('\n')
+                current_section = None
+                section_content = []
+
+                for line in lines:
+                    if line.startswith('## '):
+                        if current_section:
+                            sections.append({
+                                "title": current_section,
+                                "content": '\n'.join(section_content)
+                            })
+                        current_section = line[3:].strip()
+                        section_content = []
+                    elif line.startswith('# '):
+                        if current_section:
+                            sections.append({
+                                "title": current_section,
+                                "content": '\n'.join(section_content)
+                            })
+                        current_section = "Overview"
+                        section_content = []
+                    else:
+                        section_content.append(line)
+
+                if current_section:
+                    sections.append({
+                        "title": current_section,
+                        "content": '\n'.join(section_content)
+                    })
+
+                docs.append(ArchitectureInfo(
+                    title=md_file.name,
+                    content=content[:1000] + "..." if len(content) > 1000 else content,
+                    last_updated=datetime.fromtimestamp(md_file.stat().st_mtime).isoformat(),
+                    sections=sections[:5]  # Limit sections
+                ))
+            except Exception as e:
+                print(f"Error reading {md_file}: {e}")
+
+    return docs
 
 # Database connection pool
 async def get_db_pool():
@@ -723,6 +981,211 @@ async def get_content_analysis(content_id: str):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get content analysis: {str(e)}")
+
+
+# Dashboard API Endpoints
+
+@app.get("/dashboard/system-health", response_model=SystemHealth)
+async def get_system_health():
+    """Get comprehensive system health information for dashboard."""
+    try:
+        # Get system metrics
+        metrics = await get_system_metrics()
+
+        # Get service status
+        services = await get_service_status()
+
+        # Determine overall system status
+        error_services = [s for s in services if s.status == "error"]
+        warning_services = [s for s in services if s.status == "warning"]
+
+        if error_services:
+            overall_status = "error"
+        elif warning_services:
+            overall_status = "warning"
+        else:
+            overall_status = "healthy"
+
+        # Generate alerts if needed
+        alerts = []
+        if metrics.cpu["usage"] > 80:
+            alerts.append({
+                "id": f"cpu_{datetime.now().timestamp()}",
+                "type": "warning",
+                "title": "High CPU Usage",
+                "message": f"CPU usage is {metrics.cpu['usage']:.1f}%",
+                "timestamp": datetime.now().isoformat()
+            })
+
+        if metrics.memory["percentage"] > 85:
+            alerts.append({
+                "id": f"memory_{datetime.now().timestamp()}",
+                "type": "warning",
+                "title": "High Memory Usage",
+                "message": f"Memory usage is {metrics.memory['percentage']:.1f}%",
+                "timestamp": datetime.now().isoformat()
+            })
+
+        if metrics.disk["percentage"] > 90:
+            alerts.append({
+                "id": f"disk_{datetime.now().timestamp()}",
+                "type": "error",
+                "title": "Low Disk Space",
+                "message": f"Disk usage is {metrics.disk['percentage']:.1f}%",
+                "timestamp": datetime.now().isoformat()
+            })
+
+        for service in error_services:
+            alerts.append({
+                "id": f"service_{service.name}_{datetime.now().timestamp()}",
+                "type": "error",
+                "title": f"Service Down: {service.name}",
+                "message": f"{service.name} service is not responding",
+                "service": service.name,
+                "timestamp": datetime.now().isoformat()
+            })
+
+        return SystemHealth(
+            status=overall_status,
+            timestamp=datetime.now().isoformat(),
+            system=metrics,
+            services=services,
+            alerts=alerts
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get system health: {str(e)}")
+
+@app.get("/dashboard/services")
+async def get_dashboard_services():
+    """Get simplified service status for dashboard."""
+    try:
+        services = await get_service_status()
+        return {"services": services}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get service status: {str(e)}")
+
+@app.get("/dashboard/metrics")
+async def get_dashboard_metrics():
+    """Get system metrics for dashboard charts."""
+    try:
+        metrics = await get_system_metrics()
+        return metrics
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get metrics: {str(e)}")
+
+@app.get("/dashboard/architecture")
+async def get_architecture_info():
+    """Get architecture documentation for dashboard."""
+    try:
+        docs = await read_architecture_docs()
+        return {"architecture": docs}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read architecture docs: {str(e)}")
+
+@app.get("/dashboard/recent-activity")
+async def get_recent_activity():
+    """Get recent system activity for dashboard."""
+    try:
+        # Get recent conversations
+        async with db_pool.acquire() as conn:
+            conversations = await conn.fetch("""
+                SELECT thread_id, user_id, role, content, created_at
+                FROM conversation_history
+                ORDER BY created_at DESC
+                LIMIT 10
+            """)
+
+            # Get recent uploads/processing
+            # This would need to be implemented based on your content storage
+            recent_uploads = []  # Placeholder
+
+        return {
+            "conversations": [
+                {
+                    "thread_id": conv["thread_id"],
+                    "user_id": conv["user_id"],
+                    "role": conv["role"],
+                    "content": conv["content"][:100] + "..." if len(conv["content"]) > 100 else conv["content"],
+                    "timestamp": conv["created_at"].isoformat()
+                }
+                for conv in conversations
+            ],
+            "recent_uploads": recent_uploads
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get recent activity: {str(e)}")
+
+# WebSocket endpoint for real-time updates
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket endpoint for real-time dashboard updates."""
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Send periodic system health updates
+            health_data = await get_system_health()
+            await websocket.send_text(json.dumps({
+                "type": "system_health",
+                "data": health_data.dict()
+            }))
+
+            # Wait before next update
+            await asyncio.sleep(10)
+
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+        manager.disconnect(websocket)
+
+@app.post("/dashboard/alerts/dismiss")
+async def dismiss_alert(alert_id: str):
+    """Dismiss a system alert."""
+    try:
+        # In a real implementation, you would track dismissed alerts in database
+        # For now, just return success
+        return {"message": f"Alert {alert_id} dismissed"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to dismiss alert: {str(e)}")
+
+@app.get("/dashboard/stats")
+async def get_dashboard_stats():
+    """Get overall dashboard statistics."""
+    try:
+        async with db_pool.acquire() as conn:
+            # User stats
+            user_count = await conn.fetchval("SELECT COUNT(*) FROM user_profiles")
+
+            # Conversation stats
+            conversation_count = await conn.fetchval("SELECT COUNT(DISTINCT thread_id) FROM conversation_history")
+            message_count = await conn.fetchval("SELECT COUNT(*) FROM conversation_history")
+
+            # Recent activity (last 24 hours)
+            recent_messages = await conn.fetchval("""
+                SELECT COUNT(*) FROM conversation_history
+                WHERE created_at > NOW() - INTERVAL '24 hours'
+            """)
+
+        # System metrics
+        metrics = await get_system_metrics()
+
+        return {
+            "users": user_count or 0,
+            "conversations": conversation_count or 0,
+            "messages": message_count or 0,
+            "recent_activity_24h": recent_messages or 0,
+            "system": {
+                "cpu_usage": metrics.cpu["usage"],
+                "memory_usage": metrics.memory["percentage"],
+                "disk_usage": metrics.disk["percentage"],
+                "uptime_hours": (datetime.now().timestamp() - metrics.uptime) / 3600
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get dashboard stats: {str(e)}")
 
 
 # OpenAI-compatible API endpoints for LobeChat integration
