@@ -6,10 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **homelab agentic workflow platform** - a self-hosted infrastructure for running AI agents and workflows with local LLM inference. The platform consists of two primary nodes:
 
-- **Compute Node**: Native Ubuntu 25.10 (pesubuntu) - will run Ollama with GPU acceleration (AMD RX 7800 XT) and LiteLLM router
-- **Service Node**: Ubuntu Server 24.04 (asuna, 192.168.8.185) running K3s with N8n, PostgreSQL, Redis, Prometheus, and Grafana
+- **Compute Node**: Native Ubuntu 25.10 (pesubuntu) - runs Ollama with GPU acceleration (AMD RX 7800 XT) and Whisper
+- **Service Node**: Ubuntu Server 24.04 (asuna, 192.168.8.185) running K3s with N8n, PostgreSQL, Redis, Qdrant, and Loki
 
-**Current Status**: Sprint 4 ✅ COMPLETED - Advanced services deployed, ROCm + Ollama functional, ready for production workflows 
+**Current Status**: Sprint 4 ✅ COMPLETED - Advanced services deployed, ROCm + Ollama functional, Family Assistant Enhancement in progress 
 
 ## Architecture Overview
 
@@ -27,7 +27,7 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 **Service Node (asuna - 192.168.8.185)**:
 - Purpose: Kubernetes orchestration and workflow automation
 - Hardware: i7-4510U, 8GB RAM, 98GB storage
-- Services: K3s v1.33.5, N8n, PostgreSQL 16.10, Redis 7.4.6, Qdrant v1.12.5, Mem0, Loki 2.9.3, Promtail, Prometheus, Grafana, Homelab Dashboard, Flowise, Open WebUI, Docker Registry
+- Services: K3s v1.33.5, N8n, PostgreSQL 16.10, Redis 7.4.6, Qdrant v1.12.5, Mem0, Loki 2.9.3, Promtail, Prometheus, Homelab Dashboard, LobeChat, Docker Registry, Whisper STT, Ollama (GPU-accelerated)
 - OS: Ubuntu 24.04.3 LTS
 - Tailscale IP: 100.81.76.55
 - K3s configured with Tailscale IP in TLS SAN for remote kubectl access
@@ -64,11 +64,11 @@ List of all testing scripts:
 ### Monitoring & Observability
 
 **Access Dashboards** (HTTPS URLs):
-- **Homelab Dashboard**: https://dash.pesulabs.net (admin/admin) - Unified landing page ✅ Fixed
+- **Homelab Dashboard**: https://dash.pesulabs.net (admin/ChangeMe!2024#Secure) - Unified landing page ✅ Fixed
 - **N8n Workflows**: https://n8n.homelab.pesulabs.net (admin/admin123)
 - **Prometheus**: https://prometheus.homelab.pesulabs.net
 - **LobeChat**: https://chat.homelab.pesulabs.net (AI chat interface with memory)
-- **Family Assistant**: https://assistant.homelab.pesulabs.net
+- **Family Assistant**: ⚠️ Development in progress - Phase 1: Enhanced Dashboard & Monitoring
 
 **Internal Services** (NodePort access for development):
 - **Loki**: http://100.81.76.55:30314 (log aggregation API)
@@ -76,6 +76,8 @@ List of all testing scripts:
 - **Mem0 AI Memory**: http://100.81.76.55:30880 (AI memory layer API)
 - **Docker Registry**: http://100.81.76.55:30500 (insecure registry)
 - **Ollama API (K8s)**: http://100.81.76.55:30277 (Kubernetes deployment, GPU-accelerated)
+- **Whisper STT**: http://100.81.76.55:30900 (speech-to-text service)
+- **Family Assistant API**: http://100.81.76.55:30080 (when deployment fixed)
 
 ### Qdrant Vector Database
 
@@ -133,13 +135,12 @@ All services on the service node run as Kubernetes workloads:
 
 ### Data Persistence Strategy
 
-- **PostgreSQL**: Used by N8n, Flowise, Open WebUI for storage, uses 10Gi PVC
+- **PostgreSQL**: Used by N8n and Family Assistant for storage, uses 10Gi PVC
 - **Redis**: In-memory cache and job queue with AOF persistence, uses PVC
 - **Qdrant**: Vector embeddings storage for Mem0 and RAG applications, 20Gi PVC
 - **Loki**: Log aggregation with 7-day retention, 20Gi PVC
 - **Docker Registry**: Container image storage, 20Gi PVC
-- **LLM Models**: Stored in Ollama's model directory on compute node (managed by Ollama)
-- **Grafana Dashboards**: Configuration and dashboards stored in PVC
+- **Ollama Models**: Stored in persistent volume (10Gi) managed by Kubernetes
 - **Prometheus Metrics**: Time-series data with 10Gi retention PVC
 
 ## Current Sprint Status
@@ -157,6 +158,8 @@ All services on the service node run as Kubernetes workloads:
 8. ✅ Fix service authentication and security issues
 9. ✅ Remove deprecated services (Grafana, Flowise, Open WebUI)
 10. ✅ Deploy Ollama to Kubernetes with GPU scheduling
+11. ✅ Deploy Whisper STT service with memory optimization
+12. ✅ Deploy LobeChat AI interface with memory integration
 
 ### Sprint 3: LLM Infrastructure - ✅ COMPLETED
 
@@ -172,7 +175,33 @@ All services on the service node run as Kubernetes workloads:
 9. ✅ Deploy Ollama to Kubernetes with proper GPU scheduling
 10. ✅ Create comprehensive health check scripts
 
-**Next Steps**: Choose one of the following:
+### 🎯 Family Assistant Enhancement (Current Priority)
+
+**Project Vision**: Comprehensive Family Assistant platform with enhanced dashboard, system prompts, MCP tools, user management, bilingual support, and mobile access.
+
+#### Phase 1: Enhanced Dashboard & Monitoring (80% Complete) 🔄 IN PROGRESS
+- ✅ **Dashboard API Endpoints**: Comprehensive system health API with WebSocket support
+- ✅ **React Frontend Architecture**: Modern TypeScript application structure
+- ✅ **Standalone Dashboard**: Beautiful HTML dashboard with cappuccino moka dark theme, fixed infinite loops
+- ✅ **MCP Development Tools**: 5 specialized tools installed and configured
+  - Kubernetes Manager, Frontend Tester, Git Workflow, Infrastructure Detective, Documentation Sync
+- ⚠️ **Family Assistant Service**: Deployment paused due to import issues (2/2 pods healthy, new pods CrashLoopBackOff)
+- [ ] **Complete React Frontend Integration**: Connect dashboard to backend API
+- [ ] **Fix Import Issues**: Resolve `models.multimodal` import path problems
+- [ ] **Deploy Enhanced Dashboard**: Replace standalone with production React application
+
+#### Phase 2: System Prompts & Memory (Planned)
+- Hierarchical system prompts structured like Claude Code's memory and skills
+- Role-based personality adaptation for different family members
+- 5-layer memory architecture: Redis → Mem0 → PostgreSQL → Qdrant → Persistent
+
+#### Phase 3: MCP Integration & User Management (Planned)
+- MCP tool connections with RBAC for family members
+- User management with parental controls and privacy protection
+- Custom workflows with natural language triggers (Spanish/English)
+- Full Spanish language support with cultural context
+
+**Infrastructure Next Steps**:
 - **Option A**: Deploy Traefik HTTPS ingress for all services
 - **Option B**: Start Sprint 5 (Networking & Security)
 - **Option C**: Resolve Flux CD network connectivity issues
@@ -181,14 +210,15 @@ All services on the service node run as Kubernetes workloads:
 
 ### Documentation
 - `README.md` - Main project overview and status
-- `docs/architecture.md` - Detailed system architecture
+- `docs/SESSION-STATE.md` - Current session state and progress tracking (updated daily)
 - `docs/LLM-SETUP.md` - Complete AMD GPU + K8s Ollama deployment guide
-- `docs/SESSION-STATE.md` - Current session state and progress tracking
-- `docs/IMPLEMENTATION-PLAN.md` - GitOps, Qdrant, and Grafana implementation plan
 - `docs/GITOPS-SETUP.md` - Flux CD GitOps setup and multi-repo management
 - `docs/QDRANT-SETUP.md` - Qdrant vector database deployment and integration
-- `docs/GRAFANA-DASHBOARDS.md` - Grafana dashboard creation and setup guide
-- `docs/METRICS-ANALYSIS.md` - Prometheus metrics analysis and available data
+- `services/family-assistant/` - Family Assistant service with dashboard API
+  - `dashboard-standalone.html` - Beautiful cappuccino moka themed dashboard
+  - `mcp-tools/` - 5 specialized development tools for homelab workflow enhancement
+  - `TELEGRAM_SETUP_GUIDE.md` - Bot configuration and multimodal features
+  - `INSTALL.md` - Complete installation and configuration guide
 
 ### Configuration
 - `.env-example` - Environment variable template (comprehensive)
@@ -204,17 +234,34 @@ All services on the service node run as Kubernetes workloads:
   - `monitoring/dashboards/` - Grafana dashboard JSONs and provisioning
   - `flux/` - Flux CD GitOps resources (planned)
 - `infrastructure/kubernetes/ollama/` - Ollama K8s manifests
-- `services/n8n-workflows/` - N8n workflow exports (placeholder)
-- `services/agentstack-config/` - AgentStack configs (future)
+- `services/family-assistant/` - Family Assistant service with FastAPI backend
+  - `api/` - FastAPI application with dashboard endpoints and WebSocket support
+  - `frontend/` - React TypeScript application structure (components, pages, hooks)
+  - `mcp-tools/` - MCP development tools for enhanced workflow
+  - `.mcp.json` - Claude Code MCP server configuration
 
 ## Development Context
 
-### Built With Claude Code
-This project is developed using AI-assisted pair programming with Claude Code. Key practices:
-- Comprehensive documentation maintained throughout
-- Session state tracking in `docs/SESSION-STATE.md`
-- Sprint-based development (16-week roadmap)
-- Infrastructure-as-code approach
+### Built With Claude Code + MCP Tools
+This project is developed using AI-assisted pair programming with Claude Code and specialized MCP tools. Key practices:
+
+**Development Workflow Enhancement**:
+- **MCP Tools**: 5 specialized tools for homelab development workflow
+  - Kubernetes Manager: Advanced cluster management and troubleshooting
+  - Frontend Tester: Playwright-based automated UI testing
+  - Git Workflow: Intelligent git operations and workflow automation
+  - Infrastructure Detective: Network diagnostics and performance analysis
+  - Documentation Sync: Automatic documentation synchronization
+- **Project-Specific Configuration**: `.mcp.json` with environment variables for each tool
+- **Comprehensive Documentation**: Session state tracking in `docs/SESSION-STATE.md`
+- **Sprint-Based Development**: Structured roadmap with clear objectives
+- **Infrastructure-as-Code**: All configuration version controlled
+
+**Current Development Focus**:
+- Family Assistant Enhancement with modern React dashboard
+- Real-time system monitoring with WebSocket connections
+- MCP integration for enhanced development workflow
+- Bilingual support (Spanish/English) with cultural context
 
 ### Design Principles
 1. **Local-First**: All compute and data stays on-premises
@@ -303,6 +350,7 @@ kubectl get gitrepositories -n flux-system  # Git sync status
 - ✅ Mem0: Responding (port 30880)
 - ✅ Ollama: ✨ **NEW** - Healthy (port 30277, K8s deployment)
 - ✅ Whisper: ✨ **FIXED** - Healthy (port 30900, single replica)
+- ⚠️ Family Assistant: Development in progress - dashboard API ready, frontend integration in progress
 - ❌ Grafana: Removed (moved to trash)
 - ❌ Open WebUI: Removed (StatefulSet deleted)
 - ❌ Flowise: Removed (moved to trash)
@@ -313,16 +361,18 @@ kubectl get gitrepositories -n flux-system  # Git sync status
 All services deployed via `kubectl apply` to K3s cluster. No GitOps or Helm charts yet.
 
 Current deployments in `homelab` namespace:
-- PostgreSQL (postgres:16-alpine)
-- Redis (redis:7-alpine)
-- N8n (n8nio/n8n)
-- Prometheus (prom/prometheus)
-- Qdrant (qdrant/qdrant)
-- Loki (grafana/loki)
-- Homelab Dashboard (custom)
-- LobeChat (lobechat/lobechat)
-- Mem0 (mem0/mem0)
-- Whisper (onerahmet/openai-whisper-asr-webservice)
+- PostgreSQL (postgres:16-alpine) - N8n and Family Assistant storage
+- Redis (redis:7-alpine) - Cache and job queue
+- N8n (n8nio/n8n) - Workflow automation
+- Prometheus (prom/prometheus) - Metrics collection
+- Qdrant (qdrant/qdrant) - Vector database for Mem0
+- Loki (grafana/loki) - Log aggregation
+- Homelab Dashboard (custom) - Unified landing page
+- LobeChat (lobechat/lobechat) - AI chat interface with memory
+- Mem0 (mem0/mem0) - AI memory layer
+- Whisper (onerahmet/openai-whisper-asr-webservice) - Speech-to-text
+- Ollama (ollama/ollama) - GPU-accelerated LLM inference
+- Family Assistant (⚠️ Development) - Enhanced family platform with dashboard
 
 ### Compute Node Deployment (Completed)
 Services deployed in Kubernetes `ollama` namespace:
@@ -405,10 +455,12 @@ Services deployed in Kubernetes `ollama` namespace:
 ## Session Continuity
 
 When resuming work, check:
-1. `docs/SESSION-STATE.md` for current task and progress
+1. `docs/SESSION-STATE.md` for current task and progress (updated daily)
 2. `README.md` roadmap section for sprint status
-4. Service health: N8n, Grafana, Prometheus accessible
-5. LLM health: `./infrastructure/compute-node/scripts/health-check.sh`
+3. Service health: N8n, Prometheus, Homelab Dashboard accessible
+4. LLM health: `./infrastructure/compute-node/scripts/health-check.sh`
+5. MCP tools: All 5 development tools ready after Claude Code restart
+6. Family Assistant: Check deployment status and dashboard progress
 
 ## Important Notes
 

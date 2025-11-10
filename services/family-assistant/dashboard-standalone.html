@@ -490,11 +490,16 @@
             document.getElementById('recentActivity').textContent = stats.recent_activity_24h || 0;
         }
 
-        // Generate mock data with controlled randomness
+        // Generate mock data with controlled randomness and bounded growth
         let dataGenerationCounter = 0;
         function generateMockData() {
             dataGenerationCounter++;
             const now = new Date().toISOString();
+
+            // Bounded stat generation to prevent infinity growth
+            const maxConversations = 600;
+            const maxMessages = 3000;
+            const maxRecentActivity = 50;
 
             return {
                 status: 'healthy',
@@ -556,9 +561,9 @@
                 alerts: [],
                 stats: {
                     users: 4,
-                    conversations: 477 + Math.floor(dataGenerationCounter * 0.1),
-                    messages: 2156 + Math.floor(dataGenerationCounter * 1.5),
-                    recent_activity_24h: 23 + Math.floor(Math.random() * 5)
+                    conversations: Math.min(477 + Math.floor(Math.sin(dataGenerationCounter * 0.1) * 50), maxConversations),
+                    messages: Math.min(2156 + Math.floor(Math.sin(dataGenerationCounter * 0.05) * 200), maxMessages),
+                    recent_activity_24h: Math.min(23 + Math.floor(Math.sin(dataGenerationCounter * 0.2) * 15), maxRecentActivity)
                 }
             };
         }
