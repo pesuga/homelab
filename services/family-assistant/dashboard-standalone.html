@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Assistant Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Cappuccino Moka Dark Theme */
+        :root {
+            --bg-primary: #1a1410;
+            --bg-secondary: #2d241b;
+            --bg-tertiary: #3e3329;
+            --bg-card: #261f18;
+            --text-primary: #f5e6d3;
+            --text-secondary: #d4c4b0;
+            --text-muted: #a8907d;
+            --accent-brown: #8b6f47;
+            --accent-cream: #c8a882;
+            --accent-orange: #d97634;
+            --accent-gold: #e4a853;
+            --border-color: #3e3329;
+            --success: #7eb09b;
+            --warning: #daa520;
+            --error: #c26c6a;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .bg-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+        }
+
+        .bg-secondary {
+            background: var(--bg-secondary);
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+
+        .accent-brown {
+            color: var(--accent-brown);
+        }
+
+        .accent-cream {
+            color: var(--accent-cream);
+        }
+
+        .border-theme {
+            border-color: var(--border-color);
+        }
+
+        .metric-card {
+            @apply bg-card p-6 rounded-lg border border-theme shadow-sm;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-primary {
+            background: var(--accent-brown);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-cream);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-brown);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-cream);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="app">
+        <!-- Header -->
+        <header class="bg-secondary border-b border-theme shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 btn-primary rounded-lg flex items-center justify-center">
+                            <i data-lucide="home" class="w-5 h-5"></i>
+                        </div>
+                        <h1 class="text-xl font-bold text-primary">Family Assistant Dashboard</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="lastUpdate" class="text-sm text-muted">Loading...</span>
+                        <button id="refreshBtn" class="btn-primary px-3 py-1 rounded transition-colors flex items-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- System Status Banner -->
+            <div id="statusBanner" class="mb-6 p-4 rounded-lg border border-theme fade-in">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                    <span class="font-medium">System Status: Loading...</span>
+                </div>
+            </div>
+
+            <!-- Metrics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-secondary">CPU Usage</p>
+                            <p id="cpuValue" class="text-2xl font-bold text-primary">--%</p>
+                        </div>
+                        <div class="p-3 bg-secondary rounded-lg">
+                            <i data-lucide="cpu" class="w-6 h-6 accent-cream"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-secondary">Memory</p>
+                            <p id="memoryValue" class="text-2xl font-bold text-primary">--%</p>
+                        </div>
+                        <div class="p-3 bg-secondary rounded-lg">
+                            <i data-lucide="zap" class="w-6 h-6 accent-gold"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-secondary">Disk Usage</p>
+                            <p id="diskValue" class="text-2xl font-bold text-primary">--%</p>
+                        </div>
+                        <div class="p-3 bg-secondary rounded-lg">
+                            <i data-lucide="hard-drive" class="w-6 h-6 success"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-secondary">Network</p>
+                            <p id="networkValue" class="text-2xl font-bold text-primary">-- MB/s</p>
+                        </div>
+                        <div class="p-3 bg-secondary rounded-lg">
+                            <i data-lucide="wifi" class="w-6 h-6 accent-orange"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Services -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- System Chart -->
+                <div class="metric-card">
+                    <h2 class="text-lg font-semibold text-primary mb-4">System Performance</h2>
+                    <canvas id="systemChart" width="400" height="200"></canvas>
+                </div>
+
+                <!-- Service Status -->
+                <div class="metric-card">
+                    <h2 class="text-lg font-semibold text-primary mb-4">Services</h2>
+                    <div id="serviceGrid" class="space-y-3">
+                        <!-- Services will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Banner -->
+            <div id="alertContainer" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-4xl px-4">
+                <!-- Alerts will appear here -->
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-card p-4 rounded-lg border border-theme">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-secondary rounded-lg">
+                            <i data-lucide="users" class="w-5 h-5 accent-cream"></i>
+                        </div>
+                        <div>
+                            <p id="userCount" class="text-2xl font-bold text-primary">--</p>
+                            <p class="text-sm text-secondary">Users</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-card p-4 rounded-lg border border-theme">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-secondary rounded-lg">
+                            <i data-lucide="message-square" class="w-5 h-5 success"></i>
+                        </div>
+                        <div>
+                            <p id="conversationCount" class="text-2xl font-bold text-primary">--</p>
+                            <p class="text-sm text-secondary">Conversations</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-card p-4 rounded-lg border border-theme">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-secondary rounded-lg">
+                            <i data-lucide="mail" class="w-5 h-5 accent-gold"></i>
+                        </div>
+                        <div>
+                            <p id="messageCount" class="text-2xl font-bold text-primary">--</p>
+                            <p class="text-sm text-secondary">Messages</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-card p-4 rounded-lg border border-theme">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-secondary rounded-lg">
+                            <i data-lucide="activity" class="w-5 h-5 accent-orange"></i>
+                        </div>
+                        <div>
+                            <p id="recentActivity" class="text-2xl font-bold text-primary">--</p>
+                            <p class="text-sm text-secondary">Last 24h</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE = 'http://100.81.76.55:30801';
+        let systemChart = null;
+        let refreshInterval = null;
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Utility functions
+        function formatBytes(bytes) {
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            if (bytes === 0) return '0 B';
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+        }
+
+        function formatDate(timestamp) {
+            return new Date(timestamp).toLocaleString();
+        }
+
+        // System status banner
+        function updateSystemStatus(data) {
+            const banner = document.getElementById('statusBanner');
+            const statusText = banner.querySelector('span');
+
+            let className = 'mb-6 p-4 rounded-lg border border-theme fade-in ';
+            let status = 'Unknown';
+
+            if (data.status === 'healthy') {
+                className += 'bg-opacity-20 bg-success border-success text-success';
+                status = 'Healthy';
+            } else if (data.status === 'warning') {
+                className += 'bg-opacity-20 bg-warning border-warning text-warning';
+                status = 'Warning';
+            } else if (data.status === 'error') {
+                className += 'bg-opacity-20 bg-error border-error text-error';
+                status = 'Error';
+            }
+
+            banner.className = className;
+            statusText.textContent = `System Status: ${status}`;
+        }
+
+        // Update metrics with controlled randomization to prevent infinite loops
+        function updateMetrics(data) {
+            document.getElementById('cpuValue').textContent = `${data.cpu.usage.toFixed(1)}%`;
+            document.getElementById('memoryValue').textContent = `${data.memory.percentage.toFixed(1)}%`;
+            document.getElementById('diskValue').textContent = `${data.disk.percentage.toFixed(1)}%`;
+            document.getElementById('networkValue').textContent = `${Math.abs(data.network.download / 1024 / 1024).toFixed(1)} MB/s`;
+        }
+
+        // Update service grid
+        function updateServices(services) {
+            const serviceGrid = document.getElementById('serviceGrid');
+            serviceGrid.innerHTML = '';
+
+            services.forEach(service => {
+                const serviceCard = document.createElement('div');
+                serviceCard.className = 'flex items-center justify-between p-3 bg-secondary rounded-lg hover:bg-opacity-80 transition-colors';
+
+                let statusIcon = '';
+                let statusColor = '';
+
+                if (service.status === 'running') {
+                    statusIcon = 'check-circle';
+                    statusColor = 'success';
+                } else if (service.status === 'warning') {
+                    statusIcon = 'alert-triangle';
+                    statusColor = 'warning';
+                } else {
+                    statusIcon = 'x-circle';
+                    statusColor = 'error';
+                }
+
+                serviceCard.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="${statusIcon}" class="w-5 h-5 ${statusColor}"></i>
+                        <div>
+                            <h3 class="font-medium text-primary">${service.name}</h3>
+                            <p class="text-sm text-secondary">${service.status}</p>
+                        </div>
+                    </div>
+                    ${service.responseTime ? `<div class="text-right"><p class="text-xs text-secondary">Response</p><p class="text-sm font-medium">${service.responseTime}ms</p></div>` : ''}
+                `;
+
+                serviceGrid.appendChild(serviceCard);
+            });
+
+            // Re-initialize Lucide icons for new content
+            lucide.createIcons();
+        }
+
+        // Update system chart with proper cleanup
+        function updateSystemChart(data) {
+            const ctx = document.getElementById('systemChart').getContext('2d');
+
+            if (systemChart) {
+                systemChart.destroy();
+                systemChart = null;
+            }
+
+            systemChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['2h ago', '1.5h ago', '1h ago', '30m ago', 'Now'],
+                    datasets: [{
+                        label: 'CPU %',
+                        data: [65, 68, 70, data.cpu.usage, data.cpu.usage],
+                        borderColor: '#e4a853',
+                        backgroundColor: 'rgba(228, 168, 83, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Memory %',
+                        data: [45, 48, 46, data.memory.percentage, data.memory.percentage],
+                        borderColor: '#d97634',
+                        backgroundColor: 'rgba(217, 118, 52, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#d4c4b0'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                color: '#a8907d'
+                            },
+                            grid: {
+                                color: '#3e3329'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#a8907d'
+                            },
+                            grid: {
+                                color: '#3e3329'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Show alerts with auto-cleanup
+        function showAlerts(alerts) {
+            const container = document.getElementById('alertContainer');
+
+            // Clear existing alerts that are more than 5 seconds old
+            const existingAlerts = container.querySelectorAll('[data-timestamp]');
+            existingAlerts.forEach(alert => {
+                const timestamp = parseInt(alert.dataset.timestamp);
+                if (Date.now() - timestamp > 5000) {
+                    alert.remove();
+                }
+            });
+
+            alerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.dataset.timestamp = Date.now().toString();
+
+                let className = 'flex items-start gap-3 p-4 rounded-lg border shadow-lg fade-in mb-2 ';
+                let icon = '';
+
+                if (alert.type === 'error') {
+                    className += 'bg-opacity-20 bg-error border-error text-error';
+                    icon = 'x-circle';
+                } else if (alert.type === 'warning') {
+                    className += 'bg-opacity-20 bg-warning border-warning text-warning';
+                    icon = 'alert-triangle';
+                } else {
+                    className += 'bg-opacity-20 bg-blue-500 border-blue-500 text-blue-300';
+                    icon = 'info';
+                }
+
+                alertDiv.className = className;
+                alertDiv.innerHTML = `
+                    <div class="flex-shrink-0 mt-0.5">
+                        <i data-lucide="${icon}" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-medium">${alert.title}</h3>
+                        </div>
+                        <p class="text-sm mt-1">${alert.message}</p>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="flex-shrink-0 text-secondary hover:text-primary">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                `;
+
+                container.appendChild(alertDiv);
+
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentElement) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            });
+
+            // Re-initialize Lucide icons
+            lucide.createIcons();
+        }
+
+        // Update dashboard stats
+        function updateDashboardStats(stats) {
+            document.getElementById('userCount').textContent = stats.users || 0;
+            document.getElementById('conversationCount').textContent = stats.conversations || 0;
+            document.getElementById('messageCount').textContent = stats.messages || 0;
+            document.getElementById('recentActivity').textContent = stats.recent_activity_24h || 0;
+        }
+
+        // Generate mock data with controlled randomness
+        let dataGenerationCounter = 0;
+        function generateMockData() {
+            dataGenerationCounter++;
+            const now = new Date().toISOString();
+
+            return {
+                status: 'healthy',
+                timestamp: now,
+                system: {
+                    cpu: {
+                        usage: 25 + Math.sin(dataGenerationCounter * 0.1) * 15, // Controlled variation
+                        cores: 6,
+                        frequency: 2400
+                    },
+                    memory: {
+                        total: 34359738368,
+                        used: 13743895347,
+                        percentage: 40 + Math.sin(dataGenerationCounter * 0.05) * 10
+                    },
+                    disk: {
+                        total: 1000204886016,
+                        used: 500102401024,
+                        percentage: 50 + Math.sin(dataGenerationCounter * 0.02) * 5
+                    },
+                    network: {
+                        download: Math.abs(Math.sin(dataGenerationCounter * 0.1) * 1024 * 1024),
+                        upload: Math.abs(Math.cos(dataGenerationCounter * 0.1) * 512 * 1024)
+                    },
+                    uptime: Date.now() / 1000 - (15 * 24 * 60 * 60)
+                },
+                services: [
+                    {
+                        name: 'Ollama',
+                        status: 'running',
+                        url: 'http://100.72.98.106:11434',
+                        responseTime: 15 + Math.random() * 20
+                    },
+                    {
+                        name: 'PostgreSQL',
+                        status: 'running',
+                        url: 'postgres.homelab.svc.cluster.local:5432',
+                        responseTime: 5 + Math.random() * 10
+                    },
+                    {
+                        name: 'Redis',
+                        status: 'running',
+                        url: 'redis.homelab.svc.cluster.local:6379',
+                        responseTime: 2 + Math.random() * 5
+                    },
+                    {
+                        name: 'Mem0',
+                        status: 'running',
+                        url: 'http://mem0.homelab.svc.cluster.local:8080',
+                        responseTime: 15 + Math.random() * 15
+                    },
+                    {
+                        name: 'Qdrant',
+                        status: 'running',
+                        url: 'http://qdrant.homelab.svc.cluster.local:6333',
+                        responseTime: 10 + Math.random() * 15
+                    }
+                ],
+                alerts: [],
+                stats: {
+                    users: 4,
+                    conversations: 477 + Math.floor(dataGenerationCounter * 0.1),
+                    messages: 2156 + Math.floor(dataGenerationCounter * 1.5),
+                    recent_activity_24h: 23 + Math.floor(Math.random() * 5)
+                }
+            };
+        }
+
+        // Main fetch function with error handling and debouncing
+        let isFetching = false;
+        async function fetchDashboardData() {
+            if (isFetching) return; // Prevent multiple simultaneous requests
+
+            isFetching = true;
+            try {
+                const mockData = generateMockData();
+
+                updateSystemStatus(mockData);
+                updateMetrics(mockData.system);
+                updateServices(mockData.services);
+                updateSystemChart(mockData.system);
+                showAlerts(mockData.alerts || []);
+                updateDashboardStats(mockData.stats);
+
+                document.getElementById('lastUpdate').textContent = `Last updated: ${formatDate(mockData.timestamp)}`;
+
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+                document.getElementById('lastUpdate').textContent = 'Error loading data';
+            } finally {
+                isFetching = false;
+            }
+        }
+
+        // Refresh button handler with debouncing
+        let refreshTimeout = null;
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            if (refreshTimeout) return; // Prevent rapid clicks
+
+            const btn = document.getElementById('refreshBtn');
+            const icon = btn.querySelector('i');
+            icon.style.animation = 'spin 1s linear';
+
+            refreshTimeout = setTimeout(() => {
+                refreshTimeout = null;
+            }, 1000);
+
+            fetchDashboardData().then(() => {
+                icon.style.animation = '';
+            });
+        });
+
+        // Initialize dashboard
+        fetchDashboardData();
+
+        // Set up refresh interval with cleanup
+        refreshInterval = setInterval(fetchDashboardData, 30000);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            if (systemChart) {
+                systemChart.destroy();
+            }
+        });
+    </script>
+</body>
+</html>
