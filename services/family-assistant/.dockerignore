@@ -1,0 +1,42 @@
+# Virtual environment
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+api.log
+nohup.out
+
+# Test files
+test_*.py
+tests/
+
+# Documentation
+claudedocs/
+docs/
+
+# Environment files (will be provided via ConfigMap)
+.env
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Symlinks (these point to api/models and api/services which are copied directly)
+models
+services
