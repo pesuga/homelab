@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -15,8 +15,13 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+# Copy application code (preserving directory structure)
+COPY api/ ./api/
+COPY config/ ./config/
+COPY *.py ./
+
+# Create __init__.py in root if it doesn't exist
+RUN touch __init__.py
 
 # Set Python path to include app root
 ENV PYTHONPATH=/app
