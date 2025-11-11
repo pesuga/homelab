@@ -15,13 +15,9 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code (preserving directory structure)
-COPY api/ ./api/
-COPY config/ ./config/
-COPY *.py ./
-
-# Create __init__.py in root if it doesn't exist
-RUN touch __init__.py
+# Copy application code with proper directory structure
+# Use COPY . . to preserve all directories and __init__.py files
+COPY . .
 
 # Set Python path to include app root
 ENV PYTHONPATH=/app
