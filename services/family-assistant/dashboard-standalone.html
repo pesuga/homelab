@@ -549,83 +549,7 @@
             document.getElementById('recentActivity').textContent = stats.recent_activity_24h || 0;
         }
 
-        // Generate mock data with controlled randomness and bounded growth
-        let dataGenerationCounter = 0;
-        function generateMockData() {
-            dataGenerationCounter++;
-            const now = new Date().toISOString();
-
-            // Bounded stat generation to prevent infinity growth
-            const maxConversations = 600;
-            const maxMessages = 3000;
-            const maxRecentActivity = 50;
-
-            return {
-                status: 'healthy',
-                timestamp: now,
-                system: {
-                    cpu: {
-                        usage: 25 + Math.sin(dataGenerationCounter * 0.1) * 15, // Controlled variation
-                        cores: 6,
-                        frequency: 2400
-                    },
-                    memory: {
-                        total: 34359738368,
-                        used: 13743895347,
-                        percentage: 40 + Math.sin(dataGenerationCounter * 0.05) * 10
-                    },
-                    disk: {
-                        total: 1000204886016,
-                        used: 500102401024,
-                        percentage: 50 + Math.sin(dataGenerationCounter * 0.02) * 5
-                    },
-                    network: {
-                        download: Math.abs(Math.sin(dataGenerationCounter * 0.1) * 1024 * 1024),
-                        upload: Math.abs(Math.cos(dataGenerationCounter * 0.1) * 512 * 1024)
-                    },
-                    uptime: Date.now() / 1000 - (15 * 24 * 60 * 60)
-                },
-                services: [
-                    {
-                        name: 'Ollama',
-                        status: 'running',
-                        url: 'http://100.72.98.106:11434',
-                        responseTime: 15 + Math.random() * 20
-                    },
-                    {
-                        name: 'PostgreSQL',
-                        status: 'running',
-                        url: 'postgres.homelab.svc.cluster.local:5432',
-                        responseTime: 5 + Math.random() * 10
-                    },
-                    {
-                        name: 'Redis',
-                        status: 'running',
-                        url: 'redis.homelab.svc.cluster.local:6379',
-                        responseTime: 2 + Math.random() * 5
-                    },
-                    {
-                        name: 'Mem0',
-                        status: 'running',
-                        url: 'http://mem0.homelab.svc.cluster.local:8080',
-                        responseTime: 15 + Math.random() * 15
-                    },
-                    {
-                        name: 'Qdrant',
-                        status: 'running',
-                        url: 'http://qdrant.homelab.svc.cluster.local:6333',
-                        responseTime: 10 + Math.random() * 15
-                    }
-                ],
-                alerts: [],
-                stats: {
-                    users: 4,
-                    conversations: Math.min(477 + Math.floor(Math.sin(dataGenerationCounter * 0.1) * 50), maxConversations),
-                    messages: Math.min(2156 + Math.floor(Math.sin(dataGenerationCounter * 0.05) * 200), maxMessages),
-                    recent_activity_24h: Math.min(23 + Math.floor(Math.sin(dataGenerationCounter * 0.2) * 15), maxRecentActivity)
-                }
-            };
-        }
+        // Mock data removed - dashboard now uses real API data only
 
         // Main fetch function with error handling and debouncing
         let isFetching = false;
@@ -662,15 +586,11 @@
                 console.error('Error fetching dashboard data:', error);
                 document.getElementById('lastUpdate').textContent = `Error loading data: ${error.message}`;
 
-                // Fallback to mock data if API fails
-                console.warn('Falling back to mock data');
-                const mockData = generateMockData();
-                updateSystemStatus(mockData);
-                updateMetrics(mockData.system);
-                updateServices(mockData.services);
-                updateSystemChart(mockData.system);
-                showAlerts(mockData.alerts || []);
-                updateDashboardStats(mockData.stats);
+                // Show error notification
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-error';
+                errorDiv.textContent = `Failed to load dashboard data: ${error.message}`;
+                document.querySelector('.alerts').prepend(errorDiv);
             } finally {
                 isFetching = false;
             }
