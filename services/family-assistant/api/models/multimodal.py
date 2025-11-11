@@ -273,8 +273,8 @@ class MultimodalChatResponse(BaseModel):
 class ContentProcessingResult(BaseModel):
     """Result of processing multimodal content."""
     content_id: str = Field(..., description="Content identifier")
-    content_type: ContentType = Field(..., description "Type of content processed")
-    processing_status: ProcessingStatus = Field(..., description "Processing status")
+    content_type: ContentType = Field(..., description="Type of content processed")
+    processing_status: ProcessingStatus = Field(..., description="Processing status")
     processing_time_ms: Optional[float] = Field(None, description="Processing time in milliseconds")
 
     # Processing results
