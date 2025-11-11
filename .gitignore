@@ -43,6 +43,7 @@ kubeconfig
 *.bin
 *.safetensors
 models/
+!services/family-assistant/api/models/
 *.model
 
 # Logs
