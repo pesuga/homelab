@@ -6,7 +6,6 @@
     <title>Family Assistant Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Cappuccino Moka Dark Theme */
         :root {
@@ -192,19 +191,11 @@
             </div>
 
             <!-- Charts and Services -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <!-- System Chart -->
-                <div class="metric-card">
-                    <h2 class="text-lg font-semibold text-primary mb-4">System Performance</h2>
-                    <canvas id="systemChart" width="400" height="200"></canvas>
-                </div>
-
-                <!-- Service Status -->
-                <div class="metric-card">
-                    <h2 class="text-lg font-semibold text-primary mb-4">Services</h2>
-                    <div id="serviceGrid" class="space-y-3">
-                        <!-- Services will be loaded here -->
-                    </div>
+            <!-- Service Status -->
+            <div class="metric-card mb-8">
+                <h2 class="text-lg font-semibold text-primary mb-4">Services</h2>
+                <div id="serviceGrid" class="space-y-3">
+                    <!-- Services will be loaded here -->
                 </div>
             </div>
 
@@ -269,15 +260,6 @@
     <script>
         // Configuration
         const API_BASE = 'http://100.81.76.55:30801';
-        // System Performance Chart with historical data accumulation
-        let systemChart = null;
-        const MAX_DATA_POINTS = 12; // Show last 12 data points (1 hour at 5-second intervals)
-        const metricsHistory = {
-            timestamps: [],
-            cpu: [],
-            memory: [],
-            disk: []
-        };
         let refreshInterval = null;
 
         // Initialize Lucide icons
@@ -374,105 +356,7 @@
             // Lucide icons initialized once on page load - no need to reinitialize
         }
 
-        // Update system chart with smooth data accumulation (NO recreation!)
-        function updateSystemChart(data) {
-            const now = new Date();
-            const timeLabel = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-            // Add new data point with rounding
-            metricsHistory.timestamps.push(timeLabel);
-            metricsHistory.cpu.push(Math.round(data.cpu.usage * 10) / 10);
-            metricsHistory.memory.push(Math.round(data.memory.percentage * 10) / 10);
-            metricsHistory.disk.push(Math.round(data.disk.percentage * 10) / 10);
-
-            // Keep only last MAX_DATA_POINTS (sliding window)
-            if (metricsHistory.timestamps.length > MAX_DATA_POINTS) {
-                metricsHistory.timestamps.shift();
-                metricsHistory.cpu.shift();
-                metricsHistory.memory.shift();
-                metricsHistory.disk.shift();
-            }
-
-            // Create chart ONCE on first call
-            if (!systemChart) {
-                const ctx = document.getElementById('systemChart').getContext('2d');
-                systemChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: metricsHistory.timestamps,
-                        datasets: [{
-                            label: 'CPU %',
-                            data: metricsHistory.cpu,
-                            borderColor: '#e4a853',
-                            backgroundColor: 'rgba(228, 168, 83, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }, {
-                            label: 'Memory %',
-                            data: metricsHistory.memory,
-                            borderColor: '#d97634',
-                            backgroundColor: 'rgba(217, 118, 52, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }, {
-                            label: 'Disk %',
-                            data: metricsHistory.disk,
-                            borderColor: '#c45a34',
-                            backgroundColor: 'rgba(196, 90, 52, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: {
-                            duration: 300,
-                            easing: 'easeInOutQuart'
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    color: '#d4c4b0'
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                ticks: {
-                                    color: '#a8907d'
-                                },
-                                grid: {
-                                    color: '#3e3329'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    color: '#a8907d',
-                                    maxRotation: 45,
-                                    minRotation: 0,
-                                    autoSkip: true,
-                                    maxTicksLimit: 6
-                                },
-                                grid: {
-                                    color: '#3e3329'
-                                }
-                            }
-                        }
-                    }
-                });
-            } else {
-                // Update existing chart smoothly (NO destruction!)
-                systemChart.data.labels = metricsHistory.timestamps;
-                systemChart.data.datasets[0].data = metricsHistory.cpu;
-                systemChart.data.datasets[1].data = metricsHistory.memory;
-                systemChart.data.datasets[2].data = metricsHistory.disk;
-                systemChart.update('none'); // Update without animation for smooth performance
-            }
-        }
+        // System Performance Chart removed due to canvas height issues
 
         // Show alerts with auto-cleanup
         function showAlerts(alerts) {
@@ -568,7 +452,6 @@
                 updateSystemStatus(data);
                 updateMetrics(data.system);
                 updateServices(data.services);
-                updateSystemChart(data.system);
                 showAlerts(data.alerts || []);
 
                 // Get stats from database (placeholder for now - will be implemented)
@@ -624,9 +507,6 @@
         window.addEventListener('beforeunload', () => {
             if (refreshInterval) {
                 clearInterval(refreshInterval);
-            }
-            if (systemChart) {
-                systemChart.destroy();
             }
         });
     </script>
