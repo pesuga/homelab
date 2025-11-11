@@ -37,6 +37,6 @@ build/
 dist/
 *.egg-info/
 
-# Symlinks (these point to api/models and api/services which are copied directly)
-models
-services
+# Symlinks in root (these point to api/models and api/services which are copied directly)
+/models
+/services
