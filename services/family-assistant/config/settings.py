@@ -71,6 +71,9 @@ class Settings(BaseSettings):
     n8n_webhook_path: str = "/webhook"
     n8n_api_key: Optional[str] = None
 
+    # Telegram Bot
+    telegram_bot_token: Optional[str] = None
+
     # Authentik (SSO) - Phase 2
     authentik_url: Optional[str] = None
     authentik_client_id: Optional[str] = None

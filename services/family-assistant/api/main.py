@@ -382,7 +382,7 @@ db_pool = None
 
 # Initialize services
 content_processor_instance = ContentProcessor()
-telegram_service = create_telegram_service()
+telegram_service = create_telegram_service(settings.telegram_bot_token) if settings.telegram_bot_token else None
 
 
 # Utility Functions
