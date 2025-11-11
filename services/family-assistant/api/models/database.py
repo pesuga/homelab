@@ -343,7 +343,7 @@ class FamilyContext(Base):
         Index('idx_family_context_active', 'is_active'),
         Index('idx_family_context_validity', 'valid_from', 'valid_until'),
         Index('idx_family_context_unique', 'family_member_id', 'context_type', 'context_key',
-              unique=True, where='is_active = true'),
+              unique=True, postgresql_where='is_active = true'),
     )
 
 
