@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 import uuid
@@ -11,6 +12,7 @@ import psutil
 import subprocess
 import json
 import asyncio
+from pathlib import Path
 from config.settings import settings
 
 # Import multimodal models and services
@@ -452,6 +454,16 @@ async def root():
         "version": "0.1.0",
         "status": "running"
     }
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def serve_dashboard():
+    """Serve the standalone dashboard HTML."""
+    dashboard_path = Path(__file__).parent.parent / "dashboard-standalone.html"
+    if dashboard_path.exists():
+        with open(dashboard_path, "r") as f:
+            return f.read()
+    raise HTTPException(status_code=404, detail="Dashboard not found")
 
 
 @app.get("/health")
