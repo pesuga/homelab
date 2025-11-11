@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { SystemHealth, SystemMetrics, ServiceStatus } from '@/types';
+import { apiFetch, API_ENDPOINTS } from '@/utils/api';
 
 interface SystemHealthContextType {
   systemHealth: SystemHealth | null;
@@ -32,23 +33,16 @@ export const SystemHealthProvider: React.FC<SystemHealthProviderProps> = ({ chil
       setIsLoading(true);
       setError(null);
 
-      // Fetch system health from the API
-      const healthResponse = await fetch('/api/health');
-      const healthData = await healthResponse.json();
+      // Fetch system health from the unified dashboard endpoint
+      const dashboardResponse = await apiFetch(API_ENDPOINTS.dashboardHealth);
+      const dashboardData = await dashboardResponse.json();
 
-      // Fetch detailed system metrics
-      const metricsResponse = await fetch('/api/system/metrics');
-      const metricsData = await metricsResponse.json();
-
-      // Fetch service statuses
-      const servicesResponse = await fetch('/api/system/services');
-      const servicesData = await servicesResponse.json();
-
+      // Dashboard endpoint returns all data in one response
       setSystemHealth({
-        status: determineOverallStatus(healthData, servicesData),
-        timestamp: new Date().toISOString(),
-        services: servicesData,
-        system: metricsData,
+        status: dashboardData.status || 'healthy',
+        timestamp: dashboardData.timestamp || new Date().toISOString(),
+        services: dashboardData.services || [],
+        system: dashboardData.system || {},
       });
     } catch (err) {
       console.error('Error fetching system health:', err);

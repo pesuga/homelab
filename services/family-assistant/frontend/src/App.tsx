@@ -9,6 +9,7 @@ import { Settings } from '@/pages/Settings';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { AlertBanner } from '@/components/AlertBanner';
 import { SystemHealthProvider } from '@/contexts/SystemHealthContext';
+import { WS_URL } from '@/utils/api';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -22,7 +23,7 @@ const queryClient = new QueryClient({
 
 function App() {
   const [alerts, setAlerts] = useState<any[]>([]);
-  const { isConnected, lastMessage } = useWebSocket('ws://localhost:30801');
+  const { isConnected, lastMessage } = useWebSocket(WS_URL);
 
   useEffect(() => {
     if (lastMessage) {

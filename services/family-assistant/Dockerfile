@@ -1,3 +1,21 @@
+# Stage 1: Build React frontend
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /frontend
+
+# Copy frontend package files
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy frontend source
+COPY frontend/ ./
+
+# Build React app
+RUN npm run build
+
+# Stage 2: Python API with React frontend
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -18,6 +36,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code with proper directory structure
 # Use COPY . . to preserve all directories and __init__.py files
 COPY . .
+
+# Copy React build from frontend-builder stage
+COPY --from=frontend-builder /frontend/dist /app/frontend/dist
 
 # Set Python path to include app root
 ENV PYTHONPATH=/app

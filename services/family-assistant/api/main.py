@@ -3,6 +3,7 @@
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 import uuid
@@ -1345,6 +1346,32 @@ async def openai_list_models():
             }
         ]
     }
+
+
+# ==============================================================================
+# React Frontend Serving
+# ==============================================================================
+
+# Mount static files (JS, CSS, images) from React build
+frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+if frontend_dist.exists():
+    app.mount("/assets", StaticFiles(directory=str(frontend_dist / "assets")), name="static")
+
+    # Serve React app for all non-API routes (catch-all for client-side routing)
+    @app.get("/{full_path:path}")
+    async def serve_react_app(full_path: str):
+        """
+        Serve React app for all non-API routes.
+
+        This must be the last route defined to act as a catch-all.
+        API routes are already registered above and will take precedence.
+        """
+        # Serve index.html for all frontend routes
+        index_file = frontend_dist / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+        else:
+            raise HTTPException(status_code=404, detail="Frontend not built")
 
 
 if __name__ == "__main__":
