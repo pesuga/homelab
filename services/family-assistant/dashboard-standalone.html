@@ -321,6 +321,14 @@
         // Update service grid
         function updateServices(services) {
             const serviceGrid = document.getElementById('serviceGrid');
+
+            // Only update if changed (add a hash check)
+            const newHash = JSON.stringify(services.map(s => ({ name: s.name, status: s.status })));
+            if (serviceGrid.dataset.servicesHash === newHash) {
+                return; // Skip update if services haven't changed
+            }
+            serviceGrid.dataset.servicesHash = newHash;
+
             serviceGrid.innerHTML = '';
 
             services.forEach(service => {
@@ -355,18 +363,27 @@
                 serviceGrid.appendChild(serviceCard);
             });
 
-            // Re-initialize Lucide icons for new content
-            lucide.createIcons();
+            // Lucide icons initialized once on page load - no need to reinitialize
         }
 
         // Update system chart with proper cleanup
         function updateSystemChart(data) {
-            const ctx = document.getElementById('systemChart').getContext('2d');
-
+            // Destroy existing chart BEFORE getting context
             if (systemChart) {
                 systemChart.destroy();
                 systemChart = null;
             }
+
+            // Clear and recreate canvas element to force complete cleanup
+            const oldCanvas = document.getElementById('systemChart');
+            const newCanvas = document.createElement('canvas');
+            newCanvas.id = 'systemChart';
+            newCanvas.width = oldCanvas.width;
+            newCanvas.height = oldCanvas.height;
+            oldCanvas.parentNode.replaceChild(newCanvas, oldCanvas);
+
+            // NOW get context from fresh canvas
+            const ctx = newCanvas.getContext('2d');
 
             systemChart = new Chart(ctx, {
                 type: 'line',
@@ -425,6 +442,13 @@
         function showAlerts(alerts) {
             const container = document.getElementById('alertContainer');
 
+            // Skip entirely if no alerts
+            if (!alerts || alerts.length === 0) {
+                // Clean up any existing alerts
+                container.innerHTML = '';
+                return;
+            }
+
             // Clear existing alerts that are more than 5 seconds old
             const existingAlerts = container.querySelectorAll('[data-timestamp]');
             existingAlerts.forEach(alert => {
@@ -478,8 +502,7 @@
                 }, 5000);
             });
 
-            // Re-initialize Lucide icons
-            lucide.createIcons();
+            // Lucide icons initialized once on page load - no need to reinitialize
         }
 
         // Update dashboard stats
