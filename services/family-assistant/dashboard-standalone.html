@@ -269,7 +269,15 @@
     <script>
         // Configuration
         const API_BASE = 'http://100.81.76.55:30801';
+        // System Performance Chart with historical data accumulation
         let systemChart = null;
+        const MAX_DATA_POINTS = 12; // Show last 12 data points (1 hour at 5-second intervals)
+        const metricsHistory = {
+            timestamps: [],
+            cpu: [],
+            memory: [],
+            disk: []
+        };
         let refreshInterval = null;
 
         // Initialize Lucide icons
@@ -366,76 +374,104 @@
             // Lucide icons initialized once on page load - no need to reinitialize
         }
 
-        // Update system chart with proper cleanup
+        // Update system chart with smooth data accumulation (NO recreation!)
         function updateSystemChart(data) {
-            // Destroy existing chart BEFORE getting context
-            if (systemChart) {
-                systemChart.destroy();
-                systemChart = null;
+            const now = new Date();
+            const timeLabel = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            // Add new data point with rounding
+            metricsHistory.timestamps.push(timeLabel);
+            metricsHistory.cpu.push(Math.round(data.cpu.usage * 10) / 10);
+            metricsHistory.memory.push(Math.round(data.memory.percentage * 10) / 10);
+            metricsHistory.disk.push(Math.round(data.disk.percentage * 10) / 10);
+
+            // Keep only last MAX_DATA_POINTS (sliding window)
+            if (metricsHistory.timestamps.length > MAX_DATA_POINTS) {
+                metricsHistory.timestamps.shift();
+                metricsHistory.cpu.shift();
+                metricsHistory.memory.shift();
+                metricsHistory.disk.shift();
             }
 
-            // Clear and recreate canvas element to force complete cleanup
-            const oldCanvas = document.getElementById('systemChart');
-            const newCanvas = document.createElement('canvas');
-            newCanvas.id = 'systemChart';
-            newCanvas.width = oldCanvas.width;
-            newCanvas.height = oldCanvas.height;
-            oldCanvas.parentNode.replaceChild(newCanvas, oldCanvas);
-
-            // NOW get context from fresh canvas
-            const ctx = newCanvas.getContext('2d');
-
-            systemChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['2h ago', '1.5h ago', '1h ago', '30m ago', 'Now'],
-                    datasets: [{
-                        label: 'CPU %',
-                        data: [65, 68, 70, data.cpu.usage, data.cpu.usage],
-                        borderColor: '#e4a853',
-                        backgroundColor: 'rgba(228, 168, 83, 0.1)',
-                        tension: 0.4
-                    }, {
-                        label: 'Memory %',
-                        data: [45, 48, 46, data.memory.percentage, data.memory.percentage],
-                        borderColor: '#d97634',
-                        backgroundColor: 'rgba(217, 118, 52, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#d4c4b0'
-                            }
-                        }
+            // Create chart ONCE on first call
+            if (!systemChart) {
+                const ctx = document.getElementById('systemChart').getContext('2d');
+                systemChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: metricsHistory.timestamps,
+                        datasets: [{
+                            label: 'CPU %',
+                            data: metricsHistory.cpu,
+                            borderColor: '#e4a853',
+                            backgroundColor: 'rgba(228, 168, 83, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Memory %',
+                            data: metricsHistory.memory,
+                            borderColor: '#d97634',
+                            backgroundColor: 'rgba(217, 118, 52, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Disk %',
+                            data: metricsHistory.disk,
+                            borderColor: '#c45a34',
+                            backgroundColor: 'rgba(196, 90, 52, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                color: '#a8907d'
-                            },
-                            grid: {
-                                color: '#3e3329'
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 300,
+                            easing: 'easeInOutQuart'
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: '#d4c4b0'
+                                }
                             }
                         },
-                        x: {
-                            ticks: {
-                                color: '#a8907d'
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    color: '#a8907d'
+                                },
+                                grid: {
+                                    color: '#3e3329'
+                                }
                             },
-                            grid: {
-                                color: '#3e3329'
+                            x: {
+                                ticks: {
+                                    color: '#a8907d',
+                                    maxRotation: 45,
+                                    minRotation: 0,
+                                    autoSkip: true,
+                                    maxTicksLimit: 6
+                                },
+                                grid: {
+                                    color: '#3e3329'
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            } else {
+                // Update existing chart smoothly (NO destruction!)
+                systemChart.data.labels = metricsHistory.timestamps;
+                systemChart.data.datasets[0].data = metricsHistory.cpu;
+                systemChart.data.datasets[1].data = metricsHistory.memory;
+                systemChart.data.datasets[2].data = metricsHistory.disk;
+                systemChart.update('none'); // Update without animation for smooth performance
+            }
         }
 
         // Show alerts with auto-cleanup
