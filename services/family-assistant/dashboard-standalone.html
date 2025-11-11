@@ -598,20 +598,43 @@
 
             isFetching = true;
             try {
-                const mockData = generateMockData();
+                // Fetch real data from backend API
+                const response = await fetch('/dashboard/system-health');
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}: ${response.statusText}`);
+                }
+                const data = await response.json();
 
+                updateSystemStatus(data);
+                updateMetrics(data.system);
+                updateServices(data.services);
+                updateSystemChart(data.system);
+                showAlerts(data.alerts || []);
+
+                // Get stats from database (placeholder for now - will be implemented)
+                const stats = {
+                    users: 0,
+                    conversations: 0,
+                    messages: 0,
+                    recent_activity_24h: 0
+                };
+                updateDashboardStats(stats);
+
+                document.getElementById('lastUpdate').textContent = `Last updated: ${formatDate(data.timestamp)}`;
+
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+                document.getElementById('lastUpdate').textContent = `Error loading data: ${error.message}`;
+
+                // Fallback to mock data if API fails
+                console.warn('Falling back to mock data');
+                const mockData = generateMockData();
                 updateSystemStatus(mockData);
                 updateMetrics(mockData.system);
                 updateServices(mockData.services);
                 updateSystemChart(mockData.system);
                 showAlerts(mockData.alerts || []);
                 updateDashboardStats(mockData.stats);
-
-                document.getElementById('lastUpdate').textContent = `Last updated: ${formatDate(mockData.timestamp)}`;
-
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error);
-                document.getElementById('lastUpdate').textContent = 'Error loading data';
             } finally {
                 isFetching = false;
             }
