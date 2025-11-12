@@ -36,14 +36,32 @@ from api.startup import startup_event, shutdown_event
 # Authentication
 from api.routes.auth import router as auth_router
 
+# Observability and Middleware
+from api.observability.tracing import setup_tracing
+from api.observability.logging import setup_logging
+from api.observability.metrics import setup_metrics
+from api.middleware.rate_limit import setup_rate_limiting
+from api.middleware.security import SecurityHeadersMiddleware
+
 # Initialize FastAPI app
 app = FastAPI(
     title="Family Assistant API",
-    description="Privacy-focused AI assistant with persistent memory",
-    version="0.1.0"
+    description="Privacy-focused AI assistant with persistent memory and comprehensive observability",
+    version="2.0.0"
 )
 
-# CORS middleware
+# Configure observability (before middleware)
+setup_logging()
+setup_tracing(app)
+setup_metrics(app)
+
+# Configure rate limiting
+setup_rate_limiting(app)
+
+# Security headers middleware (first in chain)
+app.add_middleware(SecurityHeadersMiddleware)
+
+# CORS middleware (after security headers)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

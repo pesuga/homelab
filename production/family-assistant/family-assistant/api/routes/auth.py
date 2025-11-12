@@ -6,7 +6,7 @@ Provides login, token refresh, and user profile endpoints.
 
 from datetime import timedelta
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
@@ -18,6 +18,11 @@ from ..auth.jwt import (
 )
 from ..auth.models import Token, UserInDB
 from ..database import get_db
+from ..middleware.rate_limit import limiter, auth_rate_limit
+from ..observability.metrics import track_auth_attempt, track_token_validation
+from ..observability.logging import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
@@ -47,7 +52,9 @@ class UserResponse(BaseModel):
 
 
 @router.post("/login", response_model=Token)
+@limiter.limit("5/minute")  # Strict rate limit for login attempts
 async def login(
+    request: Request,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: AsyncSession = Depends(get_db)
 ):
@@ -70,6 +77,11 @@ async def login(
     )
 
     if not user:
+        logger.warning(
+            "Failed login attempt",
+            extra={"username": form_data.username, "ip": request.client.host}
+        )
+        track_auth_attempt(success=False)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -77,6 +89,11 @@ async def login(
         )
 
     if not user.is_active:
+        logger.warning(
+            "Login attempt for inactive user",
+            extra={"username": form_data.username, "user_id": user.id}
+        )
+        track_auth_attempt(success=False)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is inactive"
@@ -94,6 +111,12 @@ async def login(
         expires_delta=access_token_expires
     )
 
+    logger.info(
+        "Successful login",
+        extra={"user_id": user.id, "username": user.username, "role": user.role}
+    )
+    track_auth_attempt(success=True)
+
     return Token(
         access_token=access_token,
         token_type="bearer",
@@ -102,7 +125,9 @@ async def login(
 
 
 @router.post("/login/json", response_model=Token)
+@limiter.limit("5/minute")  # Strict rate limit for login attempts
 async def login_json(
+    request: Request,
     login_data: LoginRequest,
     db: AsyncSession = Depends(get_db)
 ):
@@ -195,6 +220,7 @@ async def get_current_user_profile(
 
 @router.post("/verify", response_model=dict)
 async def verify_token(
+    request: Request,
     current_user: UserInDB = Depends(get_current_active_user)
 ):
     """
@@ -214,6 +240,12 @@ async def verify_token(
     Raises:
         401: Invalid or expired token
     """
+    track_token_validation(valid=True)
+    logger.debug(
+        "Token validated",
+        extra={"user_id": current_user.id, "role": current_user.role}
+    )
+
     return {
         "valid": True,
         "user_id": current_user.id,
