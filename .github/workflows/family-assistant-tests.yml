@@ -1,0 +1,304 @@
+name: Family Assistant Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'production/family-assistant/family-assistant/**'
+      - '.github/workflows/family-assistant-tests.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'production/family-assistant/family-assistant/**'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '20'
+
+jobs:
+  # Backend unit and integration tests
+  backend-tests:
+    name: Backend Tests (Python)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: homelab
+          POSTGRES_PASSWORD: homelab
+          POSTGRES_DB: homelab_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: production/family-assistant/family-assistant
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov pytest-xdist
+
+      - name: Run database migrations
+        working-directory: production/family-assistant/family-assistant
+        env:
+          DATABASE_URL: postgresql+asyncpg://homelab:homelab@localhost:5432/homelab_test
+        run: |
+          # Apply migrations (if migration script exists)
+          if [ -f scripts/migrate.sh ]; then
+            bash scripts/migrate.sh
+          fi
+
+      - name: Run unit tests
+        working-directory: production/family-assistant/family-assistant
+        env:
+          DATABASE_URL: postgresql+asyncpg://homelab:homelab@localhost:5432/homelab_test
+          REDIS_URL: redis://localhost:6379
+          ENVIRONMENT: test
+        run: |
+          pytest tests/unit/ \
+            -v \
+            --cov=api \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-report=term-missing \
+            --junitxml=junit-unit.xml \
+            -n auto
+
+      - name: Run integration tests
+        working-directory: production/family-assistant/family-assistant
+        env:
+          DATABASE_URL: postgresql+asyncpg://homelab:homelab@localhost:5432/homelab_test
+          REDIS_URL: redis://localhost:6379
+          ENVIRONMENT: test
+        run: |
+          pytest tests/integration/ \
+            -v \
+            --cov=api \
+            --cov-append \
+            --cov-report=xml \
+            --cov-report=html \
+            --junitxml=junit-integration.xml
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./production/family-assistant/family-assistant/coverage.xml
+          flags: backend
+          name: backend-coverage
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: |
+            production/family-assistant/family-assistant/junit-*.xml
+            production/family-assistant/family-assistant/htmlcov/
+
+  # Frontend E2E tests
+  frontend-e2e-tests:
+    name: Frontend E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: homelab
+          POSTGRES_PASSWORD: homelab
+          POSTGRES_DB: homelab_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python (for backend)
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: production/family-assistant/family-assistant/frontend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: production/family-assistant/family-assistant
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Start backend server
+        working-directory: production/family-assistant/family-assistant
+        env:
+          DATABASE_URL: postgresql+asyncpg://homelab:homelab@localhost:5432/homelab_test
+          REDIS_URL: redis://localhost:6379
+          ENVIRONMENT: test
+        run: |
+          uvicorn api.main:app --host 0.0.0.0 --port 8000 &
+          sleep 5
+          curl -f http://localhost:8000/health || exit 1
+
+      - name: Install frontend dependencies
+        working-directory: production/family-assistant/family-assistant/frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: production/family-assistant/family-assistant/frontend
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: Run Playwright tests
+        working-directory: production/family-assistant/family-assistant/frontend
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:5173
+        run: npx playwright test --reporter=html,json,list
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: production/family-assistant/family-assistant/frontend/playwright-report/
+          retention-days: 30
+
+      - name: Upload Playwright results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: production/family-assistant/family-assistant/frontend/playwright-results.json
+
+  # Linting and type checking
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: production/family-assistant/family-assistant/frontend/package-lock.json
+
+      - name: Install Python dependencies
+        working-directory: production/family-assistant/family-assistant
+        run: |
+          pip install ruff mypy types-redis types-python-jose
+
+      - name: Run Python linting (ruff)
+        working-directory: production/family-assistant/family-assistant
+        run: |
+          ruff check api/ tests/
+
+      - name: Run Python type checking (mypy)
+        working-directory: production/family-assistant/family-assistant
+        run: |
+          mypy api/ --ignore-missing-imports || true
+
+      - name: Install frontend dependencies
+        working-directory: production/family-assistant/family-assistant/frontend
+        run: npm ci
+
+      - name: Run TypeScript type check
+        working-directory: production/family-assistant/family-assistant/frontend
+        run: npm run build:check
+
+      - name: Run ESLint
+        working-directory: production/family-assistant/family-assistant/frontend
+        run: npm run lint
+
+  # Build Docker images (on main branch only)
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [backend-tests, frontend-e2e-tests, lint-and-typecheck]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        working-directory: production/family-assistant/family-assistant
+        run: |
+          docker build -t family-assistant-backend:${{ github.sha }} .
+
+      - name: Build frontend image
+        working-directory: production/family-assistant/family-assistant/frontend
+        run: |
+          docker build -t family-assistant-frontend:${{ github.sha }} .
+
+      - name: Test backend container
+        run: |
+          docker run --rm -d --name test-backend -p 8000:8000 \
+            -e DATABASE_URL=sqlite+aiosqlite:///./test.db \
+            family-assistant-backend:${{ github.sha }}
+          sleep 5
+          curl -f http://localhost:8000/health || exit 1
+          docker stop test-backend
+
+      - name: Test frontend container
+        run: |
+          docker run --rm -d --name test-frontend -p 3000:3000 \
+            family-assistant-frontend:${{ github.sha }}
+          sleep 3
+          curl -f http://localhost:3000/health || exit 1
+          docker stop test-frontend
