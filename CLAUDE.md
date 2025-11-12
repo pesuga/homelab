@@ -40,7 +40,7 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 ### Networking
 
 - **IMPORTANT**: Always use Tailscale IPs for inter-node communication
-- Local Network: 192.168.8.0/24 (note: some docs reference 192.168.1.0/24, actual is 192.168.8.0/24)
+- Local Network: 192.168.8.0/24 (note: some docs reference 192.168.8.0/24, actual is 192.168.8.0/24)
 - Tailscale Mesh: 100.64.0.0/10 for secure remote access
 - Service Node (asuna): 100.81.76.55
 - Compute Node (pesubuntu): 100.72.98.106
@@ -190,10 +190,14 @@ All services on the service node run as Kubernetes workloads:
 - [ ] **Fix Import Issues**: Resolve `models.multimodal` import path problems
 - [ ] **Deploy Enhanced Dashboard**: Replace standalone with production React application
 
-#### Phase 2: System Prompts & Memory (Planned)
-- Hierarchical system prompts structured like Claude Code's memory and skills
-- Role-based personality adaptation for different family members
-- 5-layer memory architecture: Redis → Mem0 → PostgreSQL → Qdrant → Persistent
+#### Phase 2: System Prompts & Memory ✅ COMPLETE (Deployed 2025-11-12)
+- ✅ Hierarchical system prompts (5 layers: base → safety → role → language → dynamic)
+- ✅ Role-based personality adaptation (parent, teenager, child, grandparent)
+- ✅ 5-layer memory architecture fully operational (Redis, Mem0, PostgreSQL, Qdrant, Archive)
+- ✅ Database schema with pgvector extension for embeddings
+- ✅ 11 Phase 2 API endpoints deployed and verified
+- ✅ Production image: family-assistant:phase2 (1.09GB)
+- See [PHASE2_PRODUCTION_DEPLOYMENT.md](PHASE2_PRODUCTION_DEPLOYMENT.md) for details
 
 #### Phase 3: MCP Integration & User Management (Planned)
 - MCP tool connections with RBAC for family members
@@ -464,7 +468,7 @@ When resuming work, check:
 
 ## Important Notes
 
-- **IP Addressing**: Documentation sometimes references 192.168.1.0/24, but actual network is 192.168.8.0/24
+- **IP Addressing**: Documentation sometimes references 192.168.8.0/24, but actual network is 192.168.8.0/24
 - **Storage**: Service node has limited disk (98GB) - monitor usage
 - **No root access needed**: Both nodes have passwordless sudo configured for user `pesu`
 
