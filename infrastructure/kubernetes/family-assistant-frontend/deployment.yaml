@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: family-assistant-frontend
+  namespace: homelab
+  labels:
+    app: family-assistant-frontend
+    component: frontend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: family-assistant-frontend
+  template:
+    metadata:
+      labels:
+        app: family-assistant-frontend
+        component: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: 100.81.76.55:30500/family-assistant-frontend:week1
+        imagePullPolicy: Always  # Pull from private registry
+        ports:
+        - containerPort: 3000
+          name: http
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 2
+        env:
+        - name: NGINX_PORT
+          value: "3000"

@@ -1,0 +1,33 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: family-assistant-frontend
+  namespace: homelab
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`family.homelab.pesulabs.net`)
+      kind: Rule
+      services:
+        - name: family-assistant-frontend
+          port: 3000
+  tls:
+    secretName: homelab-tls
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: family-assistant-backend
+  namespace: homelab
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`family-api.homelab.pesulabs.net`)
+      kind: Rule
+      services:
+        - name: family-assistant-backend
+          port: 8000
+  tls:
+    secretName: homelab-tls
