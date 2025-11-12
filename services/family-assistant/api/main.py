@@ -29,6 +29,10 @@ from api.services.telegram_service import create_telegram_service
 # Import feature flags
 from config.feature_flags import feature_flags
 
+# Phase 2: Memory & Prompt Management
+from api.routes.phase2_routes import router as phase2_router
+from api.startup import startup_event, shutdown_event
+
 # Initialize FastAPI app
 app = FastAPI(
     title="Family Assistant API",
@@ -44,6 +48,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include Phase 2 routes
+app.include_router(phase2_router)
+
+
+# ==============================================================================
+# Application Lifecycle Events
+# ==============================================================================
+
+@app.on_event("startup")
+async def on_startup():
+    """Initialize services on application startup"""
+    print("=" * 80)
+    print("FAMILY ASSISTANT API STARTING")
+    print("=" * 80)
+    await startup_event()
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    """Cleanup services on application shutdown"""
+    await shutdown_event()
 
 
 # Enhanced Request/Response models with multimodal support
