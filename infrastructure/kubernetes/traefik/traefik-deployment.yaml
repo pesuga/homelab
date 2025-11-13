@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik
+  namespace: homelab
+  labels:
+    app: traefik
+    component: ingress
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+        component: ingress
+    spec:
+      serviceAccountName: traefik
+      containers:
+      - name: traefik
+        image: traefik:v3.1.0
+        args:
+        - --api.dashboard=true
+        - --api.insecure=true
+        - --providers.kubernetescrd
+        - --providers.kubernetesingress
+        - --entrypoints.web.address=:80
+        - --entrypoints.websecure.address=:443
+        - --entrypoints.web.http.redirections.entrypoint.to=websecure
+        - --entrypoints.web.http.redirections.entrypoint.scheme=https
+        - --certificatesresolvers.default.acme.dnschallenge=true
+        - --certificatesresolvers.default.acme.dnschallenge.provider=cloudflare
+        - --certificatesresolvers.default.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53
+        - --certificatesresolvers.default.acme.email=admin@pesulabs.net
+        - --certificatesresolvers.default.acme.storage=/acme/acme.json
+        - --log.level=INFO
+        - --accesslog=true
+        - --metrics.prometheus=true
+        - --metrics.prometheus.addEntryPointsLabels=true
+        - --metrics.prometheus.addServicesLabels=true
+        - --ping=true
+        - --global.checknewversion=false
+        ports:
+        - name: web
+          containerPort: 80
+        - name: websecure
+          containerPort: 443
+        - name: dashboard
+          containerPort: 8080
+        - name: metrics
+          containerPort: 8082
+        env:
+        - name: CF_DNS_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: cloudflare-api-token
+              key: api-token
+        volumeMounts:
+        - name: acme
+          mountPath: /acme
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: acme
+        persistentVolumeClaim:
+          claimName: traefik-acme-pvc

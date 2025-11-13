@@ -1,0 +1,122 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: family-assistant-ingress
+  namespace: homelab
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "family-assistant-headers"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "default"
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - "family-assistant.homelab.pesulabs.net"
+    secretName: family-assistant-tls
+  rules:
+  - host: "family-assistant.homelab.pesulabs.net"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: family-assistant
+            port:
+              number: 8001
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: n8n-ingress
+  namespace: homelab
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "n8n-headers"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "default"
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - "n8n.homelab.pesulabs.net"
+    secretName: n8n-tls
+  rules:
+  - host: "n8n.homelab.pesulabs.net"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: n8n
+            port:
+              number: 5678
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homelab-dashboard-ingress
+  namespace: homelab
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "dashboard-headers"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "default"
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - "dash.homelab.pesulabs.net"
+    secretName: dashboard-tls
+  rules:
+  - host: "dash.homelab.pesulabs.net"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: homelab-dashboard
+            port:
+              number: 30800
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: family-assistant-headers
+  namespace: homelab
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"
+    customResponseHeaders:
+      X-Content-Type-Options: "nosniff"
+      X-Frame-Options: "DENY"
+      X-XSS-Protection: "1; mode=block"
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: n8n-headers
+  namespace: homelab
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"
+    customResponseHeaders:
+      X-Content-Type-Options: "nosniff"
+      X-Frame-Options: "DENY"
+      X-XSS-Protection: "1; mode=block"
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: dashboard-headers
+  namespace: homelab
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"
+    customResponseHeaders:
+      X-Content-Type-Options: "nosniff"
+      X-Frame-Options: "DENY"
+      X-XSS-Protection: "1; mode=block"

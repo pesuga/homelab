@@ -1,0 +1,24 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  ref:
+    branch: main
+  timeout: 180s
+  url: https://github.com/pesuga/homelab
+  ignore: |
+    # Exclude temporary files
+    *.tmp
+    *.log
+    .DS_Store
+    # Exclude node_modules
+    node_modules/
+    # Exclude build artifacts
+    dist/
+    build/
+    # Exclude secrets
+    .env
+    *.env.*
