@@ -7,26 +7,27 @@
 
 // Get base API URL from environment or use current origin
 const getApiBaseUrl = (): string => {
-  // In production (when served from same origin as API)
+  // In production, use empty string so requests go through nginx proxy
   if (import.meta.env.PROD) {
-    return window.location.origin;
+    return '';
   }
 
   // In development, use environment variable or fallback to NodePort
-  return import.meta.env.VITE_API_BASE_URL || 'http://100.81.76.55:30801';
+  return import.meta.env.VITE_API_BASE_URL || 'http://100.81.76.55:30080';
 };
 
 // Get WebSocket URL from environment or derive from HTTP URL
 const getWebSocketUrl = (): string => {
-  const apiBase = getApiBaseUrl();
-
-  // In production (HTTPS), use WSS
-  if (apiBase.startsWith('https://')) {
-    return apiBase.replace('https://', 'wss://') + '/ws';
+  // In production, use relative WebSocket URL
+  if (import.meta.env.PROD) {
+    // Use ws:// or wss:// based on current protocol
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}/ws`;
   }
 
-  // In development or HTTP, use WS
-  return apiBase.replace('http://', 'ws://') + '/ws';
+  // In development, use HTTP WebSocket to backend
+  const apiBase = getApiBaseUrl();
+  return apiBase.replace('http://', 'ws://').replace('https://', 'wss://') + '/ws';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

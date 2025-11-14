@@ -152,15 +152,15 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = () => {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'parent':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-ctp-blue/10 text-ctp-blue';
       case 'teen':
         return 'bg-purple-100 text-purple-800';
       case 'child':
-        return 'bg-green-100 text-green-800';
+        return 'bg-ctp-green/10 text-ctp-green';
       case 'guest':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-ctp-surface0 text-ctp-text';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-ctp-surface0 text-ctp-text';
     }
   };
 
@@ -208,8 +208,8 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Family Members</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-ctp-text">Family Members</h1>
+          <p className="text-ctp-subtext1 mt-2">
             Manage family members and their permissions
           </p>
         </div>
@@ -224,56 +224,56 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = () => {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-ctp-mantle p-4 rounded-lg border border-ctp-surface1">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
+            <div className="p-2 bg-ctp-blue/10 rounded-lg">
               <Users className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{members.length}</p>
-              <p className="text-sm text-gray-500">Total Members</p>
+              <p className="text-2xl font-bold text-ctp-text">{members.length}</p>
+              <p className="text-sm text-ctp-subtext0">Total Members</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-ctp-mantle p-4 rounded-lg border border-ctp-surface1">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-50 rounded-lg">
+            <div className="p-2 bg-ctp-green/10 rounded-lg">
               <User className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-ctp-text">
                 {members.filter(m => isOnline(m.lastActive)).length}
               </p>
-              <p className="text-sm text-gray-500">Online Now</p>
+              <p className="text-sm text-ctp-subtext0">Online Now</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-ctp-mantle p-4 rounded-lg border border-ctp-surface1">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-50 rounded-lg">
               <Mail className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-ctp-text">
                 {members.reduce((sum, m) => sum + m.stats.conversations, 0)}
               </p>
-              <p className="text-sm text-gray-500">Total Conversations</p>
+              <p className="text-sm text-ctp-subtext0">Total Conversations</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-ctp-mantle p-4 rounded-lg border border-ctp-surface1">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-orange-50 rounded-lg">
               <Settings className="w-5 h-5 text-orange-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-ctp-text">
                 {members.filter(m => m.permissions.manage).length}
               </p>
-              <p className="text-sm text-gray-500">Admins</p>
+              <p className="text-sm text-ctp-subtext0">Admins</p>
             </div>
           </div>
         </div>
@@ -284,7 +284,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = () => {
         {members.map((member) => (
           <div
             key={member.id}
-            className="bg-white border border-gray-200 rounded-lg overflow-hidden"
+            className="bg-ctp-mantle border border-ctp-surface1 rounded-lg overflow-hidden"
           >
             {/* Member Header */}
             <div className="p-4">
@@ -292,18 +292,18 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = () => {
                 <div className="flex items-center gap-4">
                   {/* Avatar */}
                   <div className="relative">
-                    <div className="w-12 h-12 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-semibold">
+                    <div className="w-12 h-12 bg-primary-100 text-ctp-blue rounded-full flex items-center justify-center font-semibold">
                       {member.avatar}
                     </div>
                     {isOnline(member.lastActive) && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-ctp-green/100 rounded-full border-2 border-white"></div>
                     )}
                   </div>
 
                   {/* Member Info */}
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-ctp-text">
                         {member.name}
                       </h3>
                       <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${getRoleColor(member.role)}`}>
@@ -311,7 +311,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = () => {
                         {member.role}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 text-sm text-ctp-subtext0">
                       <span className="flex items-center gap-1">
                         <Mail className="w-4 h-4" />
                         {member.email}
@@ -329,12 +329,12 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = () => {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
-                  <button className="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                  <button className="p-2 text-ctp-subtext0 hover:text-ctp-blue hover:bg-ctp-blue/10 rounded-lg transition-colors">
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => toggleExpanded(member.id)}
-                    className="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                    className="p-2 text-ctp-subtext0 hover:text-ctp-blue hover:bg-ctp-blue/10 rounded-lg transition-colors"
                   >
                     {expandedMembers.has(member.id) ? (
                       <ChevronUp className="w-4 h-4" />
@@ -348,20 +348,20 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = () => {
 
             {/* Expanded Details */}
             {expandedMembers.has(member.id) && (
-              <div className="border-t border-gray-200 p-4 bg-gray-50">
+              <div className="border-t border-ctp-surface1 p-4 bg-ctp-surface0">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Permissions */}
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <h4 className="font-medium text-ctp-text mb-3 flex items-center gap-2">
                       <Shield className="w-4 h-4" />
                       Permissions
                     </h4>
                     <div className="space-y-2">
                       {Object.entries(member.permissions).map(([key, value]) => (
                         <div key={key} className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600 capitalize">{key}</span>
+                          <span className="text-sm text-ctp-subtext1 capitalize">{key}</span>
                           <span className={`text-xs px-2 py-1 rounded-full ${
-                            value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            value ? 'bg-ctp-green/10 text-ctp-green' : 'bg-ctp-red/10 text-ctp-red'
                           }`}>
                             {value ? 'Allowed' : 'Denied'}
                           </span>
@@ -372,23 +372,23 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = () => {
 
                   {/* Preferences */}
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <h4 className="font-medium text-ctp-text mb-3 flex items-center gap-2">
                       <Settings className="w-4 h-4" />
                       Preferences
                     </h4>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Language</span>
+                        <span className="text-sm text-ctp-subtext1">Language</span>
                         <span className="text-sm font-medium">{member.preferences.language}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Theme</span>
+                        <span className="text-sm text-ctp-subtext1">Theme</span>
                         <span className="text-sm font-medium capitalize">{member.preferences.theme}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Notifications</span>
+                        <span className="text-sm text-ctp-subtext1">Notifications</span>
                         <span className={`text-xs px-2 py-1 rounded-full ${
-                          member.preferences.notifications ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          member.preferences.notifications ? 'bg-ctp-green/10 text-ctp-green' : 'bg-ctp-surface0 text-ctp-text'
                         }`}>
                           {member.preferences.notifications ? 'Enabled' : 'Disabled'}
                         </span>
@@ -398,19 +398,19 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = () => {
 
                   {/* Statistics */}
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Activity</h4>
+                    <h4 className="font-medium text-ctp-text mb-3">Activity</h4>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Conversations</span>
+                        <span className="text-sm text-ctp-subtext1">Conversations</span>
                         <span className="text-sm font-medium">{member.stats.conversations}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Uploads</span>
+                        <span className="text-sm text-ctp-subtext1">Uploads</span>
                         <span className="text-sm font-medium">{member.stats.uploads}</span>
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-ctp-subtext1">
                         <p className="font-medium mb-1">Last Message:</p>
-                        <p className="text-gray-500 italic">"{member.stats.lastMessage}"</p>
+                        <p className="text-ctp-subtext0 italic">"{member.stats.lastMessage}"</p>
                       </div>
                     </div>
                   </div>
@@ -424,15 +424,15 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = () => {
       {/* Add Member Modal (placeholder) */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Add Family Member</h2>
-            <p className="text-gray-600 mb-4">
+          <div className="bg-ctp-mantle rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold text-ctp-text mb-4">Add Family Member</h2>
+            <p className="text-ctp-subtext1 mb-4">
               This would open a form to add a new family member with their permissions and preferences.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                className="px-4 py-2 text-ctp-subtext1 hover:text-ctp-text transition-colors"
               >
                 Cancel
               </button>

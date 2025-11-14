@@ -16,7 +16,7 @@ export const ServiceGrid: React.FC<ServiceGridProps> = ({ services }) => {
       case 'warning':
         return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
       default:
-        return <AlertTriangle className="w-5 h-5 text-gray-500" />;
+        return <AlertTriangle className="w-5 h-5 text-ctp-subtext0" />;
     }
   };
 
@@ -40,18 +40,18 @@ export const ServiceGrid: React.FC<ServiceGridProps> = ({ services }) => {
       {services.map((service) => (
         <div
           key={service.name}
-          className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
+          className="flex items-center justify-between p-4 bg-ctp-mantle rounded-lg border border-ctp-surface1 hover:shadow-md transition-shadow"
         >
           <div className="flex items-center gap-3">
             {getStatusIcon(service.status)}
             <div>
-              <h3 className="font-medium text-gray-900">{service.name}</h3>
-              <p className="text-sm text-gray-500">{getStatusText(service.status)}</p>
+              <h3 className="font-medium text-ctp-text">{service.name}</h3>
+              <p className="text-sm text-ctp-subtext0">{getStatusText(service.status)}</p>
             </div>
           </div>
           {service.responseTime && (
             <div className="text-right">
-              <p className="text-xs text-gray-500">Response Time</p>
+              <p className="text-xs text-ctp-subtext0">Response Time</p>
               <p className="text-sm font-medium">{service.responseTime}ms</p>
             </div>
           )}

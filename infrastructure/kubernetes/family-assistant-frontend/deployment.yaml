@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: 100.81.76.55:30500/family-assistant-frontend:week1
+        image: 100.81.76.55:30500/family-assistant-frontend:week1-v3
         imagePullPolicy: Always  # Pull from private registry
         ports:
         - containerPort: 3000

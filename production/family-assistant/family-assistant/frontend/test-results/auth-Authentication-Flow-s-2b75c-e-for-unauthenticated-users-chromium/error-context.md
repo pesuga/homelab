@@ -1,0 +1,61 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]: Connected
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - img [ref=e11]
+          - heading "Family Assistant" [level=1] [ref=e14]
+        - button [ref=e15]:
+          - img [ref=e16]
+      - navigation [ref=e19]:
+        - generic [ref=e20]:
+          - link "Dashboard" [ref=e21] [cursor=pointer]:
+            - /url: /
+            - img [ref=e22]
+            - text: Dashboard
+          - link "Architecture" [ref=e25] [cursor=pointer]:
+            - /url: /architecture
+            - img [ref=e26]
+            - text: Architecture
+          - link "Family Members" [ref=e29] [cursor=pointer]:
+            - /url: /family
+            - img [ref=e30]
+            - text: Family Members
+          - link "Settings" [ref=e35] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e36]
+            - text: Settings
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - img [ref=e42]
+          - text: System Status
+        - generic [ref=e44]:
+          - generic [ref=e45]: API
+          - generic [ref=e46]: DB
+          - generic [ref=e47]: AI
+    - generic [ref=e48]:
+      - banner [ref=e49]:
+        - generic [ref=e50]:
+          - button [ref=e51]:
+            - img [ref=e52]
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - img [ref=e55]
+              - text: Homelab Dashboard
+            - generic [ref=e57]:
+              - generic [ref=e58]:
+                - img [ref=e59]
+                - text: PostgreSQL
+              - generic [ref=e63]:
+                - img [ref=e64]
+                - text: Redis
+              - generic [ref=e68]:
+                - img [ref=e69]
+                - text: Ollama
+      - main [ref=e72]:
+        - paragraph [ref=e75]: Loading dashboard...
+```

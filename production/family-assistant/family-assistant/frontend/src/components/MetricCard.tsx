@@ -12,34 +12,34 @@ interface MetricCardProps {
 
 const colorClasses = {
   blue: {
-    bg: 'bg-blue-50',
-    text: 'text-blue-600',
-    icon: 'text-blue-500',
+    bg: 'bg-ctp-blue/10',
+    text: 'text-ctp-blue',
+    icon: 'text-ctp-blue',
   },
   green: {
-    bg: 'bg-green-50',
-    text: 'text-green-600',
-    icon: 'text-green-500',
+    bg: 'bg-ctp-green/10',
+    text: 'text-ctp-green',
+    icon: 'text-ctp-green',
   },
   purple: {
-    bg: 'bg-purple-50',
-    text: 'text-purple-600',
-    icon: 'text-purple-500',
+    bg: 'bg-ctp-mauve/10',
+    text: 'text-ctp-mauve',
+    icon: 'text-ctp-mauve',
   },
   cyan: {
-    bg: 'bg-cyan-50',
-    text: 'text-cyan-600',
-    icon: 'text-cyan-500',
+    bg: 'bg-ctp-sky/10',
+    text: 'text-ctp-sky',
+    icon: 'text-ctp-sky',
   },
   red: {
-    bg: 'bg-red-50',
-    text: 'text-red-600',
-    icon: 'text-red-500',
+    bg: 'bg-ctp-red/10',
+    text: 'text-ctp-red',
+    icon: 'text-ctp-red',
   },
   yellow: {
-    bg: 'bg-yellow-50',
-    text: 'text-yellow-600',
-    icon: 'text-yellow-500',
+    bg: 'bg-ctp-yellow/10',
+    text: 'text-ctp-yellow',
+    icon: 'text-ctp-yellow',
   },
 };
 
@@ -54,18 +54,18 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   const colors = colorClasses[color];
 
   const getTrendIcon = () => {
-    if (trend === 'up') return <TrendingUp className="w-4 h-4 text-red-500" />;
-    if (trend === 'down') return <TrendingDown className="w-4 h-4 text-green-500" />;
-    return <Minus className="w-4 h-4 text-gray-400" />;
+    if (trend === 'up') return <TrendingUp className="w-4 h-4 text-ctp-red" />;
+    if (trend === 'down') return <TrendingDown className="w-4 h-4 text-ctp-green" />;
+    return <Minus className="w-4 h-4 text-ctp-overlay0" />;
   };
 
   return (
     <div className="metric-card">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+          <p className="text-sm font-medium text-ctp-subtext1">{title}</p>
+          <p className="text-2xl font-bold text-ctp-text">{value}</p>
+          {subtitle && <p className="text-sm text-ctp-subtext0">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-3">
           {trend && (

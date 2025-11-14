@@ -231,9 +231,33 @@ Once deployed, services are available at:
 ```
 homelab/
 ├── README.md                      # This file
+├── REPOSITORY_STRUCTURE.md        # Repository organization guide
 ├── LICENSE                        # MIT License
 ├── .gitignore                    # Git ignore rules
 ├── .env.example                  # Environment template
+│
+├── production/                   # ✅ Production-ready services ONLY
+│   ├── core/                     # Essential services (N8n, PostgreSQL, Redis)
+│   ├── monitoring/               # Prometheus, Loki, dashboards
+│   ├── ai-stack/                 # Ollama, Qdrant, Mem0, Whisper
+│   └── family-assistant/         # Enhanced family platform
+│
+├── experimental/                 # 🧪 Development and testing
+│   ├── mcp-tools/                # MCP development tools
+│   ├── new-services/             # Experimental deployments
+│   └── beta-features/            # Feature development
+│
+├── archive/                      # 📦 Deprecated services
+│   ├── deprecated/               # Flowise, Grafana, Open WebUI
+│   ├── prototypes/               # Early experiments
+│   └── old-configs/              # Historical configurations
+│
+├── infrastructure/               # ⚙️ Infrastructure as Code
+│   ├── certificates/             # SSL certificates and CA
+│   ├── compute-node/             # Compute node specific configs
+│   ├── flux/                     # GitOps configurations
+│   ├── kubernetes/               # Remaining K8s manifests
+│   └── service-node/             # Service node specific configs
 │
 ├── docs/                         # Documentation
 │   ├── ARCHITECTURE.md           # System architecture
@@ -243,52 +267,19 @@ homelab/
 │   ├── TROUBLESHOOTING.md        # Common issues
 │   └── API.md                    # API documentation
 │
-├── infrastructure/               # Infrastructure as Code
-│   ├── kubernetes/               # K8s manifests
-│   │   ├── base/                 # Base configs
-│   │   ├── overlays/             # Environment overlays
-│   │   └── apps/                 # Application deployments
-│   ├── terraform/                # Terraform configs
-│   │   ├── network/              # Network setup
-│   │   └── compute/              # Compute resources
-│   ├── compute-node/             # Compute node setup
-│   │   ├── ollama/               # Ollama configs
-│   │   └── scripts/              # Setup scripts
-│   └── service-node/             # Service node setup
-│       ├── k8s-setup/            # K8s installation
-│       └── base-services/        # Core services
-│
-├── services/                     # Service configurations
-│   ├── n8n-workflows/            # N8n workflow exports
-│   │   ├── templates/            # Workflow templates
-│   │   └── custom/               # Custom workflows
-│   └── agentstack-config/        # AgentStack configs
-│       ├── agents/               # Agent definitions
-│       └── tools/                # Agent tools
-│
-├── agents/                       # Custom agent implementations
-│   ├── examples/                 # Example agents
-│   ├── templates/                # Agent templates
-│   └── production/               # Production agents
-│
-├── observability/                # Monitoring configs
-│   ├── grafana/                  # Dashboards
-│   ├── prometheus/               # Metrics configs
-│   ├── loki/                     # Log configs
-│   └── alertmanager/             # Alert rules
-│
-├── scripts/                      # Automation scripts
+├── scripts/                      # 🛠️ Utility scripts
 │   ├── setup.sh                  # Initial setup
 │   ├── deploy.sh                 # Deployment
 │   ├── backup.sh                 # Backup routines
 │   ├── restore.sh                # Restore routines
 │   └── health-check.sh           # Health checks
 │
-└── tests/                        # Test suites
-    ├── unit/                     # Unit tests
-    ├── integration/              # Integration tests
-    └── e2e/                      # End-to-end tests
+├── workflows/                    # 🔄 N8n workflow templates
+├── tests/                        # 🧪 Test suites
+└── agents/                       # Custom agent implementations
 ```
+
+**📋 Repository Organization**: See [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md) for detailed service organization and migration guidelines.
 
 ---
 

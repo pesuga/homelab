@@ -7,12 +7,9 @@ import {
   Settings,
   Menu,
   X,
-  Activity,
-  Shield,
-  Database,
-  Wifi,
-  Cpu
+  Activity
 } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -50,31 +47,31 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-ctp-base">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 lg:hidden bg-gray-600 bg-opacity-75"
+          className="fixed inset-0 z-40 lg:hidden bg-ctp-crust bg-opacity-75"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-50 w-64 bg-ctp-mantle shadow-lg transform transition-transform duration-300 ease-in-out
         lg:translate-x-0 lg:static lg:inset-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-ctp-surface0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Home className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 bg-gradient-to-br from-ctp-blue to-ctp-mauve rounded-lg flex items-center justify-center">
+              <Home className="w-5 h-5 text-ctp-base" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Family Assistant</h1>
+            <h1 className="text-xl font-bold text-ctp-text">Family Assistant</h1>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-500 hover:text-gray-700"
+            className="lg:hidden text-ctp-subtext0 hover:text-ctp-text"
           >
             <X className="w-6 h-6" />
           </button>
@@ -97,24 +94,24 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </nav>
 
         {/* System Status */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-ctp-surface0">
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-ctp-subtext1">
               <Activity className="w-4 h-4" />
               <span>System Status</span>
             </div>
             <div className="flex flex-wrap gap-2">
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span className="text-xs text-gray-600">API</span>
+                <div className="w-2 h-2 bg-ctp-green rounded-full" />
+                <span className="text-xs text-ctp-subtext0">API</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span className="text-xs text-gray-600">DB</span>
+                <div className="w-2 h-2 bg-ctp-green rounded-full" />
+                <span className="text-xs text-ctp-subtext0">DB</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span className="text-xs text-gray-600">AI</span>
+                <div className="w-2 h-2 bg-ctp-green rounded-full" />
+                <span className="text-xs text-ctp-subtext0">AI</span>
               </div>
             </div>
           </div>
@@ -124,39 +121,20 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
+        <header className="bg-ctp-mantle shadow-sm border-b border-ctp-surface0">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
+              className="lg:hidden text-ctp-subtext0 hover:text-ctp-text"
             >
               <Menu className="w-6 h-6" />
             </button>
 
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Shield className="w-4 h-4" />
-                <span className="hidden sm:inline">Homelab Dashboard</span>
-              </div>
+            <div className="flex-1"></div>
 
-              {/* Quick status indicators */}
-              <div className="hidden sm:flex items-center gap-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <Database className="w-4 h-4 text-blue-500" />
-                  <span className="text-gray-600">PostgreSQL</span>
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Wifi className="w-4 h-4 text-green-500" />
-                  <span className="text-gray-600">Redis</span>
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Cpu className="w-4 h-4 text-purple-500" />
-                  <span className="text-gray-600">Ollama</span>
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
-                </div>
-              </div>
+            {/* Theme Toggle */}
+            <div className="ml-auto">
+              <ThemeToggle />
             </div>
           </div>
         </header>

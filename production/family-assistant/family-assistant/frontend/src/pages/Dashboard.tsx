@@ -19,14 +19,14 @@ import {
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
-  const { systemHealth, isLoading, error } = useSystemHealth();
+  const { systemHealth, isLoading, isRefreshing, error } = useSystemHealth();
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ctp-blue mx-auto"></div>
+          <p className="mt-4 text-ctp-subtext1">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -36,7 +36,7 @@ export const Dashboard: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <p className="text-red-600">Error loading dashboard: {error}</p>
+          <p className="text-ctp-red">Error loading dashboard: {error}</p>
         </div>
       </div>
     );
@@ -46,7 +46,7 @@ export const Dashboard: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <p className="text-gray-600">No system health data available</p>
+          <p className="text-ctp-subtext1">No system health data available</p>
         </div>
       </div>
     );
@@ -71,21 +71,26 @@ export const Dashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Real-time homelab monitoring and insights</p>
+          <h1 className="text-3xl font-bold text-ctp-text">Dashboard</h1>
+          <p className="text-ctp-subtext1">Real-time homelab monitoring and insights</p>
         </div>
-        <div className="text-sm text-gray-500">
-          Last updated: {new Date(systemHealth.timestamp).toLocaleString()}
+        <div className="flex items-center gap-2">
+          {isRefreshing && (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-ctp-blue"></div>
+          )}
+          <div className="text-sm text-ctp-subtext0">
+            Last updated: {new Date(systemHealth.timestamp).toLocaleString()}
+          </div>
         </div>
       </div>
 
       {/* System Status Banner */}
       <div className={`p-4 rounded-lg border ${
         systemHealth.status === 'healthy'
-          ? 'bg-green-50 border-green-200 text-green-800'
+          ? 'bg-ctp-green/10 border-ctp-green text-ctp-green'
           : systemHealth.status === 'warning'
-          ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
-          : 'bg-red-50 border-red-200 text-red-800'
+          ? 'bg-ctp-yellow/10 border-ctp-yellow text-ctp-yellow'
+          : 'bg-ctp-red/10 border-ctp-red text-ctp-red'
       }`}>
         <div className="flex items-center gap-2">
           <Activity className="w-5 h-5" />
@@ -100,7 +105,7 @@ export const Dashboard: React.FC = () => {
         <MetricCard
           title="CPU Usage"
           value={`${systemHealth.system.cpu.usage.toFixed(1)}%`}
-          icon={<Cpu className="w-6 h-6" />}
+          icon={Cpu}
           trend={systemHealth.system.cpu.usage > 70 ? 'up' : 'stable'}
           color="blue"
         />
@@ -108,7 +113,7 @@ export const Dashboard: React.FC = () => {
           title="Memory"
           value={`${systemHealth.system.memory.percentage.toFixed(1)}%`}
           subtitle={`${formatBytes(systemHealth.system.memory.used)} / ${formatBytes(systemHealth.system.memory.total)}`}
-          icon={<Zap className="w-6 h-6" />}
+          icon={Zap}
           trend={systemHealth.system.memory.percentage > 80 ? 'up' : 'stable'}
           color="purple"
         />
@@ -116,7 +121,7 @@ export const Dashboard: React.FC = () => {
           title="Disk Usage"
           value={`${systemHealth.system.disk.percentage.toFixed(1)}%`}
           subtitle={`${formatBytes(systemHealth.system.disk.used)} / ${formatBytes(systemHealth.system.disk.total)}`}
-          icon={<HardDrive className="w-6 h-6" />}
+          icon={HardDrive}
           trend={systemHealth.system.disk.percentage > 85 ? 'up' : 'stable'}
           color="green"
         />
@@ -124,7 +129,7 @@ export const Dashboard: React.FC = () => {
           title="Network"
           value={`${(-systemHealth.system.network.download / 1024 / 1024).toFixed(1)} MB/s`}
           subtitle={`${(systemHealth.system.network.upload / 1024 / 1024).toFixed(1)} MB/s up`}
-          icon={<Wifi className="w-6 h-6" />}
+          icon={Wifi}
           trend="stable"
           color="cyan"
         />
@@ -134,13 +139,13 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* System Status Chart */}
         <div className="metric-card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">System Performance</h2>
+          <h2 className="text-lg font-semibold text-ctp-text mb-4">System Performance</h2>
           <SystemStatusChart data={systemHealth.system} />
         </div>
 
         {/* Activity Feed */}
         <div className="metric-card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-ctp-text mb-4 flex items-center gap-2">
             <Activity className="w-5 h-5" />
             Recent Activity
           </h2>
@@ -152,7 +157,7 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Service Grid */}
         <div className="metric-card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-ctp-text mb-4 flex items-center gap-2">
             <Database className="w-5 h-5" />
             Services
           </h2>
@@ -161,7 +166,7 @@ export const Dashboard: React.FC = () => {
 
         {/* Recent Conversations */}
         <div className="metric-card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-ctp-text mb-4 flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
             Recent Conversations
           </h2>

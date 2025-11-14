@@ -59,7 +59,7 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({ alerts, onDismiss }) =
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-medium">{alert.title}</h3>
                 {alert.service && (
-                  <span className="text-xs px-2 py-1 bg-white/50 rounded-full">
+                  <span className="text-xs px-2 py-1 bg-ctp-mantle/50 rounded-full">
                     {alert.service}
                   </span>
                 )}
@@ -72,7 +72,7 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({ alerts, onDismiss }) =
             <div className="flex-shrink-0">
               <button
                 onClick={() => onDismiss(alert.id)}
-                className="inline-flex text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent"
+                className="inline-flex text-gray-400 hover:text-ctp-subtext1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent"
               >
                 <span className="sr-only">Dismiss</span>
                 <X className="w-4 h-4" />

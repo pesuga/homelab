@@ -4,31 +4,42 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    {
+      pattern: /^(bg|text|border)-(ctp)-.+$/,
+    },
+  ],
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#eff6ff',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-        },
-        success: {
-          50: '#f0fdf4',
-          500: '#22c55e',
-          600: '#16a34a',
-        },
-        warning: {
-          50: '#fffbeb',
-          500: '#f59e0b',
-          600: '#d97706',
-        },
-        danger: {
-          50: '#fef2f2',
-          500: '#ef4444',
-          600: '#dc2626',
+        // Catppuccin colors via CSS variables
+        ctp: {
+          base: 'rgb(var(--ctp-base) / <alpha-value>)',
+          mantle: 'rgb(var(--ctp-mantle) / <alpha-value>)',
+          crust: 'rgb(var(--ctp-crust) / <alpha-value>)',
+          surface0: 'rgb(var(--ctp-surface0) / <alpha-value>)',
+          surface1: 'rgb(var(--ctp-surface1) / <alpha-value>)',
+          surface2: 'rgb(var(--ctp-surface2) / <alpha-value>)',
+          overlay0: 'rgb(var(--ctp-overlay0) / <alpha-value>)',
+          overlay1: 'rgb(var(--ctp-overlay1) / <alpha-value>)',
+          overlay2: 'rgb(var(--ctp-overlay2) / <alpha-value>)',
+          subtext0: 'rgb(var(--ctp-subtext0) / <alpha-value>)',
+          subtext1: 'rgb(var(--ctp-subtext1) / <alpha-value>)',
+          text: 'rgb(var(--ctp-text) / <alpha-value>)',
+          rosewater: 'rgb(var(--ctp-rosewater) / <alpha-value>)',
+          flamingo: 'rgb(var(--ctp-flamingo) / <alpha-value>)',
+          pink: 'rgb(var(--ctp-pink) / <alpha-value>)',
+          mauve: 'rgb(var(--ctp-mauve) / <alpha-value>)',
+          red: 'rgb(var(--ctp-red) / <alpha-value>)',
+          maroon: 'rgb(var(--ctp-maroon) / <alpha-value>)',
+          peach: 'rgb(var(--ctp-peach) / <alpha-value>)',
+          yellow: 'rgb(var(--ctp-yellow) / <alpha-value>)',
+          green: 'rgb(var(--ctp-green) / <alpha-value>)',
+          teal: 'rgb(var(--ctp-teal) / <alpha-value>)',
+          sky: 'rgb(var(--ctp-sky) / <alpha-value>)',
+          sapphire: 'rgb(var(--ctp-sapphire) / <alpha-value>)',
+          blue: 'rgb(var(--ctp-blue) / <alpha-value>)',
+          lavender: 'rgb(var(--ctp-lavender) / <alpha-value>)',
         },
       },
       fontFamily: {

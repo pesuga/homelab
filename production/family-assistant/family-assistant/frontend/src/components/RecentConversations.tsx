@@ -86,7 +86,7 @@ export const RecentConversations: React.FC<RecentConversationsProps> = ({ conver
       {displayConversations.map((conversation, index) => (
         <div
           key={`${conversation.threadId}-${index}`}
-          className="group p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md hover:border-primary-300 transition-all cursor-pointer"
+          className="group p-4 bg-ctp-mantle border border-ctp-surface1 rounded-lg hover:shadow-md hover:border-primary-300 transition-all cursor-pointer"
         >
           <div className="flex items-start gap-3">
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
@@ -103,7 +103,7 @@ export const RecentConversations: React.FC<RecentConversationsProps> = ({ conver
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="text-sm font-medium text-gray-900">
+                <h4 className="text-sm font-medium text-ctp-text">
                   {conversation.role === 'user' ? getUserName(conversation.userId) : 'Assistant'}
                 </h4>
                 <span className={`text-xs px-2 py-1 rounded-full ${
@@ -115,12 +115,12 @@ export const RecentConversations: React.FC<RecentConversationsProps> = ({ conver
                 </span>
               </div>
 
-              <p className="text-sm text-gray-700 mb-2 leading-relaxed">
+              <p className="text-sm text-ctp-subtext1 mb-2 leading-relaxed">
                 {truncateContent(conversation.content)}
               </p>
 
               <div className="flex items-center justify-between">
-                <p className="text-xs text-gray-500 flex items-center gap-1">
+                <p className="text-xs text-ctp-subtext0 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   {formatTimestamp(conversation.timestamp)}
                 </p>
@@ -135,7 +135,7 @@ export const RecentConversations: React.FC<RecentConversationsProps> = ({ conver
       ))}
 
       {displayConversations.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-ctp-subtext0">
           <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
           <p className="text-sm">No recent conversations</p>
         </div>

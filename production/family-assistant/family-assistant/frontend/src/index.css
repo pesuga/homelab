@@ -3,23 +3,19 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
-    @apply bg-background text-foreground;
+    @apply bg-ctp-base text-ctp-text;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer components {
   .glass-effect {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+    @apply bg-ctp-surface0/10 backdrop-blur-md border border-ctp-surface1/20;
   }
 
   .metric-card {
-    @apply bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-200;
+    @apply bg-ctp-surface0 rounded-xl shadow-lg border border-ctp-surface1 p-6 hover:shadow-xl transition-shadow duration-200;
   }
 
   .status-indicator {
@@ -27,15 +23,15 @@
   }
 
   .status-indicator.healthy {
-    @apply bg-green-500;
+    @apply bg-ctp-green;
   }
 
   .status-indicator.warning {
-    @apply bg-yellow-500;
+    @apply bg-ctp-yellow;
   }
 
   .status-indicator.error {
-    @apply bg-red-500;
+    @apply bg-ctp-red;
   }
 
   .pulse-animation {
@@ -43,11 +39,11 @@
   }
 
   .sidebar-item {
-    @apply px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 flex items-center gap-3;
+    @apply px-4 py-2 rounded-lg hover:bg-ctp-surface0 transition-colors duration-200 flex items-center gap-3 text-ctp-subtext1;
   }
 
   .sidebar-item.active {
-    @apply bg-primary-100 text-primary-700 font-medium;
+    @apply bg-ctp-surface1 text-ctp-blue font-medium;
   }
 }
 
@@ -57,15 +53,15 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+  @apply bg-ctp-surface0;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+  @apply bg-ctp-surface2 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
+  @apply bg-ctp-overlay0;
 }
 
 /* Animations */

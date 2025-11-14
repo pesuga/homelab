@@ -9,6 +9,7 @@ import { Settings } from '@/pages/Settings';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { AlertBanner } from '@/components/AlertBanner';
 import { SystemHealthProvider } from '@/contexts/SystemHealthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { WS_URL } from '@/utils/api';
 import './index.css';
 
@@ -40,9 +41,10 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SystemHealthProvider>
-        <Router>
-          <div className="min-h-screen bg-gray-50">
+      <ThemeProvider>
+        <SystemHealthProvider>
+          <Router>
+            <div className="min-h-screen bg-ctp-base">
             {/* Connection Status Indicator */}
             <div className="fixed top-4 right-4 z-50">
               <div className={`flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg ${
@@ -67,9 +69,10 @@ function App() {
                 <Route path="/settings" element={<Settings />} />
               </Routes>
             </Layout>
-          </div>
-        </Router>
-      </SystemHealthProvider>
+            </div>
+          </Router>
+        </SystemHealthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

@@ -61,7 +61,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ activities = [] }) =
       case 'user_join':
         return <Users className="w-4 h-4 text-purple-500" />;
       case 'system':
-        return <Activity className="w-4 h-4 text-gray-500" />;
+        return <Activity className="w-4 h-4 text-ctp-subtext0" />;
       default:
         return <Clock className="w-4 h-4 text-gray-400" />;
     }
@@ -89,14 +89,14 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ activities = [] }) =
       {displayActivities.map((activity) => (
         <div
           key={activity.id}
-          className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          className="flex items-start gap-3 p-3 bg-ctp-surface0 rounded-lg hover:bg-ctp-surface0 transition-colors"
         >
           <div className="flex-shrink-0 mt-0.5">
             {getActivityIcon(activity.type)}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h4 className="text-sm font-medium text-gray-900 truncate">
+              <h4 className="text-sm font-medium text-ctp-text truncate">
                 {activity.title}
               </h4>
               {activity.user && (
@@ -105,8 +105,8 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ activities = [] }) =
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-600 mb-1">{activity.description}</p>
-            <p className="text-xs text-gray-500 flex items-center gap-1">
+            <p className="text-sm text-ctp-subtext1 mb-1">{activity.description}</p>
+            <p className="text-xs text-ctp-subtext0 flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {formatTimestamp(activity.timestamp)}
             </p>
@@ -115,7 +115,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ activities = [] }) =
       ))}
 
       {displayActivities.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-ctp-subtext0">
           <Activity className="w-8 h-8 mx-auto mb-2 text-gray-300" />
           <p className="text-sm">No recent activity</p>
         </div>

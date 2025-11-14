@@ -13,7 +13,7 @@ spec:
         - name: family-assistant-frontend
           port: 3000
   tls:
-    secretName: homelab-tls
+    secretName: family-assistant-frontend-tls
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -27,7 +27,7 @@ spec:
     - match: Host(`family-api.homelab.pesulabs.net`)
       kind: Rule
       services:
-        - name: family-assistant-backend
-          port: 8000
+        - name: family-assistant
+          port: 8001
   tls:
-    secretName: homelab-tls
+    secretName: family-assistant-backend-tls

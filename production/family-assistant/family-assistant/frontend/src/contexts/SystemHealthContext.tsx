@@ -5,6 +5,7 @@ import { apiFetch, API_ENDPOINTS } from '@/utils/api';
 interface SystemHealthContextType {
   systemHealth: SystemHealth | null;
   isLoading: boolean;
+  isRefreshing: boolean;
   error: string | null;
   refreshHealth: () => Promise<void>;
 }
@@ -26,11 +27,17 @@ interface SystemHealthProviderProps {
 export const SystemHealthProvider: React.FC<SystemHealthProviderProps> = ({ children }) => {
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSystemHealth = async () => {
+  const fetchSystemHealth = async (isBackgroundRefresh = false) => {
     try {
-      setIsLoading(true);
+      // Only show loading spinner on initial load, not on background refreshes
+      if (!isBackgroundRefresh && !systemHealth) {
+        setIsLoading(true);
+      } else if (isBackgroundRefresh) {
+        setIsRefreshing(true);
+      }
       setError(null);
 
       // Fetch system health from the unified dashboard endpoint
@@ -46,9 +53,13 @@ export const SystemHealthProvider: React.FC<SystemHealthProviderProps> = ({ chil
       });
     } catch (err) {
       console.error('Error fetching system health:', err);
-      setError('Failed to fetch system health data');
+      // Only set error if we don't have cached data
+      if (!systemHealth) {
+        setError('Failed to fetch system health data');
+      }
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -74,9 +85,11 @@ export const SystemHealthProvider: React.FC<SystemHealthProviderProps> = ({ chil
 
   // Set up interval for real-time updates
   useEffect(() => {
-    fetchSystemHealth();
+    // Initial load (show spinner)
+    fetchSystemHealth(false);
 
-    const interval = setInterval(fetchSystemHealth, 10000); // Update every 10 seconds
+    // Background refreshes (no spinner, keep showing old data)
+    const interval = setInterval(() => fetchSystemHealth(true), 10000); // Update every 10 seconds
 
     return () => clearInterval(interval);
   }, []);
@@ -84,8 +97,9 @@ export const SystemHealthProvider: React.FC<SystemHealthProviderProps> = ({ chil
   const value: SystemHealthContextType = {
     systemHealth,
     isLoading,
+    isRefreshing,
     error,
-    refreshHealth: fetchSystemHealth,
+    refreshHealth: () => fetchSystemHealth(true),
   };
 
   return (

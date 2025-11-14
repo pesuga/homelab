@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Settings,
+  Settings as SettingsIcon,
   Bell,
   Shield,
   Database,
@@ -18,6 +18,7 @@ import {
   Lock,
   Globe
 } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface SettingsProps {}
 
@@ -37,6 +38,7 @@ interface SettingsSection {
 }
 
 export const Settings: React.FC<SettingsProps> = () => {
+  const { flavor, setFlavor } = useTheme();
   const [activeSection, setActiveSection] = useState('general');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -46,7 +48,7 @@ export const Settings: React.FC<SettingsProps> = () => {
     general: {
       siteName: 'Family Assistant',
       defaultLanguage: 'English',
-      theme: 'light',
+      theme: flavor,
       timezone: 'America/New_York',
       autoRefresh: true,
       refreshInterval: 30
@@ -98,7 +100,7 @@ export const Settings: React.FC<SettingsProps> = () => {
     {
       id: 'general',
       title: 'General',
-      icon: Settings,
+      icon: SettingsIcon,
       description: 'Basic system settings and preferences',
       settings: [
         {
@@ -118,11 +120,11 @@ export const Settings: React.FC<SettingsProps> = () => {
         },
         {
           key: 'theme',
-          label: 'Theme',
+          label: 'Catppuccin Theme',
           type: 'select',
           value: settingsData.general.theme,
-          options: ['light', 'dark', 'auto'],
-          description: 'Visual theme for the interface'
+          options: ['mocha', 'macchiato', 'frappe', 'latte'],
+          description: 'Catppuccin color theme flavor'
         },
         {
           key: 'autoRefresh',
@@ -344,6 +346,11 @@ export const Settings: React.FC<SettingsProps> = () => {
       }
     }));
     setHasUnsavedChanges(true);
+
+    // Update theme immediately when changed
+    if (sectionId === 'general' && key === 'theme') {
+      setFlavor(value as any);
+    }
   };
 
   const saveSettings = async () => {
@@ -366,7 +373,7 @@ export const Settings: React.FC<SettingsProps> = () => {
       general: {
         siteName: 'Family Assistant',
         defaultLanguage: 'English',
-        theme: 'light',
+        theme: 'mocha',
         timezone: 'America/New_York',
         autoRefresh: true,
         refreshInterval: 30
@@ -427,7 +434,7 @@ export const Settings: React.FC<SettingsProps> = () => {
               onChange={(e) => updateSetting(sectionId, setting.key, e.target.checked)}
               className="sr-only peer"
             />
-            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+            <div className="relative w-11 h-6 bg-ctp-surface1 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ctp-blue/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ctp-base after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ctp-base after:border-ctp-surface1 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ctp-blue"></div>
           </label>
         );
 
@@ -436,7 +443,7 @@ export const Settings: React.FC<SettingsProps> = () => {
           <select
             value={setting.value}
             onChange={(e) => updateSetting(sectionId, setting.key, e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            className="w-full px-3 py-2 bg-ctp-surface0 border border-ctp-surface1 text-ctp-text rounded-lg focus:ring-2 focus:ring-ctp-blue focus:border-ctp-blue outline-none"
           >
             {setting.options?.map(option => (
               <option key={option} value={option}>
@@ -452,7 +459,7 @@ export const Settings: React.FC<SettingsProps> = () => {
             type="number"
             value={setting.value}
             onChange={(e) => updateSetting(sectionId, setting.key, parseInt(e.target.value) || 0)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            className="w-full px-3 py-2 bg-ctp-surface0 border border-ctp-surface1 text-ctp-text rounded-lg focus:ring-2 focus:ring-ctp-blue focus:border-ctp-blue outline-none"
           />
         );
 
@@ -462,7 +469,7 @@ export const Settings: React.FC<SettingsProps> = () => {
             type="text"
             value={setting.value}
             onChange={(e) => updateSetting(sectionId, setting.key, e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            className="w-full px-3 py-2 bg-ctp-surface0 border border-ctp-surface1 text-ctp-text rounded-lg focus:ring-2 focus:ring-ctp-blue focus:border-ctp-blue outline-none"
           />
         );
 
@@ -509,15 +516,15 @@ export const Settings: React.FC<SettingsProps> = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-ctp-text">Settings</h1>
+          <p className="text-ctp-subtext1 mt-2">
             Configure your Family Assistant system
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={resetSettings}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-ctp-subtext1 hover:text-ctp-text border border-ctp-surface1 rounded-lg hover:bg-ctp-surface0 transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
             Reset
@@ -527,8 +534,8 @@ export const Settings: React.FC<SettingsProps> = () => {
             disabled={!hasUnsavedChanges || saveStatus === 'saving'}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
               hasUnsavedChanges
-                ? 'bg-primary-600 text-white hover:bg-primary-700'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                ? 'bg-ctp-blue text-ctp-base hover:bg-ctp-sapphire'
+                : 'bg-ctp-surface1 text-ctp-overlay0 cursor-not-allowed'
             }`}
           >
             {getSaveButtonContent()}
@@ -538,9 +545,9 @@ export const Settings: React.FC<SettingsProps> = () => {
 
       {/* Unsaved Changes Warning */}
       {hasUnsavedChanges && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-yellow-600" />
-          <p className="text-sm text-yellow-800">
+        <div className="mb-6 p-4 bg-ctp-yellow/10 border border-ctp-yellow rounded-lg flex items-center gap-3">
+          <AlertTriangle className="w-5 h-5 text-ctp-yellow" />
+          <p className="text-sm text-ctp-yellow">
             You have unsaved changes. Don't forget to save them before leaving.
           </p>
         </div>
@@ -558,8 +565,8 @@ export const Settings: React.FC<SettingsProps> = () => {
                   onClick={() => setActiveSection(section.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${
                     activeSection === section.id
-                      ? 'bg-primary-100 text-primary-900 border-l-4 border-primary-600'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-ctp-surface1 text-ctp-text border-l-4 border-ctp-blue'
+                      : 'text-ctp-subtext1 hover:bg-ctp-surface0'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -576,15 +583,15 @@ export const Settings: React.FC<SettingsProps> = () => {
         {/* Settings Content */}
         <div className="lg:col-span-3">
           {currentSection && (
-            <div className="bg-white border border-gray-200 rounded-lg">
-              <div className="p-6 border-b border-gray-200">
+            <div className="bg-ctp-mantle border border-ctp-surface1 rounded-lg">
+              <div className="p-6 border-b border-ctp-surface1">
                 <div className="flex items-center gap-3">
-                  <currentSection.icon className="w-6 h-6 text-gray-500" />
+                  <currentSection.icon className="w-6 h-6 text-ctp-subtext0" />
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">
+                    <h2 className="text-xl font-semibold text-ctp-text">
                       {currentSection.title}
                     </h2>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-ctp-subtext1 mt-1">
                       {currentSection.description}
                     </p>
                   </div>
@@ -596,13 +603,13 @@ export const Settings: React.FC<SettingsProps> = () => {
                   {currentSection.settings.map((setting) => (
                     <div key={setting.key}>
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium text-gray-900">
+                        <label className="text-sm font-medium text-ctp-text">
                           {setting.label}
                         </label>
                         {renderSettingInput(setting, currentSection.id)}
                       </div>
                       {setting.description && (
-                        <p className="text-sm text-gray-500 flex items-start gap-1">
+                        <p className="text-sm text-ctp-subtext0 flex items-start gap-1">
                           <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
                           {setting.description}
                         </p>

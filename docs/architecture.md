@@ -25,14 +25,14 @@ This document describes the complete system architecture of the homelab agentic 
                       │
           ┌───────────▼────────────┐
           │   Local Network        │
-          │   192.168.1.0/24       │
+          │   192.168.8.0/24       │
           └───────────┬────────────┘
                       │
         ┌─────────────┴─────────────┐
         │                           │
 ┌───────▼────────┐          ┌──────▼─────────┐
 │  Compute Node  │          │  Service Node  │
-│  192.168.1.10  │          │  192.168.1.20  │
+│  192.168.8.10  │          │  192.168.8.20  │
 └────────────────┘          └────────────────┘
 ```
 
@@ -77,7 +77,7 @@ This document describes the complete system architecture of the homelab agentic 
   - 256GB SSD (System + K8s)
   - 500GB HDD (Data)
 - **Network**: 1Gbps Ethernet
-- **IP**: 192.168.1.20
+- **IP**: 192.168.8.20
 - **Tailscale IP**: 100.64.0.20
 
 **Services Running**:
@@ -102,7 +102,7 @@ This document describes the complete system architecture of the homelab agentic 
 - **Network**:
   - WAN: 2.5Gbps Ethernet
   - LAN: 1Gbps Ethernet
-- **IP**: 192.168.1.1
+- **IP**: 192.168.8.1
 - **Tailscale IP**: 100.64.0.1
 
 **Services Running**:
@@ -197,16 +197,16 @@ This document describes the complete system architecture of the homelab agentic 
 Internet
    │
    ▼
-[GL-MT2500] (192.168.1.1)
+[GL-MT2500] (192.168.8.1)
    │
-   ├─[Compute Node] (192.168.1.10)
+   ├─[Compute Node] (192.168.8.10)
    │   └─WSL: (172.20.0.0/16)
    │
-   ├─[Service Node] (192.168.1.20)
+   ├─[Service Node] (192.168.8.20)
    │   └─K8s Pod Network: (10.42.0.0/16)
    │   └─K8s Service Network: (10.43.0.0/16)
    │
-   └─[Clients] (192.168.1.100-200)
+   └─[Clients] (192.168.8.100-200)
 ```
 
 ### Tailscale Overlay Network
@@ -223,7 +223,7 @@ Tailscale Mesh (100.64.0.0/10)
 
 ### Port Mapping
 
-#### Compute Node (192.168.1.10)
+#### Compute Node (192.168.8.10)
 
 | Port | Service | Protocol | Description |
 |------|---------|----------|-------------|
@@ -232,7 +232,7 @@ Tailscale Mesh (100.64.0.0/10)
 
 **Note**: Ollama is also accessible via K8s Ingress at https://ollama.homelab.pesulabs.net
 
-#### Service Node (192.168.1.20)
+#### Service Node (192.168.8.20)
 
 | Port | Service | Protocol | Description |
 |------|---------|----------|-------------|
