@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  # Family AI Core Services
+  family-ai-api:
+    build:
+      context: ./core
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://family_ai:password@postgres:5432/family_ai
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./core:/app
+    restart: unless-stopped
+
+  # Database Services
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=family_ai
+      - POSTGRES_USER=family_ai
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./deployment/scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # Voice Processing Service
+  voice-service:
+    build:
+      context: ./integrations/voice
+      dockerfile: Dockerfile
+    environment:
+      - WHISPER_MODEL=small
+      - API_BASE_URL=http://family-ai-api:8000
+    depends_on:
+      - family-ai-api
+    volumes:
+      - /dev/snd:/dev/snd  # For microphone access
+    privileged: true  # Required for audio device access
+    restart: unless-stopped
+
+  # Matrix Bot Service
+  matrix-bot:
+    build:
+      context: ./integrations/matrix
+      dockerfile: Dockerfile
+    environment:
+      - MATRIX_HOMESERVER=${MATRIX_HOMESERVER}
+      - MATRIX_BOT_USERNAME=${MATRIX_BOT_USERNAME}
+      - MATRIX_BOT_PASSWORD=${MATRIX_BOT_PASSWORD}
+      - FAMILY_AI_API_URL=http://family-ai-api:8000
+    depends_on:
+      - family-ai-api
+    restart: unless-stopped
+
+  # Home Assistant Integration (optional)
+  home-assistant-integration:
+    build:
+      context: ./integrations/home-assistant
+      dockerfile: Dockerfile
+    environment:
+      - HA_URL=${HA_URL}
+      - HA_TOKEN=${HA_TOKEN}
+      - FAMILY_AI_API_URL=http://family-ai-api:8000
+    depends_on:
+      - family-ai-api
+    restart: unless-stopped
+    profiles:
+      - home-assistant
+
+  # Reverse Proxy (Traefik)
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./deployment/traefik/traefik.yml:/traefik.yml
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: family-ai-network
