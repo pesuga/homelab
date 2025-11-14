@@ -33,6 +33,9 @@ from config.feature_flags import feature_flags
 from api.routes.phase2_routes import router as phase2_router
 from api.startup import startup_event, shutdown_event
 
+# Phase 3: Family Management (User Management, Parental Controls, RBAC)
+from api.routes.family import router as family_router
+
 # Authentication
 from api.routes.auth import router as auth_router
 
@@ -72,6 +75,9 @@ app.add_middleware(
 
 # Include Phase 2 routes
 app.include_router(phase2_router)
+
+# Include Phase 3 routes (Family Management)
+app.include_router(family_router)
 
 # Include Authentication routes
 app.include_router(auth_router, prefix="/api/v1")
@@ -505,16 +511,6 @@ async def root():
         "version": "0.1.0",
         "status": "running"
     }
-
-
-@app.get("/dashboard", response_class=HTMLResponse)
-async def serve_dashboard():
-    """Serve the standalone dashboard HTML."""
-    dashboard_path = Path(__file__).parent.parent / "dashboard-standalone.html"
-    if dashboard_path.exists():
-        with open(dashboard_path, "r") as f:
-            return f.read()
-    raise HTTPException(status_code=404, detail="Dashboard not found")
 
 
 @app.get("/health")
@@ -1416,6 +1412,15 @@ if frontend_dist.exists():
         This must be the last route defined to act as a catch-all.
         API routes are already registered above and will take precedence.
         """
+        # Exclude API, docs, and backend-specific paths
+        excluded_prefixes = [
+            "api/", "dashboard/", "health", "docs", "redoc", "openapi.json",
+            "chat/", "upload/", "telegram/", "ws/", "models"
+        ]
+
+        if any(full_path.startswith(prefix) for prefix in excluded_prefixes):
+            raise HTTPException(status_code=404, detail=f"Path not found: /{full_path}")
+
         # Serve index.html for all frontend routes
         index_file = frontend_dist / "index.html"
         if index_file.exists():
