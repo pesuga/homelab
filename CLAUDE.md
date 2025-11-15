@@ -45,6 +45,33 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 - Service Node (asuna): 100.81.76.55
 - Compute Node (pesubuntu): 100.72.98.106
 
+## Claude Code Session Management
+
+### Documentation Structure
+
+This project follows a structured documentation approach for Claude Code sessions:
+
+#### Core Documentation Sections
+- **`session-state`**: Track what happened during each session (commands, files, outcomes, decisions)
+- **`sprint-updates`**: Progress on current sprint objectives and里程碑 (milestones)
+- **`architecture-changes`**: Design decisions, new patterns, structural modifications
+- **`services-inventory`**: New/modified/deleted services and their current status
+- **`knowledge-capture`**: Reusable patterns, code snippets, lessons learned, best practices
+- **`blocking-issues`**: Current impediments, blockers, and their resolution status
+- **`next-steps`**: Immediate action items and priorities for the next session
+
+#### Documentation Locations
+- **Primary**: `docs/SESSION-STATE.md` - Main session tracking
+- **Archive**: `claudedocs/archive/` - Historical session documentation (date-stamped)
+- **Temporary**: Session-specific docs in project root (to be cleaned up by end-of-session hook)
+
+#### "Where We Left Off" Section
+Located at the end of this file, this section provides context continuity between sessions:
+- Current working directory and branch
+- Active tasks and their completion status
+- Tools and services being used
+- Continuation instructions for next session
+
 ## Common Commands
 - When running commands in the compute node, verify where you are, most likely you are already there.
 - For any kubectl command you need to run, there is no need to ssh.
@@ -500,6 +527,33 @@ When resuming work, check:
 - All infrastructure and configuration is version controlled
 - Secrets go in `.env` (gitignored), not in code
 
+---
+
+**Last Session**: 2025-11-15 - Creating Claude Code End-of-Session Hook
+**Working Directory**: `/home/pesu/Rakuflow/systems/homelab`
+**Current Branch**: `main`
+
+### Active Tasks
+- **In Progress**: Creating end-of-session hook for documentation updates and cleanup
+- **Completed**: Documentation structure added to CLAUDE.md
+- **Next**: Implement the actual hook script with cleanup and session management
+
+### Tools & Services Being Used
+- Claude Code with custom hooks
+- Project documentation system
+- File cleanup automation
+
+### Continuation Instructions
+1. Complete implementation of end-of-session hook script
+2. Test documentation updates and cleanup functionality
+3. Verify "Where We Left Off" section updates correctly
+4. Commit and push the hook implementation
+
+### Quick Status Check
+- [ ] Check `docs/SESSION-STATE.md` for detailed session progress
+- [ ] Verify git status for any uncommitted changes
+- [ ] Review current sprint objectives in README.md
+
 ## Support Resources
 
 - **Project Issues**: https://github.com/pesuga/homelab/issues
@@ -508,3 +562,37 @@ When resuming work, check:
 - **N8n Docs**: https://docs.n8n.io
 - **K3s Docs**: https://docs.k3s.io
 - **ROCm Docs**: https://rocm.docs.amd.com
+
+---
+
+## 📍 Where We Left Off
+
+**Last Session**: 2025-11-15 - End-of-session documentation and cleanup
+**Working Directory**: /home/pesu/Rakuflow/systems/homelab
+**Current Branch**: main
+
+### Active Tasks
+- **Completed**: End-of-session hook execution with documentation updates
+- **Files Processed**: Session documentation archived, temporary files cleaned up
+- **Next**: Review updated documentation and continue with next development tasks
+
+### Tools & Services Being Used
+- Claude Code with end-of-session hook automation
+- Project documentation and session management system
+- Git workflow with 89 uncommitted files
+
+### Session Summary
+- **Documentation**: Session state archived to claudedocs/archive/
+- **Cleanup**: Temporary files and one-time scripts removed
+- **Continuity**: "Where We Left Off" section updated for next session
+
+### Continuation Instructions
+1. Check git status and commit any important changes
+2. Review docs/SESSION-STATE.md for detailed session history
+3. Continue with next development tasks based on current sprint objectives
+4. Verify service health if working on infrastructure
+
+### Quick Status Check
+- [x] Session documentation processed and archived
+- [x] Temporary files cleaned up
+- [x] "Where We Left Off" section updated
