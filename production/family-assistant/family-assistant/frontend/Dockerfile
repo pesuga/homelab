@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies (including devDependencies for build)
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -23,7 +23,7 @@ FROM nginx:1.27-alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY family-assistant/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf.default 2>/dev/null || true

@@ -1,0 +1,235 @@
+# Alert rules for Family AI Platform
+# These rules provide proactive monitoring and alerting for critical issues
+
+groups:
+  - name: familyai-platform
+    rules:
+      # API Health Alerts
+      - alert: FamilyAPIHighErrorRate
+        expr: rate(http_requests_total{status=~"5..",job="familyai-api"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High error rate detected in Family AI API"
+          description: "Error rate is {{ $value }} errors per second over the last 5 minutes"
+
+      - alert: FamilyAPIHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="familyai-api"}[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High latency detected in Family AI API"
+          description: "95th percentile latency is {{ $value }} seconds"
+
+      - alert: FamilyAPIDown
+        expr: up{job="familyai-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Family AI API is down"
+          description: "The Family AI API has been down for more than 1 minute"
+
+      # Database Alerts
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL database has been down for more than 1 minute"
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends{datname="family_ai"} > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High number of PostgreSQL connections"
+          description: "PostgreSQL has {{ $value }} active connections"
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_statements_mean_time_seconds{datname="family_ai"}[5m]) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow PostgreSQL queries detected"
+          description: "Average query time is {{ $value }} seconds"
+
+      # Memory Service Alerts
+      - alert: Mem0HighErrorRate
+        expr: rate(http_requests_total{status=~"5..",job="mem0"}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          component: memory
+        annotations:
+          summary: "High error rate in Mem0 memory service"
+          description: "Mem0 error rate is {{ $value }} errors per second"
+
+      - alert: Mem0ServiceDown
+        expr: up{job="mem0"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: memory
+        annotations:
+          summary: "Mem0 memory service is down"
+          description: "Mem0 service has been down for more than 1 minute"
+
+      # Vector Database Alerts
+      - alert: QdrantHighLatency
+        expr: histogram_quantile(0.95, rate(qdrant_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: vector-db
+        annotations:
+          summary: "High latency in Qdrant vector database"
+          description: "95th percentile query latency is {{ $value }} seconds"
+
+      - alert: QdrantServiceDown
+        expr: up{job="qdrant"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: vector-db
+        annotations:
+          summary: "Qdrant vector database is down"
+          description: "Qdrant has been down for more than 1 minute"
+
+      # LLM Service Alerts
+      - alert: OllamaHighMemoryUsage
+        expr: container_memory_usage_bytes{container="ollama",pod=~"ollama-.*"} / container_spec_memory_limit_bytes{container="ollama",pod=~"ollama-.*"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: llm
+        annotations:
+          summary: "Ollama high memory usage"
+          description: "Ollama memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: OllamaServiceDown
+        expr: up{job="ollama"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: llm
+        annotations:
+          summary: "Ollama LLM service is down"
+          description: "Ollama service has been down for more than 2 minutes"
+
+      # Voice Service Alerts
+      - alert: WhisperHighErrorRate
+        expr: rate(http_requests_total{status=~"5..",job="whisper"}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          component: voice
+        annotations:
+          summary: "High error rate in Whisper STT service"
+          description: "Whisper error rate is {{ $value }} errors per second"
+
+      - alert: WhisperServiceDown
+        expr: up{job="whisper"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: voice
+        annotations:
+          summary: "Whisper STT service is down"
+          description: "Whisper service has been down for more than 1 minute"
+
+      # System Resource Alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% on instance {{ $instance }}"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% on instance {{ $instance }}"
+
+      - alert: DiskSpaceRunningLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Low disk space"
+          description: "Root filesystem has {{ $value }}% free space"
+
+      - alert: DiskSpaceCritical
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 5
+        for: 1m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical disk space"
+          description: "Root filesystem has only {{ $value }}% free space"
+
+  - name: familyai-business
+    rules:
+      # Business Logic Alerts
+      - alert: HighVoiceInteractionFailureRate
+        expr: rate(familyai_voice_interactions_failed_total[5m]) / (rate(familyai_voice_interactions_total[5m]) + 0.001) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "High voice interaction failure rate"
+          description: "{{ $value | humanizePercentage }} of voice interactions are failing"
+
+      - alert: NoVoiceInteractions
+        expr: increase(familyai_voice_interactions_total[1h]) == 0
+        for: 2h
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "No voice interactions detected"
+          description: "No voice interactions have been processed in the last 2 hours"
+
+      - alert: HighMemoryUsageRate
+        expr: rate(familyai_memory_stored_total[1h]) > 100
+        for: 10m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "High memory storage rate"
+          description: "Storing {{ $value }} memories per hour"
+
+      - alert: FamilyMemberInactive
+        expr: time() - familyai_member_last_interaction_timestamp > 86400 * 7
+        for: 1m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "Family member inactive for 7 days"
+          description: "Member {{ $member_name }} hasn't interacted in 7 days"

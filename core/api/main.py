@@ -11,10 +11,17 @@ from fastapi.security import HTTPBearer
 from contextlib import asynccontextmanager
 import uvicorn
 
-from .routers import family, privacy, integrations
-from .services.family_context import FamilyContextService
-from .services.auth_service import AuthService
-from .models.database import init_db
+try:
+    from .routers import family, privacy, integrations, chat, voice, dashboard
+    from .services.family_context import FamilyContextService
+    from .services.auth_service import AuthService
+    from .models.database import init_db
+except ImportError:
+    # Handle running from different directory contexts
+    from api.routers import family, privacy, integrations, chat, voice, dashboard
+    from api.services.family_context import FamilyContextService
+    from api.services.auth_service import AuthService
+    from api.models.database import init_db
 
 
 @asynccontextmanager
@@ -50,6 +57,9 @@ security = HTTPBearer()
 app.include_router(family.router, prefix="/api/v1/family", tags=["family"])
 app.include_router(privacy.router, prefix="/api/v1/privacy", tags=["privacy"])
 app.include_router(integrations.router, prefix="/api/v1/integrations", tags=["integrations"])
+app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
+app.include_router(voice.router, prefix="/api/v1/voice", tags=["voice"])
+app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboard"])
 
 
 @app.get("/")

@@ -1,0 +1,408 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: familyai
+  labels:
+    name: familyai
+    environment: production
+    app.kubernetes.io/name: family-ai-platform
+
+---
+# Home Assistant Integration Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home-assistant-integration
+  namespace: familyai
+  labels:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: home-assistant-integration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: family-ai-platform
+      app.kubernetes.io/component: home-assistant-integration
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: family-ai-platform
+        app.kubernetes.io/component: home-assistant-integration
+    spec:
+      containers:
+      - name: home-assistant-integration
+        image: familyai-platform:latest
+        imagePullPolicy: IfNotPresent
+        command: ["python", "-m", "services.home_assistant_integration"]
+        ports:
+        - containerPort: 8123
+          name: http
+          protocol: TCP
+        env:
+        - name: HOME_ASSISTANT_URL
+          value: "http://homeassistant.local:8123"  # User should update this
+        - name: HOME_ASSISTANT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: familyai-secrets
+              key: home-assistant-token
+              optional: true
+        - name: DATABASE_URL
+          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"
+        - name: POSTGRES_HOST
+          value: "postgres.homelab.svc.cluster.local"
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_DB
+          value: "homelab"
+        - name: POSTGRES_USER
+          value: "homelab"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: familyai-secrets
+              key: postgres-password
+              optional: true
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8123
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8123
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 1
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-assistant-integration
+  namespace: familyai
+  labels:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: home-assistant-integration
+spec:
+  selector:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: home-assistant-integration
+  ports:
+  - port: 8123
+    targetPort: 8123
+    protocol: TCP
+    name: http
+  type: ClusterIP
+
+---
+# Matrix Element Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matrix-integration
+  namespace: familyai
+  labels:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: matrix-integration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: family-ai-platform
+      app.kubernetes.io/component: matrix-integration
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: family-ai-platform
+        app.kubernetes.io/component: matrix-integration
+    spec:
+      containers:
+      - name: matrix-integration
+        image: familyai-platform:latest
+        imagePullPolicy: IfNotPresent
+        command: ["python", "-m", "services.matrix_service"]
+        ports:
+        - containerPort: 8008
+          name: http
+          protocol: TCP
+        env:
+        - name: MATRIX_HOMESERVER
+          value: "https://matrix.org"  # User should update this
+        - name: MATRIX_USERNAME
+          value: "@familybot:matrix.org"  # User should update this
+        - name: MATRIX_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: familyai-secrets
+              key: matrix-access-token
+              optional: true
+        - name: DATABASE_URL
+          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"
+        - name: POSTGRES_HOST
+          value: "postgres.homelab.svc.cluster.local"
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_DB
+          value: "homelab"
+        - name: POSTGRES_USER
+          value: "homelab"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: familyai-secrets
+              key: postgres-password
+              optional: true
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8008
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8008
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 1
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matrix-integration
+  namespace: familyai
+  labels:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: matrix-integration
+spec:
+  selector:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: matrix-integration
+  ports:
+  - port: 8008
+    targetPort: 8008
+    protocol: TCP
+    name: http
+  type: ClusterIP
+
+---
+# Enhanced Family Assistant Frontend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: family-assistant-frontend-v2
+  namespace: familyai
+  labels:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: frontend-v2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: family-ai-platform
+      app.kubernetes.io/component: frontend-v2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: family-ai-platform
+        app.kubernetes.io/component: frontend-v2
+    spec:
+      containers:
+      - name: frontend
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        volumeMounts:
+        - name: frontend-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+        - name: static-files
+          mountPath: /usr/share/nginx/html
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 1
+      volumes:
+      - name: frontend-config
+        configMap:
+          name: familyai-frontend-config
+      - name: static-files
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: family-assistant-frontend-v2
+  namespace: familyai
+  labels:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: frontend-v2
+spec:
+  selector:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: frontend-v2
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  type: ClusterIP
+
+---
+# ConfigMap for nginx frontend
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: familyai-frontend-config
+  namespace: familyai
+  labels:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: config
+data:
+  default.conf: |
+    upstream family_assistant_api {
+        server family-assistant.homelab.svc.cluster.local:8001;
+    }
+
+    server {
+        listen 80;
+        server_name _;
+
+        # Frontend static files (will be served from here)
+        location / {
+            root /usr/share/nginx/html;
+            index index.html;
+            try_files $uri $uri/ /index.html;
+        }
+
+        # API proxy
+        location /api/ {
+            proxy_pass http://family_assistant_api;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # Health check
+        location /health {
+            proxy_pass http://family_assistant_api/health;
+            proxy_set_header Host $host;
+        }
+    }
+
+---
+# Secrets for new services
+apiVersion: v1
+kind: Secret
+metadata:
+  name: familyai-secrets
+  namespace: familyai
+  labels:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: secrets
+type: Opaque
+data:
+  # These should be base64 encoded - replace with actual values
+  home-assistant-token: ""
+  matrix-access-token: ""
+  postgres-password: ""  # Should match existing postgres secret
+
+---
+# Ingress for new services
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: familyai-v2-ingress
+  namespace: familyai
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: default
+  labels:
+    app.kubernetes.io/name: family-ai-platform
+    app.kubernetes.io/component: ingress
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - familyai-v2.homelab.pesulabs.net
+    - homeassistant.familyai.homelab.pesulabs.net
+    - matrix.familyai.homelab.pesulabs.net
+    secretName: familyai-v2-tls
+  rules:
+  - host: familyai-v2.homelab.pesulabs.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: family-assistant-frontend-v2
+            port:
+              number: 80
+  - host: homeassistant.familyai.homelab.pesulabs.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: home-assistant-integration
+            port:
+              number: 8123
+  - host: matrix.familyai.homelab.pesulabs.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: matrix-integration
+            port:
+              number: 8008

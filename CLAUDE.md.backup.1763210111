@@ -92,10 +92,10 @@ List of all testing scripts:
 
 **Access Dashboards** (HTTPS URLs):
 - **Homelab Dashboard**: https://dash.pesulabs.net (admin/ChangeMe!2024#Secure) - Unified landing page ✅ Fixed
-- **Family Assistant Admin**: https://admin.homelab.pesulabs.net - Admin dashboard with JWT authentication ✅ **NEW**
 - **N8n Workflows**: https://n8n.homelab.pesulabs.net (admin/admin123)
 - **Prometheus**: https://prometheus.homelab.pesulabs.net
 - **LobeChat**: https://chat.homelab.pesulabs.net (AI chat interface with memory)
+- **Family Assistant**: ⚠️ Development in progress - Phase 1: Enhanced Dashboard & Monitoring
 
 **Internal Services** (NodePort access for development):
 - **Loki**: http://100.81.76.55:30314 (log aggregation API)
@@ -529,6 +529,8 @@ When resuming work, check:
 
 ---
 
+## 📍 Where We Left Off
+
 **Last Session**: 2025-11-15 - Creating Claude Code End-of-Session Hook
 **Working Directory**: `/home/pesu/Rakuflow/systems/homelab`
 **Current Branch**: `main`
@@ -554,6 +556,8 @@ When resuming work, check:
 - [ ] Verify git status for any uncommitted changes
 - [ ] Review current sprint objectives in README.md
 
+---
+
 ## Support Resources
 
 - **Project Issues**: https://github.com/pesuga/homelab/issues
@@ -562,37 +566,3 @@ When resuming work, check:
 - **N8n Docs**: https://docs.n8n.io
 - **K3s Docs**: https://docs.k3s.io
 - **ROCm Docs**: https://rocm.docs.amd.com
-
----
-
-## 📍 Where We Left Off
-
-**Last Session**: 2025-11-15 - End-of-session documentation and cleanup
-**Working Directory**: /home/pesu/Rakuflow/systems/homelab
-**Current Branch**: main
-
-### Active Tasks
-- **Completed**: End-of-session hook execution with documentation updates
-- **Files Processed**: Session documentation archived, temporary files cleaned up
-- **Next**: Review updated documentation and continue with next development tasks
-
-### Tools & Services Being Used
-- Claude Code with end-of-session hook automation
-- Project documentation and session management system
-- Git workflow with 89 uncommitted files
-
-### Session Summary
-- **Documentation**: Session state archived to claudedocs/archive/
-- **Cleanup**: Temporary files and one-time scripts removed
-- **Continuity**: "Where We Left Off" section updated for next session
-
-### Continuation Instructions
-1. Check git status and commit any important changes
-2. Review docs/SESSION-STATE.md for detailed session history
-3. Continue with next development tasks based on current sprint objectives
-4. Verify service health if working on infrastructure
-
-### Quick Status Check
-- [x] Session documentation processed and archived
-- [x] Temporary files cleaned up
-- [x] "Where We Left Off" section updated
