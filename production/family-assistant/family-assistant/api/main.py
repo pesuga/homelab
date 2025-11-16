@@ -1,6 +1,6 @@
 """FastAPI application for Family Assistant Agent with multimodal support."""
 
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -37,7 +37,8 @@ from api.startup import startup_event, shutdown_event
 from api.routes.family import router as family_router
 
 # Authentication
-from api.routes.auth import router as auth_router
+from api.routers.auth import router as auth_router
+from api.dependencies import get_current_user_from_token, get_current_admin_user
 
 # Observability and Middleware
 from api.observability.tracing import setup_tracing
@@ -563,7 +564,11 @@ async def export_feature_config():
 
 
 @app.post("/features/{flag_key}/enable")
-async def enable_feature_flag(flag_key: str, user_context: Optional[Dict[str, Any]] = None):
+async def enable_feature_flag(
+    flag_key: str,
+    user_context: Optional[Dict[str, Any]] = None,
+    current_user: FamilyMember = Depends(get_current_admin_user)  # Admin only
+):
     """Enable a feature flag."""
     if flag_key not in feature_flags.flags:
         raise HTTPException(status_code=404, detail=f"Feature flag {flag_key} not found")
@@ -606,7 +611,10 @@ async def get_feature_flag_config(flag_key: str):
 
 
 @app.get("/users/{user_id}", response_model=UserProfileResponse)
-async def get_user_profile(user_id: str):
+async def get_user_profile(
+    user_id: str,
+    current_user: FamilyMember = Depends(get_current_user_from_token)
+):
     """Get user profile."""
     async with db_pool.acquire() as conn:
         row = await conn.fetchrow(
@@ -638,7 +646,10 @@ async def get_user_profile(user_id: str):
 
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def chat(
+    request: ChatRequest,
+    current_user: FamilyMember = Depends(get_current_user_from_token)
+):
     """
     Enhanced chat endpoint supporting multimodal content.
 
@@ -813,7 +824,11 @@ async def chat(request: ChatRequest):
 
 
 @app.get("/conversations/{thread_id}")
-async def get_conversation(thread_id: str, user_id: Optional[str] = None):
+async def get_conversation(
+    thread_id: str,
+    user_id: Optional[str] = None,
+    current_user: FamilyMember = Depends(get_current_user_from_token)
+):
     """Get conversation history for a thread."""
     async with db_pool.acquire() as conn:
         if user_id:
@@ -876,7 +891,8 @@ async def upload_content(
     file: UploadFile = File(...),
     description: Optional[str] = Form(None),
     user_id: str = Form(...),
-    conversation_id: Optional[str] = Form(None)
+    conversation_id: Optional[str] = Form(None),
+    current_user: FamilyMember = Depends(get_current_user_from_token)
 ):
     """
     Upload and process multimodal content.

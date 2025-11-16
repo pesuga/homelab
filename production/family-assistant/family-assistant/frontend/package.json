@@ -18,20 +18,22 @@
     "test:e2e:codegen": "playwright codegen"
   },
   "dependencies": {
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.2.0",
+    "@tanstack/react-query": "^5.8.4",
+    "axios": "^1.6.2",
+    "clsx": "^2.0.0",
+    "date-fns": "^2.30.0",
+    "immer": "^10.1.1",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
-    "@tanstack/react-query": "^5.8.4",
-    "axios": "^1.6.2",
-    "date-fns": "^2.30.0",
-    "lucide-react": "^0.294.0",
     "recharts": "^2.8.0",
     "socket.io-client": "^4.7.4",
-    "@headlessui/react": "^1.7.17",
-    "clsx": "^2.0.0",
     "tailwind-merge": "^2.0.0",
-    "zustand": "^4.5.2",
-    "immer": "^10.1.1"
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.1",

@@ -5,6 +5,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/dashboard/',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -14,11 +15,15 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:30801',
+        target: 'http://localhost:8001',
         changeOrigin: true,
       },
-      '/socket.io': {
-        target: 'http://localhost:30801',
+      '/dashboard': {
+        target: 'http://localhost:8001',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'ws://localhost:8001',
         changeOrigin: true,
         ws: true,
       },

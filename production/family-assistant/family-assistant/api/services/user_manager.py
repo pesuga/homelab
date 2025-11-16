@@ -28,9 +28,7 @@ from ..models.user_management import (
     AuditLog,
     AuditLogCreate,
 )
-from ..config import get_settings
-
-settings = get_settings()
+from config.settings import settings
 
 
 class UserManager:

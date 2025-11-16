@@ -47,9 +47,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         csp_directives = [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval'",  # Allow inline scripts for React
-            "style-src 'self' 'unsafe-inline'",  # Allow inline styles
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",  # Allow inline styles and Google Fonts
             "img-src 'self' data: https:",  # Allow images from data URLs and HTTPS
-            "font-src 'self' data:",  # Allow fonts from data URLs
+            "font-src 'self' data: https://fonts.gstatic.com",  # Allow fonts from data URLs and Google Fonts CDN
             "connect-src 'self'",  # API calls to same origin
             "frame-ancestors 'none'",  # Prevent framing (same as X-Frame-Options)
             "base-uri 'self'",  # Restrict base tag URLs

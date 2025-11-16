@@ -1,0 +1,14 @@
+---
+# Certificate for admin.homelab.pesulabs.net
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: admin-dashboard-tls
+  namespace: homelab
+spec:
+  secretName: admin-dashboard-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+  - admin.homelab.pesulabs.net

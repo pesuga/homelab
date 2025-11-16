@@ -305,9 +305,16 @@ class ScreenTimeLog(BaseModel):
 class ScreenTimeUpdate(BaseModel):
     """Update screen time log"""
     user_id: UUID
-    date: date = Field(default_factory=date.today)
+    date: Optional[date] = None
     minutes_to_add: int = Field(..., ge=1)
     activity_type: str = "general"
+
+    model_config = {"extra": "forbid"}
+
+    def __init__(self, **data):
+        if 'date' not in data or data['date'] is None:
+            data['date'] = date.today()
+        super().__init__(**data)
 
 
 class ScreenTimeStatus(BaseModel):
