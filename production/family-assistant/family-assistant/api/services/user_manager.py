@@ -113,11 +113,64 @@ class UserManager:
     async def get_family_member(self, member_id: UUID) -> Optional[FamilyMember]:
         """Retrieve family member by ID"""
         async with self.db.acquire() as conn:
+            # Try family_members table first
             row = await conn.fetchrow(
                 "SELECT * FROM family_members WHERE id = $1 AND is_active = TRUE",
-                member_id,
+                str(member_id),
             )
-            return FamilyMember(**dict(row)) if row else None
+            if row:
+                return FamilyMember(
+                    id=str(row["id"]),
+                    telegram_id=row["telegram_id"],
+                    username=row["username"],
+                    first_name=row["first_name"] or "",
+                    last_name=row["last_name"] or "",
+                    email=row["username"],  # Use username as email fallback
+                    role=row["role"],
+                    age_group=row["age_group"],
+                    language_preference=row["language_preference"],
+                    hashed_password=row.get("hashed_password"),
+                    is_active=row["is_active"],
+                    created_at=row["created_at"],
+                    updated_at=row["updated_at"],
+                )
+
+            # Try users table (for admin accounts)
+            # Since users table uses integer IDs, we need to match by email
+            # First get the email from the JWT token or search by deterministic UUID pattern
+            import uuid
+            # Try to find user by checking if the UUID matches our deterministic pattern
+            # This is a limitation of our mixed user ID system
+            # For now, let's get the first admin user as fallback
+            row = await conn.fetchrow(
+                "SELECT * FROM users WHERE is_admin = true AND is_active = true LIMIT 1",
+            )
+            if row:
+                # Generate the same deterministic UUID to check if it matches
+                user_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, f"user-{row['id']}")
+                if str(user_uuid) == str(member_id):
+                    # Get password hash for authentication
+                    password_row = await conn.fetchrow(
+                        "SELECT password_hash FROM users WHERE id = $1",
+                        row["id"],
+                    )
+                    return FamilyMember(
+                        id=str(user_uuid),
+                        telegram_id=None,
+                        username=row["username"],
+                        first_name="Admin",
+                        last_name="User",
+                        email=row["email"],
+                        role="parent" if row["is_admin"] else "member",
+                        age_group="adult",
+                        language_preference="en",
+                        hashed_password=password_row["password_hash"] if password_row else None,
+                        is_active=row["is_active"],
+                        created_at=row["created_at"],
+                        updated_at=row["updated_at"],
+                    )
+
+            return None
 
     async def get_family_member_by_telegram_id(self, telegram_id: int) -> Optional[FamilyMember]:
         """Retrieve family member by Telegram ID"""
@@ -678,3 +731,90 @@ class UserManager:
 
             rows = await conn.fetch(query, *values)
             return [AuditLog(**dict(row)) for row in rows]
+
+    # ==============================================================================
+    # Authentication Support Methods
+    # ==============================================================================
+
+    async def get_family_member_by_email(self, email: str) -> Optional[FamilyMember]:
+        """Get family member by email address"""
+        async with self.db.acquire() as conn:
+            # Try users table first (for admin accounts)
+            row = await conn.fetchrow(
+                "SELECT * FROM users WHERE email = $1 AND is_active = true",
+                email,
+            )
+            if row:
+                # Convert users table row to FamilyMember format
+                import uuid
+                # Get password hash for authentication
+                password_row = await conn.fetchrow(
+                    "SELECT password_hash FROM users WHERE username = $1",
+                    row["username"],
+                )
+
+                # Generate deterministic UUID based on user ID
+                user_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, f"user-{row['id']}")
+                return FamilyMember(
+                    id=str(user_uuid),  # Use deterministic UUID
+                    username=row["username"],
+                    first_name="Admin",  # Default for users table
+                    last_name="User",
+                    email=row["email"],
+                    role="parent" if row["is_admin"] else "member",
+                    age_group="adult",
+                    language_preference="en",
+                    hashed_password=password_row["password_hash"] if password_row else None,
+                    is_active=row["is_active"],
+                    created_at=row["created_at"],
+                    updated_at=row["updated_at"],
+                )
+
+            # Try family_members table (for family accounts)
+            row = await conn.fetchrow(
+                "SELECT * FROM family_members WHERE username = $1 AND is_active = true",
+                email,
+            )
+            if row:
+                return FamilyMember(
+                    id=str(row["id"]),
+                    username=row["username"],
+                    first_name=row["first_name"] or "",
+                    last_name=row["last_name"] or "",
+                    email=row["username"],  # Use username as email fallback
+                    role=row["role"],
+                    age_group=row["age_group"],
+                    language_preference=row["language_preference"],
+                    is_active=row["is_active"],
+                    created_at=row["created_at"],
+                    updated_at=row["updated_at"],
+                )
+
+            return None
+
+    async def verify_password(self, user: FamilyMember, password: str) -> bool:
+        """Verify password against stored hash"""
+        async with self.db.acquire() as conn:
+            # Get password hash from users table
+            row = await conn.fetchrow(
+                "SELECT password_hash FROM users WHERE username = $1",
+                user.username,
+            )
+            if not row:
+                # Try family_members table
+                row = await conn.fetchrow(
+                    "SELECT hashed_password FROM family_members WHERE username = $1",
+                    user.username,
+                )
+                if not row:
+                    return False
+                stored_hash = row["hashed_password"]
+            else:
+                stored_hash = row["password_hash"]
+
+            # Import bcrypt for password verification
+            import bcrypt
+            try:
+                return bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8'))
+            except:
+                return False

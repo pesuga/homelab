@@ -140,6 +140,7 @@ class FamilyMember(FamilyMemberBase):
     telegram_id: Optional[int] = None
     email: Optional[EmailStr] = None
     username: Optional[str] = None
+    hashed_password: Optional[str] = None  # For authentication compatibility
 
     is_active: bool = True
     created_at: datetime

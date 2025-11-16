@@ -23,6 +23,7 @@ from api.models.multimodal import (
     TextContent, ImageContent, AudioContent, DocumentContent,
     FamilyMemberProfile
 )
+from api.models.user_management import FamilyMember
 from api.services.content_processor import ContentProcessor, ContentProcessorError, content_processor
 from api.services.telegram_service import create_telegram_service
 

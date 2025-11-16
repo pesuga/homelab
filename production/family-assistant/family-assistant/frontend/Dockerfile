@@ -23,10 +23,14 @@ FROM nginx:1.27-alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration
-COPY family-assistant/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf.default 2>/dev/null || true
+
+# Fix file permissions for static assets
+RUN chmod -R 644 /usr/share/nginx/html/* && \
+    find /usr/share/nginx/html -type d -exec chmod 755 {} \;
 
 # Expose port
 EXPOSE 3000

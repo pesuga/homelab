@@ -27,11 +27,11 @@ async def init_db_pool():
     global _db_pool
     if _db_pool is None:
         _db_pool = await asyncpg.create_pool(
-            host=settings.POSTGRES_HOST,
-            port=settings.POSTGRES_PORT,
-            user=settings.POSTGRES_USER,
-            password=settings.POSTGRES_PASSWORD,
-            database=settings.POSTGRES_DB,
+            host=settings.postgres_host,
+            port=settings.postgres_port,
+            user=settings.postgres_user,
+            password=settings.postgres_password,
+            database=settings.postgres_db,
             min_size=5,
             max_size=20,
         )
