@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: family-assistant-frontend
+  namespace: homelab
+  labels:
+    app: family-assistant-frontend
+    component: familyai-v3
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: family-assistant-frontend
+      component: familyai-v3
+  template:
+    metadata:
+      labels:
+        app: family-assistant-frontend
+        component: familyai-v3
+    spec:
+      containers:
+      - name: family-assistant-frontend
+        image: 100.81.76.55:30500/family-assistant:complete
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: false
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: family-assistant-frontend
+  namespace: homelab
+  labels:
+    app: family-assistant-frontend
+    component: familyai-v3
+spec:
+  selector:
+    app: family-assistant-frontend
+    component: familyai-v3
+  type: NodePort
+  ports:
+  - port: 3000
+    targetPort: 3000
+    nodePort: 30300
+    name: http

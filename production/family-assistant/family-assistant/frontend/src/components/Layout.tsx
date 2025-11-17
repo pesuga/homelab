@@ -7,7 +7,9 @@ import {
   Settings,
   Menu,
   X,
-  Activity
+  Activity,
+  Brain,
+  MessageSquare
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -37,6 +39,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       href: '/family',
       icon: Users,
       current: location.pathname === '/family',
+    },
+    {
+      name: 'Memory Browser',
+      href: '/memory',
+      icon: Brain,
+      current: location.pathname === '/memory',
+    },
+    {
+      name: 'Prompt Management',
+      href: '/prompts',
+      icon: MessageSquare,
+      current: location.pathname === '/prompts',
     },
     {
       name: 'Settings',

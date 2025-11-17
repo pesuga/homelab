@@ -5,6 +5,8 @@ import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { Architecture } from './pages/Architecture';
 import { FamilyMembers } from './pages/FamilyMembers';
+import { MemoryBrowser } from './components/MemoryBrowser';
+import { PromptManagement } from './components/PromptManagement';
 import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -106,6 +108,22 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <FamilyMembers />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/memory"
+                    element={
+                      <ProtectedRoute>
+                        <MemoryBrowser />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/prompts"
+                    element={
+                      <ProtectedRoute>
+                        <PromptManagement />
                       </ProtectedRoute>
                     }
                   />

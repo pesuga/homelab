@@ -42,7 +42,7 @@ class AuthClient {
    */
   async login(credentials: LoginRequest): Promise<TokenResponse> {
     const formData = new FormData();
-    formData.append('username', credentials.username);
+    formData.append('username', credentials.email);
     formData.append('password', credentials.password);
 
     const response = await fetch(`${this.baseURL}/auth/login`, {
@@ -103,7 +103,7 @@ class AuthClient {
    * Verify token validity
    */
   async verifyToken(): Promise<{ valid: boolean; user_id: string; role: string; username: string }> {
-    const response = await this.authenticatedFetch('/auth/verify');
+    const response = await this.authenticatedFetch('/auth/verify-token');
 
     if (!response.ok) {
       throw new Error('Token verification failed');
