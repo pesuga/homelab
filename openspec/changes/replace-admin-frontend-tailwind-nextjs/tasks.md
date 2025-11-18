@@ -1,0 +1,6 @@
+- [x] 1. Initialize new Next.js Tailwind admin scaffold from template
+- [x] 2. Integrate authentication flow with existing backend (JWT/OAuth)
+- [x] 3. Wire dashboard/settings pages to backend endpoints
+- [x] 4. Remove or deprecate old admin frontend references
+- [x] 5. Run local tests and manual UI checks; document test results
+- [x] 6. Update docs/README with migration guidance
