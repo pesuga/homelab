@@ -1,45 +1,12 @@
 {
   "mcpServers": {
-    "homelab-kubernetes": {
-      "command": "python3",
-      "args": ["/home/pesu/Rakuflow/systems/homelab/services/family-assistant/mcp-tools/kubernetes_manager.py"],
-      "env": {
-        "HOMELAB_NAMESPACE": "homelab",
-        "KUBECONFIG": "/home/pesu/.kube/config"
-      }
-    },
-    "homelab-frontend": {
-      "command": "python3",
-      "args": ["/home/pesu/Rakuflow/systems/homelab/services/family-assistant/mcp-tools/frontend_tester.py"],
-      "env": {
-        "HOMELAB_BASE_URL": "http://100.81.76.55:30800",
-        "PLAYWRIGHT_BROWSERS_PATH": "/home/pesu/.playwright"
-      }
-    },
-    "homelab-git": {
-      "command": "python3",
-      "args": ["/home/pesu/Rakuflow/systems/homelab/services/family-assistant/mcp-tools/git_workflow.py"],
-      "env": {
-        "GIT_PRE_COMMIT_TESTS": "true",
-        "GIT_AUTO_PUSH": "false",
-        "GIT_COMMIT_TEMPLATE": "homelab"
-      }
-    },
-    "homelab-infra": {
-      "command": "python3",
-      "args": ["/home/pesu/Rakuflow/systems/homelab/services/family-assistant/mcp-tools/infrastructure_detective.py"],
-      "env": {
-        "SERVICE_NODE_IP": "100.81.76.55",
-        "COMPUTE_NODE_IP": "100.72.98.106"
-      }
-    },
-    "homelab-docs": {
-      "command": "python3",
-      "args": ["/home/pesu/Rakuflow/systems/homelab/services/family-assistant/mcp-tools/documentation_sync.py"],
-      "env": {
-        "DOCS_DIR": "/home/pesu/Rakuflow/systems/homelab/docs",
-        "REPO_PATH": "/home/pesu/Rakuflow/systems/homelab"
-      }
+    "shadcn": {
+      "command": "npx",
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ]
     }
   }
 }
+

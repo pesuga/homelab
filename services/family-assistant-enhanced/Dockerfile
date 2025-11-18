@@ -7,12 +7,14 @@ FROM python:3.12-slim as base
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     wget \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -28,9 +30,10 @@ RUN pip install --upgrade pip && \
 # Copy application code
 COPY . .
 
-# Create necessary directories
+# Create necessary directories and fix permissions
 RUN mkdir -p /app/logs /app/uploads /app/temp && \
-    chown -R familyai:familyai /app
+    chown -R familyai:familyai /app && \
+    chmod -R 755 /app
 
 # Switch to non-root user
 USER familyai
@@ -43,4 +46,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 EXPOSE 8001
 
 # Run the application
-CMD ["python", "main.py"]
+CMD ["python", "api/main.py"]

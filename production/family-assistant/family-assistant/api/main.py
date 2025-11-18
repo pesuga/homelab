@@ -37,6 +37,18 @@ from api.startup import startup_event, shutdown_event
 # Phase 3: Family Management (User Management, Parental Controls, RBAC)
 from api.routes.family import router as family_router
 
+# MCP (Model Context Protocol) Support
+from api.routes.mcp import router as mcp_router
+
+# Personal MCP (User-facing tool extensions)
+from api.routes.personal_mcp import router as personal_mcp_router
+
+# Admin MCP (System-wide configuration)
+from api.routes.admin_mcp import router as admin_mcp_router
+
+# Family Tools (Simplified member interface)
+from api.routes.family_tools import router as family_tools_router
+
 # Authentication
 from api.routers.auth import router as auth_router
 from api.dependencies import get_current_user_from_token, get_current_admin_user
@@ -51,8 +63,100 @@ from api.middleware.security import SecurityHeadersMiddleware
 # Initialize FastAPI app
 app = FastAPI(
     title="Family Assistant API",
-    description="Privacy-focused AI assistant with persistent memory and comprehensive observability",
-    version="2.0.0"
+    description="""
+    ## Privacy-focused AI Assistant for Families
+
+    The Family Assistant API provides comprehensive AI capabilities with:
+
+    ### Core Features
+    - **Persistent Memory**: Multi-layer memory system with family context
+    - **Multimodal Support**: Text, image, audio, and document processing
+    - **Family Management**: Role-based access control and parental oversight
+    - **MCP Integration**: Extensible tool system via Model Context Protocol
+    - **Real-time Dashboard**: WebSocket-based system monitoring
+
+    ### Authentication
+    - JWT-based authentication for family members
+    - Role-based permissions (parent, teenager, child, grandparent)
+    - Admin-only endpoints for system configuration
+
+    ### API Versioning
+    - Current version: v2.0.0
+    - Base URL: `/api/v1`
+    - OpenAPI specification available at `/openapi.json`
+
+    ### Key Endpoints
+    - **Chat**: `/chat`, `/v1/chat/completions` (OpenAI-compatible)
+    - **Dashboard**: `/dashboard/*` for system monitoring
+    - **Family Management**: `/api/v1/family/*`
+    - **MCP Tools**: `/api/v1/admin/mcp/*` (admin), `/api/v1/family-tools/*` (members)
+
+    ### Integration Support
+    - OpenAI-compatible API for LobeChat and other clients
+    - WebSocket support for real-time updates
+    - Comprehensive audit logging and usage analytics
+    """,
+    version="2.0.0",
+    terms_of_service="https://homelab.pesulabs.net/terms",
+    contact={
+        "name": "Family Assistant Support",
+        "url": "https://homelab.pesulabs.net",
+        "email": "admin@pesulabs.net",
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+    openapi_tags=[
+        {
+            "name": "Core",
+            "description": "Core chat and conversation operations"
+        },
+        {
+            "name": "Authentication",
+            "description": "JWT authentication and user management"
+        },
+        {
+            "name": "Family Management",
+            "description": "Family member management and parental controls"
+        },
+        {
+            "name": "Phase 2",
+            "description": "Memory and prompt management features"
+        },
+        {
+            "name": "MCP Development",
+            "description": "Development MCP tools (for app development)"
+        },
+        {
+            "name": "Personal MCP",
+            "description": "Personal MCP server management (legacy)"
+        },
+        {
+            "name": "Admin MCP",
+            "description": "Admin-only MCP configuration and arcade.dev integration"
+        },
+        {
+            "name": "Family Tools",
+            "description": "Simplified tool access for family members"
+        },
+        {
+            "name": "Dashboard",
+            "description": "System monitoring and health endpoints"
+        },
+        {
+            "name": "Multimodal",
+            "description": "Image, audio, and document processing"
+        },
+        {
+            "name": "OpenAI Compatible",
+            "description": "OpenAI API compatibility for external clients"
+        },
+        {
+            "name": "Features",
+            "description": "Feature flag management and configuration"
+        }
+    ]
 )
 
 # Configure observability (before middleware)
@@ -75,14 +179,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include Phase 2 routes
-app.include_router(phase2_router)
+# Include API v1 routes with proper organization
+app.include_router(auth_router, tags=["Authentication"])
 
-# Include Phase 3 routes (Family Management)
-app.include_router(family_router)
+# Phase 2: Memory & Prompt Management
+app.include_router(phase2_router, tags=["Phase 2"])
 
-# Include Authentication routes
-app.include_router(auth_router, prefix="/api/v1")
+# Phase 3: Family Management (User Management, Parental Controls, RBAC)
+app.include_router(family_router, tags=["Family Management"])
+
+# MCP Routes (Development tools for app building)
+app.include_router(mcp_router, tags=["MCP Development"])
+
+# Personal MCP Routes (Legacy - being replaced by two-tier system)
+app.include_router(personal_mcp_router, tags=["Personal MCP"])
+
+# Admin MCP Routes (Two-tier system - admin configuration)
+app.include_router(admin_mcp_router, tags=["Admin MCP"])
+
+# Family Tools Routes (Two-tier system - member interface)
+app.include_router(family_tools_router, tags=["Family Tools"])
 
 
 # ==============================================================================
@@ -505,25 +621,103 @@ async def shutdown():
     print("👋 Family Assistant API shut down")
 
 
-@app.get("/")
+@app.get(
+    "/",
+    tags=["Core"],
+    summary="API Root",
+    description="Root endpoint returning basic API information and links to documentation",
+    responses={
+        200: {
+            "description": "API Information",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Family Assistant API",
+                        "version": "2.0.0",
+                        "status": "running",
+                        "docs": "/docs",
+                        "openapi": "/openapi.json",
+                        "health": "/health"
+                    }
+                }
+            }
+        }
+    }
+)
 async def root():
-    """Root endpoint."""
+    """Root endpoint returning API information."""
     return {
         "message": "Family Assistant API",
-        "version": "0.1.0",
-        "status": "running"
+        "version": "2.0.0",
+        "status": "running",
+        "docs": "/docs",
+        "openapi": "/openapi.json",
+        "redoc": "/redoc",
+        "health": "/health",
+        "dashboard": "/dashboard/system-health"
     }
 
 
-@app.get("/health")
+@app.get(
+    "/health",
+    tags=["Core"],
+    summary="Health Check",
+    description="Basic health check endpoint showing service status",
+    responses={
+        200: {
+            "description": "Service Health",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "healthy",
+                        "services": {
+                            "ollama": "http://localhost:11434",
+                            "mem0": "http://100.81.76.55:30880",
+                            "postgres": "postgres.homelab.svc.cluster.local:5432"
+                        },
+                        "timestamp": "2025-01-17T12:00:00Z"
+                    }
+                }
+            }
+        }
+    }
+)
 async def health():
-    """Health check endpoint."""
-    return {
+    """Comprehensive health check endpoint."""
+    from datetime import datetime
+
+    # Basic health check
+    health_status = {
         "status": "healthy",
-        "ollama": settings.ollama_base_url,
-        "mem0": settings.mem0_api_url,
-        "postgres": f"{settings.postgres_host}:{settings.postgres_port}"
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": "2.0.0",
+        "services": {
+            "ollama": {
+                "url": settings.ollama_base_url,
+                "status": "configured"
+            },
+            "mem0": {
+                "url": settings.mem0_api_url,
+                "status": "configured"
+            },
+            "postgres": {
+                "url": f"{settings.postgres_host}:{settings.postgres_port}",
+                "status": "configured"
+            },
+            "redis": {
+                "url": f"{settings.redis_host}:{settings.redis_port}",
+                "status": "configured"
+            }
+        },
+        "api": {
+            "openapi": "/openapi.json",
+            "docs": "/docs",
+            "redoc": "/redoc",
+            "dashboard": "/dashboard/system-health"
+        }
     }
+
+    return health_status
 
 
 # Feature Flags Management Endpoints
@@ -1226,7 +1420,33 @@ async def dismiss_alert(alert_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to dismiss alert: {str(e)}")
 
-@app.get("/dashboard/stats")
+@app.get(
+    "/dashboard/stats",
+    tags=["Dashboard"],
+    summary="Dashboard Statistics",
+    description="Get overall system and usage statistics for the dashboard",
+    responses={
+        200: {
+            "description": "Dashboard Statistics",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "users": 5,
+                        "conversations": 150,
+                        "messages": 1200,
+                        "recent_activity_24h": 45,
+                        "system": {
+                            "cpu_usage": 25.5,
+                            "memory_usage": 67.2,
+                            "disk_usage": 45.8,
+                            "uptime_hours": 72.5
+                        }
+                    }
+                }
+            }
+        }
+    }
+)
 async def get_dashboard_stats():
     """Get overall dashboard statistics."""
     try:
@@ -1262,6 +1482,127 @@ async def get_dashboard_stats():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get dashboard stats: {str(e)}")
+
+
+@app.get(
+    "/api/info",
+    tags=["Core"],
+    summary="API Information",
+    description="Get detailed information about available API endpoints and features",
+    responses={
+        200: {
+            "description": "API Information",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "version": "2.0.0",
+                        "features": {
+                            "mcp_integration": True,
+                            "family_management": True,
+                            "multimodal_support": True,
+                            "realtime_dashboard": True,
+                            "openai_compatible": True
+                        },
+                        "endpoints": {
+                            "admin_mcp": "/api/v1/admin/mcp/*",
+                            "family_tools": "/api/v1/family-tools/*",
+                            "chat": "/chat",
+                            "openai_api": "/v1/chat/completions",
+                            "dashboard": "/dashboard/*"
+                        }
+                    }
+                }
+            }
+        }
+    }
+)
+async def get_api_info():
+    """Get detailed API information and capabilities."""
+    return {
+        "version": "2.0.0",
+        "api_title": "Family Assistant API",
+        "description": "Privacy-focused AI assistant with MCP integration and family management",
+        "features": {
+            "core_chat": True,
+            "mcp_integration": True,
+            "two_tier_mcp_system": True,
+            "family_management": True,
+            "multimodal_support": True,
+            "realtime_dashboard": True,
+            "openai_compatible": True,
+            "jwt_authentication": True,
+            "role_based_access": True,
+            "parental_controls": True,
+            "memory_system": True,
+            "audit_logging": True,
+            "websocket_support": True
+        },
+        "authentication": {
+            "type": "JWT Bearer Token",
+            "roles": ["parent", "grandparent", "teenager", "child"],
+            "admin_required": ["/api/v1/admin/mcp/*", "/features/*/enable", "/features/*/disable"]
+        },
+        "mcp_system": {
+            "two_tier_architecture": True,
+            "admin_endpoints": "/api/v1/admin/mcp/*",
+            "member_endpoints": "/api/v1/family-tools/*",
+            "arcade_dev_integration": True,
+            "custom_servers": True,
+            "family_safety_controls": True,
+            "usage_analytics": True
+        },
+        "endpoints": {
+            "core": {
+                "chat": "/chat",
+                "conversations": "/conversations/{thread_id}",
+                "health": "/health",
+                "info": "/api/info"
+            },
+            "admin_mcp": {
+                "servers": "/api/v1/admin/mcp/servers",
+                "arcade_config": "/api/v1/admin/mcp/arcade/configure",
+                "tool_permissions": "/api/v1/admin/mcp/tools/permissions",
+                "analytics": "/api/v1/admin/mcp/analytics/usage"
+            },
+            "family_tools": {
+                "browse": "/api/v1/family-tools/tools",
+                "execute": "/api/v1/family-tools/tools/execute",
+                "favorites": "/api/v1/family-tools/favorites",
+                "recommendations": "/api/v1/family-tools/recommendations"
+            },
+            "dashboard": {
+                "system_health": "/dashboard/system-health",
+                "services": "/dashboard/services",
+                "metrics": "/dashboard/metrics",
+                "websocket": "/ws"
+            },
+            "openai_compatible": {
+                "chat": "/v1/chat/completions",
+                "models": "/v1/models"
+            },
+            "documentation": {
+                "swagger": "/docs",
+                "redoc": "/redoc",
+                "openapi": "/openapi.json"
+            }
+        },
+        "websockets": {
+            "realtime_updates": "/ws",
+            "features": ["system_health", "service_status", "alerts"]
+        },
+        "integration_points": {
+            "lobeChat": {
+                "compatible": True,
+                "endpoint": "/v1/chat/completions",
+                "authentication": "JWT Token"
+            },
+            "arcade_dev": {
+                "integrated": True,
+                "admin_only": True,
+                "endpoint": "/api/v1/admin/mcp/arcade/*"
+            }
+        }
+    }
 
 
 # OpenAI-compatible API endpoints for LobeChat integration

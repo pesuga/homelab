@@ -1,0 +1,29 @@
+# Family Assistant Backend Service
+# Provides internal cluster access to Family Assistant API
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: family-assistant-backend
+  namespace: homelab
+  labels:
+    app: family-assistant-backend
+    component: familyai-v3
+spec:
+  type: ClusterIP
+  selector:
+    app: family-assistant-backend
+    component: familyai-v3
+  ports:
+  - name: http-api
+    port: 8001
+    targetPort: 8001
+    protocol: TCP
+  - name: ha-api
+    port: 8123
+    targetPort: 8123
+    protocol: TCP
+  - name: matrix-api
+    port: 8008
+    targetPort: 8008
+    protocol: TCP

@@ -24,8 +24,7 @@ declare -A SERVICES=(
     ["Docker Registry"]="${SERVICE_NODE_IP}:30500:/v2/"
     ["Homelab Dashboard"]="${SERVICE_NODE_IP}:30800:/"
     ["Mem0"]="${SERVICE_NODE_IP}:30880:/docs"
-    ["LobeChat"]="${SERVICE_NODE_IP}:30910:/"
-
+    
     # Compute Node Services
     ["Ollama"]="${COMPUTE_NODE_IP}:11434:/api/version"
 )
@@ -169,18 +168,7 @@ for service in "${!SERVICES[@]}"; do
                 ((FAILED_SERVICES++))
             fi
             ;;
-        "LobeChat")
-            # LobeChat redirects, handle redirects properly
-            status_code=$(get_http_status "$url" 10)
-            if [ "$status_code" = "307" ] || [ "$status_code" = "302" ] || [ "$status_code" = "200" ]; then
-                print_status "OK" "$service" "Responding (redirects to login, HTTP $status_code)"
-                ((HEALTHY_SERVICES++))
-            else
-                print_status "FAIL" "$service" "Not responding (HTTP $status_code)"
-                ((FAILED_SERVICES++))
-            fi
-            ;;
-        *)
+          *)
             # Standard HTTP check for other services
             if check_http_endpoint "$service" "$url" 10; then
                 status_code=$(get_http_status "$url" 5)

@@ -26,7 +26,6 @@ declare -A SERVICES=(
     ["Loki"]="http://100.81.76.55:30314/ready"
     ["Qdrant"]="http://100.81.76.55:30633/collections"
     ["Docker Registry"]="http://100.81.76.55:30500/v2/_catalog"
-    ["LobeChat"]="http://100.81.76.55:30910/"
     ["Mem0"]="http://100.81.76.55:30880/docs"
     ["Homelab Dashboard"]="http://100.81.76.55:30800/"
 )

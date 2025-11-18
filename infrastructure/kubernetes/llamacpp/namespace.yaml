@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llamacpp
+  labels:
+    name: llamacpp
+    app.kubernetes.io/name: llamacpp
+    app.kubernetes.io/component: infrastructure

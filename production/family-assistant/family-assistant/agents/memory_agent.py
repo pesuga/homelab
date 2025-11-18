@@ -5,9 +5,9 @@ import json
 from typing import TypedDict, List, Dict, Any, Optional
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.postgres import PostgresSaver
-from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from config.settings import settings
+from .llamacpp_client import ChatllamaCPP
 
 
 class AgentState(TypedDict):
@@ -24,11 +24,12 @@ class FamilyAssistantAgent:
 
     def __init__(self):
         """Initialize the agent with LLM and checkpointer."""
-        # Initialize Ollama LLM
-        self.llm = ChatOllama(
-            base_url=settings.ollama_base_url,
-            model=settings.ollama_model,
-            temperature=settings.ollama_temperature
+        # Initialize llama.cpp LLM with Kimi-VL vision capabilities
+        self.llm = ChatllamaCPP(
+            base_url=settings.llamacpp_base_url,
+            model=settings.llamacpp_model,
+            temperature=settings.llamacpp_temperature,
+            max_tokens=settings.llamacpp_max_tokens
         )
 
         # Initialize PostgreSQL checkpointer

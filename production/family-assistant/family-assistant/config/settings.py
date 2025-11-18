@@ -15,11 +15,32 @@ class Settings(BaseSettings):
         case_sensitive=False
     )
 
-    # LLM Configuration
-    ollama_base_url: str = "http://100.72.98.106:11434"
-    ollama_model: str = "llama3.1:8b"
-    ollama_temperature: float = 0.7
-    ollama_max_tokens: int = 2048
+    # LLM Configuration - llama.cpp with Kimi-VL
+    llamacpp_base_url: str = "http://100.72.98.106:8080"
+    llamacpp_model: str = "Kimi-VL-A3B-Thinking-2506-Q4_K_M"
+    llamacpp_temperature: float = 0.7
+    llamacpp_max_tokens: int = 2048
+
+    # Backward compatibility for ollama references
+    @property
+    def ollama_base_url(self) -> str:
+        """Backward compatibility: map to llama.cpp URL."""
+        return self.llamacpp_base_url
+
+    @property
+    def ollama_model(self) -> str:
+        """Backward compatibility: map to llama.cpp model."""
+        return self.llamacpp_model
+
+    @property
+    def ollama_temperature(self) -> float:
+        """Backward compatibility: map to llama.cpp temperature."""
+        return self.llamacpp_temperature
+
+    @property
+    def ollama_max_tokens(self) -> int:
+        """Backward compatibility: map to llama.cpp max tokens."""
+        return self.llamacpp_max_tokens
 
     # PostgreSQL
     postgres_host: str = "postgres.homelab.svc.cluster.local"

@@ -40,7 +40,6 @@ This document provides a comprehensive inventory of all services running in the 
 | **Open WebUI** | 🔴 Offline | https://webui.homelab.pesulabs.net | 30080 | Connection error | Disabled by user |
 | **Flowise** | 🔴 Offline | https://flowise.homelab.pesulabs.net | 30850 | Connection error | Internal cluster network TLS issue |
 | **LiteLLM** | 🔴 Offline | https://litellm.homelab.pesulabs.net | 8000 | HTTP 401 | Auth required |
-| **LobeChat** | 🔴 Offline | https://chat.pesulabs.net | 30844 | Connection error | Service available |
 
 ### Automation & Workflows
 | Service | Status | URL | Port | Health Message | Notes |
@@ -63,7 +62,7 @@ This document provides a comprehensive inventory of all services running in the 
 
 ### 🤖 AI & Machine Learning (7 services)
 - **Online**: Ollama, Qdrant, Mem0 (3/7)
-- **Offline**: Open WebUI, Flowise, LiteLLM, LobeChat (4/7)
+- **Offline**: Open WebUI, Flowise, LiteLLM (3/7)
 - **Status**: 43% online
 
 ### 📊 Monitoring & Observability (2 services)
@@ -170,7 +169,6 @@ This document provides a comprehensive inventory of all services running in the 
 | Ollama | http://100.72.98.106:11434 | - | /api/version | 11434 |
 | LiteLLM | http://100.72.98.106:8000 | - | /health | 8000 |
 | Whisper | http://100.81.76.55:30900 | http://whisper.homelab.svc.cluster.local:3000 | /health | 30900 |
-| LobeChat | https://chat.pesulabs.net | http://lobechat.homelab.svc.cluster.local:3000 | /api/health | 30844 |
 | Open WebUI | https://webui.homelab.pesulabs.net:30080 | http://webui.homelab.svc.cluster.local:8080 | /health | 30080 |
 
 ### Performance Metrics

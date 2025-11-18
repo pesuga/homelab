@@ -94,7 +94,6 @@ test_dns "grafana.$DOMAIN"
 test_dns "prometheus.$DOMAIN"
 test_dns "ollama.$DOMAIN"
 test_dns "webui.$DOMAIN"
-test_dns "lobechat.$DOMAIN"
 
 # Test NodePort Services (HTTP)
 echo -e "\n${BLUE}━━━ NodePort Services (HTTP) ━━━${NC}"
@@ -113,7 +112,6 @@ test_https "Grafana HTTPS" "https://grafana.$DOMAIN"
 test_https "Prometheus HTTPS" "https://prometheus.$DOMAIN"
 test_https "Open WebUI HTTPS" "https://webui.$DOMAIN"
 test_https "Ollama HTTPS" "https://ollama.$DOMAIN"
-test_https "LobeChat HTTPS" "https://lobechat.$DOMAIN"
 
 # Test Ollama on Compute Node
 echo -e "\n${BLUE}━━━ Ollama API (Compute Node) ━━━${NC}"
@@ -127,7 +125,7 @@ echo -e "\n${BLUE}━━━ Internal Cluster Services ━━━${NC}"
 
 # Certificate Expiry Check
 echo -e "\n${BLUE}━━━ Certificate Expiry Details ━━━${NC}"
-for service in n8n grafana prometheus webui ollama lobechat; do
+for service in n8n grafana prometheus webui ollama; do
     printf "%-20s" "$service.$DOMAIN:"
     expiry=$(echo | openssl s_client -servername "$service.$DOMAIN" -connect "$service.$DOMAIN:443" 2>/dev/null | openssl x509 -noout -dates 2>/dev/null | grep "notAfter" | cut -d= -f2 || echo "N/A")
     if [ "$expiry" != "N/A" ]; then

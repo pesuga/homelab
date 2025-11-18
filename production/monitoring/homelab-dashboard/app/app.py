@@ -565,6 +565,7 @@ def api_login_stats():
 
 @app.route('/health')
 @csrf.exempt  # Health checks don't need CSRF
+@limiter.exempt  # Don't rate limit health checks from K8s probes
 def health():
     """Health check endpoint"""
     return jsonify({

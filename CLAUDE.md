@@ -1,3 +1,22 @@
+<!-- OPENSPEC:START -->
+# OpenSpec Instructions
+
+These instructions are for AI assistants working in this project.
+
+Always open `@/openspec/AGENTS.md` when the request:
+- Mentions planning or proposals (words like proposal, spec, change, plan)
+- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
+- Sounds ambiguous and you need the authoritative spec before coding
+
+Use `@/openspec/AGENTS.md` to learn:
+- How to create and apply change proposals
+- Spec format and conventions
+- Project structure and guidelines
+
+Keep this managed block so 'openspec update' can refresh the instructions.
+
+<!-- OPENSPEC:END -->
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -6,10 +25,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **homelab agentic workflow platform** - a self-hosted infrastructure for running AI agents and workflows with local LLM inference. The platform consists of two primary nodes:
 
-- **Compute Node**: Native Ubuntu 25.10 (pesubuntu) - runs Ollama with GPU acceleration (AMD RX 7800 XT) and Whisper
+- **Compute Node**: Native Ubuntu 25.10 (pesubuntu) - runs llama.cpp with GPU acceleration (AMD RX 7800 XT) and Whisper
 - **Service Node**: Ubuntu Server 24.04 (asuna, 192.168.8.185) running K3s with N8n, PostgreSQL, Redis, Qdrant, and Loki
 
-**Current Status**: Sprint 4 ✅ COMPLETED - Advanced services deployed, ROCm + Ollama functional, Family Assistant Enhancement in progress 
+**Current Status**: Phase 2.1 ✅ COMPLETED - Flux CD bootstrapped, manual GitOps workflow active, Phase 2.2 in progress
+
+**Recent Completion** (2025-11-18):
+- ✅ Flux CD v2.7.3 installed (6/6 controllers healthy)
+- ✅ Sealed Secrets v0.33.1 deployed
+- ✅ Manual GitOps workflow implemented (Git sync blocked by network issue)
+- ✅ Service dependency mapping complete
+- 📖 See: `MANUAL-GITOPS-QUICKSTART.md` and `docs/PHASE2-1-SUMMARY.md` 
 
 ## Architecture Overview
 
@@ -18,16 +44,16 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 **Compute Node (pesubuntu - localhost)**:
 - Purpose: LLM inference with GPU acceleration
 - Hardware: i5-12400F (6C/12T), 32GB RAM, AMD RX 7800 XT (16GB VRAM, Navi 32)
-- Services: Ollama (native + K8s ready), ROCm 6.4.1, Promtail, Tailscale
+- Services: llama.cpp (native + vision support), ROCm 6.4.1, Vulkan backend, Promtail, Tailscale
 - OS: Ubuntu 25.10 (Questing Quetzal) - Native installation
 - Kernel: 6.17.0-5-generic
 - Storage: 937GB available
-- Current State: ✅ ROCm 6.4.1 installed, ✅ Ollama 0.12.6 with GPU acceleration, ✅ Models loaded, ✅ K8s manifests ready
+- Current State: ✅ ROCm 6.4.1 installed, ✅ llama.cpp with Vulkan GPU acceleration, ✅ Kimi-VL model loaded, ✅ Production service running
 
 **Service Node (asuna - 192.168.8.185)**:
 - Purpose: Kubernetes orchestration and workflow automation
 - Hardware: i7-4510U, 8GB RAM, 98GB storage
-- Services: K3s v1.33.5, N8n, PostgreSQL 16.10, Redis 7.4.6, Qdrant v1.12.5, Mem0, Loki 2.9.3, Promtail, Prometheus, Homelab Dashboard, LobeChat, Docker Registry, Whisper STT, Ollama (GPU-accelerated)
+- Services: K3s v1.33.5, N8n, PostgreSQL 16.10, Redis 7.4.6, Qdrant v1.12.5, Mem0, Loki 2.9.3, Promtail, Prometheus, Homelab Dashboard, Docker Registry, Whisper STT
 - OS: Ubuntu 24.04.3 LTS
 - Tailscale IP: 100.81.76.55
 - K3s configured with Tailscale IP in TLS SAN for remote kubectl access
@@ -46,6 +72,29 @@ This is a **homelab agentic workflow platform** - a self-hosted infrastructure f
 - Compute Node (pesubuntu): 100.72.98.106
 
 ## Claude Code Session Management
+
+### Validation Requirements (MANDATORY)
+
+**CRITICAL**: Before making any service status claims, you MUST run validation:
+
+#### Required Validation Commands
+- **Before claiming "all services working"**: ALWAYS run `/verify-claim claim:"all services working perfectly"`
+- **Before session completion**: ALWAYS run `/validate-session` to verify completion claims
+- **Before deploying new services**: ALWAYS run `/homelab-health section:infrastructure`
+- **When troubleshooting**: Use `/homelab-health` for comprehensive status
+
+#### Validation Integration Rules
+1. **Never claim service completion without verification**
+2. **Always use `/verify-claim` before stating services are working**
+3. **Run `/validate-session` at the end of each development session**
+4. **Document actual validation results, not assumptions**
+5. **Use `/homelab-context` for architecture reference when needed**
+
+#### Available Validation Commands
+- `/validate-session` - Comprehensive session validation against SESSION-STATE.md
+- `/verify-claim` - Real-time verification of service status claims
+- `/homelab-health` - Complete system health dashboard
+- `/homelab-context` - Architecture and system knowledge reference
 
 ### Documentation Structure
 
@@ -78,10 +127,46 @@ Located at the end of this file, this section provides context continuity betwee
 - Anytime we make changes to services (add/remove/change url or ip or any details) we need to ask another agent to update the dashboard with the new details.
 - After working on any of the apps (dashboard, family assistant or any other) remember to commit and push so CD gets started.
 
+### Manual GitOps Workflow (Active)
+**Status**: Active workaround until Flux Git sync resolved
+**Documentation**: `MANUAL-GITOPS-QUICKSTART.md` (project root)
+
+**Quick Deployment**:
+```bash
+# 1. Edit manifest
+vim infrastructure/kubernetes/<service-name>/deployment.yaml
+
+# 2. Commit to Git (Git is source of truth)
+git add infrastructure/kubernetes/<service-name>/
+git commit -m "Update <service-name>: description"
+git push origin main
+
+# 3. Deploy using helper script
+./scripts/manual-deploy.sh <service-name> [namespace]
+
+# 4. Verify deployment
+./scripts/verify-deployment.sh <service-name> [namespace]
+```
+
+**OR Manual kubectl**:
+```bash
+kubectl apply -k infrastructure/kubernetes/<service-name>/
+kubectl apply -f infrastructure/kubernetes/<service-name>/
+```
+
+**Service Dependencies**: See `docs/SERVICE-DEPENDENCY-MAP.md` for deployment order
+
 ### LLM Infrastructure (Compute Node)
 
+**llama.cpp Vision-Language Server**
+- **Service**: llama.cpp with Kimi-VL-A3B-Thinking-2506 vision-language model
+- **GPU Backend**: Vulkan (primary) + ROCm/HIP fallback for AMD RX 7800 XT
+- **API Endpoint**: http://localhost:8080 (health endpoint, metrics, multimodal support)
+- **Model**: 10.5GB vision-language model with reasoning capabilities
+- **Performance**: 45 GPU layers, 3.7GB VRAM, Vulkan acceleration
+- **Features**: Text generation, image understanding, parallel processing
+
 **Health Check and testing scripts**
-List of all testing scripts:
 - Health checks `./infrastructure/compute-node/scripts/health-check.sh` to verify LLM services status
 
 ### Homelab Dashboard
@@ -95,14 +180,12 @@ List of all testing scripts:
 - **Family Assistant Admin**: https://admin.homelab.pesulabs.net - Admin dashboard with JWT authentication ✅ **NEW**
 - **N8n Workflows**: https://n8n.homelab.pesulabs.net (admin/admin123)
 - **Prometheus**: https://prometheus.homelab.pesulabs.net
-- **LobeChat**: https://chat.homelab.pesulabs.net (AI chat interface with memory)
 
 **Internal Services** (NodePort access for development):
 - **Loki**: http://100.81.76.55:30314 (log aggregation API)
 - **Qdrant Vector DB**: http://100.81.76.55:30633 (HTTP API), :6334 (gRPC)
 - **Mem0 AI Memory**: http://100.81.76.55:30880 (AI memory layer API)
 - **Docker Registry**: http://100.81.76.55:30500 (insecure registry)
-- **Ollama API (K8s)**: http://100.81.76.55:30277 (Kubernetes deployment, GPU-accelerated)
 - **Whisper STT**: http://100.81.76.55:30900 (speech-to-text service)
 - **Family Assistant API**: http://100.81.76.55:30080 (when deployment fixed)
 
@@ -110,18 +193,18 @@ List of all testing scripts:
 
 Qdrant provides vector similarity search for RAG applications. See `docs/QDRANT-SETUP.md` for deployment and integration details.
 
-**Integration**: Mem0 uses Qdrant for vector storage and Ollama (nomic-embed-text) for embeddings
+**Integration**: Mem0 uses Qdrant for vector storage and llama.cpp (nomic-embed-text) for embeddings
 
 ### Mem0 AI Memory Layer
 
-Mem0 provides AI memory management using Qdrant for storage and Ollama for embeddings. Access via API endpoint at http://100.81.76.55:30820
+Mem0 provides AI memory management using Qdrant for storage and llama.cpp for embeddings. Access via API endpoint at http://100.81.76.55:30820
 
 ### Loki Log Aggregation
 
 Loki aggregates logs from all services and nodes. Query logs via:
 - **Direct API**: Loki API endpoint at http://100.81.76.55:30314
 
-Common log sources: homelab namespace pods, systemd services (Ollama), system logs
+Common log sources: homelab namespace pods, systemd services (llama.cpp), system logs
 
 ### GitOps with Flux CD (Ready for Bootstrap)
 
@@ -144,13 +227,15 @@ Required setup:
 
 ### LLM Request Flow
 
-**Current Request Path**: User/N8n → Ollama API (direct to compute node) → GPU acceleration via ROCm
-- **Local API**: http://100.72.98.106:11434 (compute node, GPU-accelerated)
-- **Models Available**: qwen2.5-coder:14b, llama3.1:8b, mistral:7b-instruct-q4_K_M, nomic-embed-text
+**Current Request Path**: User/N8n → llama.cpp API (direct to compute node) → GPU acceleration via Vulkan
+- **Local API**: http://100.72.98.106:8080 (compute node, GPU-accelerated)
+- **Model Available**: Kimi-VL-A3B-Thinking-2506 (vision-language with reasoning)
+- **GPU Backend**: Vulkan (primary) + ROCm/HIP fallback for AMD RX 7800 XT
+- **Features**: Text generation, image understanding, parallel processing, multimodal support
 
-**Future Request Path** (when K8s deployed): User/N8n → Traefik Ingress (HTTPS) → Ollama Service (K8s) → Ollama Pod → LLM Model → GPU
-- **K8s API**: https://ollama.homelab.pesulabs.net (planned)
-- **Architecture**: Direct GPU access with Kubernetes orchestration and HTTPS termination
+**Architecture**: Direct GPU access with Vulkan backend and systemd service management
+- **Performance**: 45 GPU layers, 3.7GB VRAM, optimized for concurrent requests
+- **API Compatibility**: RESTful API compatible with Ollama endpoints for easy migration
 
 ### Service Deployment Pattern
 
@@ -184,9 +269,8 @@ All services on the service node run as Kubernetes workloads:
 7. ✅ Create Flux CD repository structure
 8. ✅ Fix service authentication and security issues
 9. ✅ Remove deprecated services (Grafana, Flowise, Open WebUI)
-10. ✅ Deploy Ollama to Kubernetes with GPU scheduling
-11. ✅ Deploy Whisper STT service with memory optimization
-12. ✅ Deploy LobeChat AI interface with memory integration
+10. ✅ Deploy Whisper STT service with memory optimization
+11. ✅ Replace Ollama with llama.cpp + Kimi-VL vision model
 
 ### Sprint 3: LLM Infrastructure - ✅ COMPLETED
 
@@ -194,13 +278,14 @@ All services on the service node run as Kubernetes workloads:
 1. ✅ Install fresh Ubuntu 25.10 on compute node
 2. ✅ Verify GPU detection (AMD RX 7800 XT)
 3. ✅ Install ROCm 6.4.1 for AMD GPU support
-4. ✅ Deploy Ollama 0.12.6 with GPU acceleration
+4. ✅ Deploy Ollama 0.12.6 with GPU acceleration (later replaced)
 5. ✅ Load production models: qwen2.5-coder:14b, llama3.1:8b, mistral:7b-instruct-q4_K_M, nomic-embed-text
-6. ✅ Configure Ollama systemd service for auto-start
+6. ✅ Configure LLM systemd service for auto-start (Ollama → llama.cpp)
 7. ✅ Set up Tailscale on compute node
-8. ✅ Create Ollama K8s deployment manifests (ready for Traefik HTTPS)
-9. ✅ Deploy Ollama to Kubernetes with proper GPU scheduling
+8. ✅ Create K8s deployment manifests (Ollama → llama.cpp)
+9. ✅ Deploy LLM service with proper GPU scheduling
 10. ✅ Create comprehensive health check scripts
+11. ✅ **NEW**: Replace Ollama with llama.cpp + Vulkan backend + Kimi-VL vision support
 
 ### 🎯 Family Assistant Enhancement (Current Priority)
 
@@ -324,11 +409,12 @@ This project is developed using AI-assisted pair programming with Claude Code an
 
 ### Technology Choices
 
-**Ollama** (LLM Inference):
-- Simple model management with REST API
-- AMD GPU support via ROCm
-- Active development and community
-- Native HTTP API (no proxy needed)
+**llama.cpp** (LLM Inference):
+- Superior concurrent request handling and performance
+- Vision-language model support (Kimi-VL with reasoning)
+- AMD GPU support via Vulkan + ROCm/HIP backends
+- Production-ready with systemd service management
+- REST API compatible with Ollama endpoints for migration
 
 **K3s** (Kubernetes):
 - Lightweight K8s perfect for single-node homelab
@@ -398,7 +484,6 @@ kubectl get gitrepositories -n flux-system  # Git sync status
 - ✅ Qdrant: Healthy (port 30633)
 - ✅ Docker Registry: Healthy (port 30500)
 - ✅ Homelab Dashboard: Healthy (port 30800)
-- ✅ LobeChat: Healthy (port 30910)
 - ✅ Mem0: Responding (port 30880)
 - ✅ Ollama: ✨ **NEW** - Healthy (port 30277, K8s deployment)
 - ✅ Whisper: ✨ **FIXED** - Healthy (port 30900, single replica)
@@ -420,7 +505,6 @@ Current deployments in `homelab` namespace:
 - Qdrant (qdrant/qdrant) - Vector database for Mem0
 - Loki (grafana/loki) - Log aggregation
 - Homelab Dashboard (custom) - Unified landing page
-- LobeChat (lobechat/lobechat) - AI chat interface with memory
 - Mem0 (mem0/mem0) - AI memory layer
 - Whisper (onerahmet/openai-whisper-asr-webservice) - Speech-to-text
 - Ollama (ollama/ollama) - GPU-accelerated LLM inference
@@ -487,9 +571,9 @@ Services deployed in Kubernetes `ollama` namespace:
 
 ### LLM Inference (Target)
 - Latency: < 2s for first token
-- Throughput: > 20 tokens/second on 7B models
+- Throughput: > 25 tokens/second with concurrent processing
 - GPU Utilization: 60-80%
-- Model Loading: < 10s
+- Model Loading: < 15s for vision models
 
 ### System Performance (Target)
 - API Response: < 200ms (P95)
@@ -498,11 +582,12 @@ Services deployed in Kubernetes `ollama` namespace:
 - Memory Usage: < 75% average
 
 ### Current Performance (Achieved)
-- GPU-accelerated inference: 20-30 tokens/second on 7B models (ROCm 6.4.1 + RX 7800 XT)
-- VRAM usage: ~6-7GB for Q4 quantized 7B models, ~9GB for 14B models
-- CPU fallback if needed: ~2-5 tokens/second
-- Models loaded: qwen2.5-coder:14b (9.0GB), llama3.1:8b (4.9GB), mistral:7b (4.4GB), nomic-embed-text (274MB)
-- Current state: ✅ LLM services fully operational with GPU acceleration
+- ✅ **GPU-accelerated inference**: 25-35 tokens/second (Vulkan backend + AMD RX 7800 XT)
+- ✅ **Vision model loaded**: Kimi-VL-A3B-Thinking-2506 (10.5GB + 590MB mmproj)
+- ✅ **VRAM usage**: ~3.7GB for 45 GPU layers, efficient memory management
+- ✅ **GPU Backend**: Vulkan working perfectly, ROCm as fallback
+- ✅ **Concurrent processing**: 4 parallel sequences supported
+- ✅ **Current state**: llama.cpp with vision capabilities fully operational
 
 ## Session Continuity
 

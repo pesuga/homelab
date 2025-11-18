@@ -1,0 +1,27 @@
+# Family Assistant Kustomization
+# Single source of truth for all Family Assistant K8s resources
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: homelab
+
+resources:
+- deployment.yaml
+- service.yaml
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/name: family-assistant
+  app.kubernetes.io/component: backend
+  app.kubernetes.io/part-of: familyai-v3
+
+# Common annotations
+commonAnnotations:
+  managed-by: kustomize
+  documentation: https://github.com/pesuga/homelab/tree/main/docs
+
+# Image transformations (can be used to update images)
+# images:
+# - name: 100.81.76.55:30500/family-assistant
+#   newTag: stable

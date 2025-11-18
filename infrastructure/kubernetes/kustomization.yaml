@@ -1,26 +1,47 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+
+# Root kustomization for homelab infrastructure
+# Deploy in order using: kubectl apply -k infrastructure/kubernetes/
+# See docs/SERVICE-DEPENDENCY-MAP.md for deployment order
+
 resources:
-  # Base
+  # Layer 1: Base infrastructure
   - base/namespace.yaml
 
-  # Databases
+  # Layer 2: Data stores (can deploy in parallel)
   - databases/postgres/postgres.yaml
   - databases/redis/redis.yaml
   - databases/qdrant/qdrant.yaml
 
-  # Monitoring
+  # Layer 3: Support services
   - monitoring/prometheus-deployment.yaml
-  - monitoring/grafana-deployment.yaml
-  - monitoring/node-exporter.yaml
   - monitoring/loki/loki-config.yaml
   - monitoring/loki/loki-deployment.yaml
   - monitoring/loki/promtail-config.yaml
   - monitoring/loki/promtail-daemonset.yaml
+  # - services/mem0/mem0.yaml  # Scaled to 0
 
-  # Services
-  - services/mem0/mem0.yaml
-  - flowise/flowise-deployment.yaml
+  # Layer 4: Core applications
+  # - workflows/n8n/  # TODO: Organize N8n manifests
+  - family-assistant/deployment.yaml
+  - family-assistant/service.yaml
+  # - family-assistant-frontend/  # TODO: Verify frontend deployment
 
-  # Ingress (if needed)
-  # - ingress/all-services-ingress.yaml
+  # Layer 5: Dashboards
+  # - dashboards/homelab-dashboard/  # TODO: Organize dashboard manifests
+  - monitoring/grafana-deployment.yaml  # Consider deprecating
+
+  # Layer 6: Infrastructure (optional)
+  # - ingress/traefik/  # When HTTPS ready
+  # - registry/  # Already deployed
+
+namespace: homelab
+
+commonLabels:
+  managed-by: manual-gitops
+  environment: production
+
+commonAnnotations:
+  gitops-workflow: manual
+  documentation: docs/SERVICE-DEPENDENCY-MAP.md

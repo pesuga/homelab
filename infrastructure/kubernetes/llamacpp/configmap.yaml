@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llamacpp-config
+  namespace: llamacpp
+  labels:
+    app.kubernetes.io/name: llamacpp
+    app.kubernetes.io/component: config
+data:
+  HOST: "0.0.0.0"
+  PORT: "8080"
+  N_PARALLEL: "4"
+  N_GPU_LAYERS: "45"
+  CTX_SIZE: "4096"
+  BATCH_SIZE: "512"
+  U_BATCH_SIZE: "128"
+  N_THREADS: "8"
+  LOG_DISABLE: "1"
+  MODEL_PATH: "/models/Kimi-VL-A3B-Thinking-2506-Q4_K_M.gguf"
+  MMPROJ_PATH: "/models/mmproj-Kimi-VL-A3B-Thinking-2506-Q8_0.gguf"
