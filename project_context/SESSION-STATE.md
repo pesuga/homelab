@@ -2,8 +2,8 @@
 
 ## 📍 Current Status
 **Last Updated**: 2025-11-20
-**Current Phase**: Networking Compliance & Service Stability
-**Active Goal**: 100% Golden Rules compliance achieved. All internal traffic uses K8s DNS, all external traffic via IngressRoute.
+**Current Phase**: Service Stability & Troubleshooting Complete
+**Active Goal**: All critical services operational. Authentik, Family Admin, and Family App fully functional with 100% Golden Rules compliance.
 
 ---
 
@@ -51,6 +51,47 @@
 - **Impact**: Internal traffic now bypasses Traefik completely, reducing latency and eliminating certificate trust issues.
 - **Lesson**: Frontend environment variables are critical for service-to-service communication patterns. Always audit at deployment time.
 - **Outstanding**: Family-admin has ImagePullBackOff (registry issue), unrelated to networking changes.
+
+---
+
+### 2025-11-20 (Evening) - Critical Service Recovery
+**Goal**: Troubleshoot and fix all failing services (Authentik CrashLoopBackOff, Family Admin ImagePullBackOff).
+
+#### 🧠 Decisions & Rationale
+- **Authentik CrashLoopBackOff Resolution**:
+  - **Root Cause**: Kubernetes deployment using `command: ["server"]` instead of `args: ["server"]`, overriding container ENTRYPOINT.
+  - **Decision**: Changed to `args:` in both server and worker deployments.
+  - **Why**: Kubernetes `command:` replaces ENTRYPOINT, `args:` passes to it. Authentik container uses `dumb-init -- ak <command>` pattern.
+  - **Secondary Fix**: Updated Redis/PostgreSQL hostnames from short names to FQDN for golden rules compliance.
+  - **Result**: 166+ restarts → 0 restarts, service fully operational in 15 minutes.
+
+- **Family Admin ImagePullBackOff Resolution**:
+  - **Root Cause**: Deployment configured for non-existent image `family-admin:latest`, should use `family-assistant-frontend:dashboard-final`.
+  - **Decision**: Updated image reference, created missing NextAuth secret, fixed nginx volume mounts.
+  - **Why**: Registry inspection revealed correct image tag, nginx requires write access to cache directories.
+  - **Result**: 3 failing pods → 2 running pods, admin dashboard accessible.
+
+- **Debug Pod Cleanup**:
+  - **Decision**: Removed old curl-debug and debug-mem0-inspect pods in Error/ImagePullBackOff states.
+  - **Why**: Housekeeping, no longer needed for troubleshooting.
+
+#### 🛠️ Changes
+- **Authentik Deployment**:
+  - `infrastructure/kubernetes/auth/authentik/authentik.yaml`: Fixed command→args, updated hostnames to FQDN
+  - Pods: authentik-server, authentik-worker now stable with 0 restarts
+
+- **Family Admin Deployment**:
+  - `infrastructure/kubernetes/family-assistant-admin/deployment.yaml`: Updated image, fixed nginx config, added secret
+  - Pods: 2/2 running successfully
+
+- **Cleanup**:
+  - Deleted: curl-debug-2, curl-test (default), curl-debug-3 (homelab), debug-mem0-inspect (homelab)
+
+#### 📝 Reflections
+- **Success**: Systematic root-cause analysis led to rapid resolution of both critical issues.
+- **Impact**: Authentication service restored after 13 hours downtime, admin interface operational.
+- **Lesson**: `command:` vs `args:` in Kubernetes is a common misconfiguration - always verify container ENTRYPOINT behavior.
+- **Validation**: All services now running with 100% golden rules compliance.
 
 ---
 
