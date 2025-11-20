@@ -1,6 +1,8 @@
 import { ChatRequest, ChatResponse, ChatError } from '../types/chat';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://family-assistant-backend.homelab.svc.cluster.local:8001';
+// Use relative path to proxy through nginx (avoids mixed content and CORS)
+// Frontend is served via HTTPS, backend is accessed via same origin
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export class ChatApiError extends Error {
   constructor(
