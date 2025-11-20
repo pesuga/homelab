@@ -1,0 +1,142 @@
+# Consolidated IngressRoute Configuration for Homelab
+# Following Golden Rules from project_context/NETWORKING_STANDARD.md
+#
+# Golden Rule Template:
+# - entryPoints: [websecure] (HTTPS only)
+# - tls.certResolver: default (Let's Encrypt via Cloudflare DNS-01)
+# - Service port: 80 (standard HTTP port, mapped to container port in Service)
+#
+# Last Updated: 2025-11-20
+# Status: COMPLIANT
+
+---
+# Authentik Authentication Service
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: authentik-ingress
+  namespace: authentik
+  labels:
+    app.kubernetes.io/name: authentik
+    app.kubernetes.io/component: auth
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`auth.pesulabs.net`)
+      kind: Rule
+      services:
+        - name: authentik-server
+          port: 80  # Service will map 80 → 9000 (container port)
+  tls:
+    certResolver: default
+
+---
+# Family Assistant App (Main Frontend)
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: family-assistant-app
+  namespace: family-assistant-app
+  labels:
+    app.kubernetes.io/name: family-assistant
+    app.kubernetes.io/component: frontend
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`app.fa.pesulabs.net`)
+      kind: Rule
+      services:
+        - name: family-assistant
+          port: 80
+  tls:
+    certResolver: default
+
+---
+# Family Assistant Admin Panel
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: admin-dashboard
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: family-assistant
+    app.kubernetes.io/component: admin
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`admin.fa.pesulabs.net`)
+      kind: Rule
+      services:
+        - name: family-admin
+          port: 80  # Service will map 80 → 3000 (container port)
+  tls:
+    certResolver: default
+
+---
+# Family Assistant API Backend
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: family-api
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: family-assistant
+    app.kubernetes.io/component: api
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`api.fa.pesulabs.net`)
+      kind: Rule
+      services:
+        - name: family-assistant
+          port: 8001  # API standard port per Golden Rules
+  tls:
+    certResolver: default
+
+---
+# Family Assistant (Alternative Frontend - family-assistant namespace)
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: family-assistant-frontend
+  namespace: family-assistant
+  labels:
+    app.kubernetes.io/name: family-assistant
+    app.kubernetes.io/component: frontend-alt
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`family-assistant.homelab.pesulabs.net`)
+      kind: Rule
+      services:
+        - name: family-assistant
+          port: 80
+  tls:
+    certResolver: default
+
+---
+# N8N Automation Platform
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: n8n
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: n8n
+    app.kubernetes.io/component: automation
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`n8n.fa.pesulabs.net`)
+      kind: Rule
+      services:
+        - name: n8n
+          port: 80  # Service will map 80 → 5678 (container port)
+  tls:
+    certResolver: default

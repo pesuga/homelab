@@ -1,0 +1,24 @@
+# Fixed N8N Service with Port 80 Mapping
+# Compliant with Golden Rules: port 80 → targetPort (container port)
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n
+  namespace: homelab
+  labels:
+    app: n8n
+    app.kubernetes.io/name: n8n
+    app.kubernetes.io/component: automation
+spec:
+  type: ClusterIP  # Changed from NodePort to ClusterIP (external access via IngressRoute only)
+  selector:
+    app: n8n
+  ports:
+  - name: http
+    port: 80          # Standard HTTP port for IngressRoute
+    protocol: TCP
+    targetPort: 5678  # Container port (N8N default)
+  - name: http-alt
+    port: 5678        # Keep original port for backward compatibility
+    protocol: TCP
+    targetPort: 5678

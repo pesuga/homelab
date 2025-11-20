@@ -1,0 +1,27 @@
+# Fixed Family Admin Service with Port 80 Mapping
+# Compliant with Golden Rules: port 80 → targetPort (container port)
+apiVersion: v1
+kind: Service
+metadata:
+  name: family-admin
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: family-admin
+    app.kubernetes.io/component: admin
+    app.kubernetes.io/part-of: family-assistant
+  annotations:
+    prometheus.io/scrape: "false"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/component: admin
+    app.kubernetes.io/name: family-admin
+  ports:
+  - name: http
+    port: 80          # Standard HTTP port for IngressRoute
+    protocol: TCP
+    targetPort: 3000  # Container port (Next.js default)
+  - name: http-alt
+    port: 3000        # Keep original port for backward compatibility
+    protocol: TCP
+    targetPort: 3000
