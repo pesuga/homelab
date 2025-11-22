@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llamacpp-mistral-config
+  namespace: llamacpp
+  labels:
+    app.kubernetes.io/name: llamacpp
+    app.kubernetes.io/component: config
+    app.kubernetes.io/instance: mistral
+data:
+  HOST: "0.0.0.0"
+  PORT: "8081"
+  N_PARALLEL: "2"           # Support 2 concurrent inferences
+  N_GPU_LAYERS: "35"        # Mistral-7B has 32 layers, load all + embeddings
+  CTX_SIZE: "8192"          # 8K context window
+  BATCH_SIZE: "512"
+  U_BATCH_SIZE: "128"
+  N_THREADS: "8"
+  LOG_DISABLE: "0"          # Enable logging for benchmarking
+  MODEL_PATH: "/models/mistral-7b-openorca.Q5_K_M.gguf"
