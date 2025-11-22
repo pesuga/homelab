@@ -38,10 +38,19 @@ spec:
           containerPort: 3000
           protocol: TCP
         env:
-        - name: NEXT_PUBLIC_API_URL
+        # Server-side API URLs (for API routes, not exposed to browser)
+        - name: FAMILY_API_URL
           value: "http://family-assistant-backend.homelab.svc.cluster.local:8001"
+        - name: LLAMACPP_API_URL
+          value: "http://llamacpp-kimi-vl-service.llamacpp.svc.cluster.local:8080"
+        - name: MEM0_API_URL
+          value: "http://mem0.homelab.svc.cluster.local:8080"
+
+        # Client-side URLs (embedded in browser JavaScript)
         - name: NEXT_PUBLIC_APP_URL
           value: "https://app.fa.pesulabs.net"
+
+        # Authentication
         - name: NEXTAUTH_SECRET
           valueFrom:
             secretKeyRef:
@@ -49,6 +58,10 @@ spec:
               key: nextauth-secret
         - name: NEXTAUTH_URL
           value: "https://admin.fa.pesulabs.net"
+
+        # Application settings
+        - name: NODE_ENV
+          value: "production"
         - name: ENVIRONMENT
           value: "production"
         - name: LOG_LEVEL
