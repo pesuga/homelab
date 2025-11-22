@@ -50,7 +50,7 @@ spec:
       initContainers:
         - name: init-prompts
           image: 100.81.76.55:30500/family-assistant:v2.1.0-prompts
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command:
             [
               "/bin/sh",
@@ -59,13 +59,13 @@ spec:
             ]
           volumeMounts:
             - name: prompts-volume
-              mountPath: /app/prompts-data
+              mountPath: "/app/prompts-data"
 
       containers:
         - name: family-assistant
           # IMPORTANT: Always use registry-qualified images
           image: 100.81.76.55:30500/family-assistant:v2.1.0-prompts
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
 
           ports:
             - name: http-api
@@ -174,7 +174,7 @@ spec:
 
           volumeMounts:
             - name: prompts-volume
-              mountPath: /app/prompts-data
+              mountPath: "/app/prompts-data"
 
       volumes:
         - name: prompts-volume
