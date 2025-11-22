@@ -129,6 +129,18 @@ spec:
             - name: PYTHONPATH
               value: /app/src
 
+            # Authentik SSO Configuration (Optional - enables OIDC auth)
+            - name: AUTHENTIK_URL
+              value: "https://auth.pesulabs.net"
+            - name: AUTHENTIK_CLIENT_ID
+              value: "" # Set this to enable Authentik integration
+            # AUTHENTIK_CLIENT_SECRET should be stored in a Secret
+            # - name: AUTHENTIK_CLIENT_SECRET
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: authentik-secrets
+            #       key: client-secret
+
             # Observability - DISABLED until OTEL collector deployed
             - name: OTEL_SDK_DISABLED
               value: "true"
