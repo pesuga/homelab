@@ -133,13 +133,12 @@ spec:
             - name: AUTHENTIK_URL
               value: "https://auth.pesulabs.net"
             - name: AUTHENTIK_CLIENT_ID
-              value: "" # Set this to enable Authentik integration
-            # AUTHENTIK_CLIENT_SECRET should be stored in a Secret
-            # - name: AUTHENTIK_CLIENT_SECRET
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: authentik-secrets
-            #       key: client-secret
+              value: "tw2kzde62QPl0dzYhY6YR9vjEQ4GYHcJ4KIa7fbD"
+            - name: AUTHENTIK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: authentik-secrets
+                  key: client-secret
 
             # Observability - DISABLED until OTEL collector deployed
             - name: OTEL_SDK_DISABLED
