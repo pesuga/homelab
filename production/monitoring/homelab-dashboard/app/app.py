@@ -177,6 +177,43 @@ SERVICES = [
         'port': 30314,
         'tags': ['logging', 'monitoring']
     },
+    # Family Assistant Platform Services
+    {
+        'name': 'Family Assistant API',
+        'description': 'Backend API for Family Assistant (FastAPI)',
+        'url': 'https://api.fa.pesulabs.net',
+        'external_url': 'https://api.fa.pesulabs.net',
+        'health_check_url': 'https://api.fa.pesulabs.net/health',
+        'internal_url': 'http://family-assistant-api.family-assistant-api.svc.cluster.local:8001',
+        'icon': '🔧',
+        'status_endpoint': '/health',
+        'port': 443,
+        'tags': ['api', 'backend', 'family-assistant']
+    },
+    {
+        'name': 'Family Assistant App',
+        'description': 'PWA frontend for families (React + TypeScript)',
+        'url': 'https://app.fa.pesulabs.net',
+        'external_url': 'https://app.fa.pesulabs.net',
+        'health_check_url': 'https://app.fa.pesulabs.net',
+        'internal_url': 'http://family-assistant.family-assistant-app.svc.cluster.local:80',
+        'icon': '👨‍👩‍👧‍👦',
+        'status_endpoint': '/',
+        'port': 443,
+        'tags': ['pwa', 'frontend', 'family-assistant', 'mobile']
+    },
+    {
+        'name': 'Family Assistant Admin',
+        'description': 'Admin dashboard and analytics (Next.js)',
+        'url': 'https://admin.fa.pesulabs.net',
+        'external_url': 'https://admin.fa.pesulabs.net',
+        'health_check_url': 'https://admin.fa.pesulabs.net/api/health',
+        'internal_url': 'http://family-assistant-admin.family-assistant-admin.svc.cluster.local:3000',
+        'icon': '📊',
+        'status_endpoint': '/api/health',
+        'port': 443,
+        'tags': ['admin', 'dashboard', 'analytics', 'family-assistant']
+    },
     {
         'name': 'Docker Registry',
         'description': 'Private container image registry',
@@ -193,6 +230,7 @@ SERVICES = [
 
 # Service categories for better organization
 SERVICE_CATEGORIES = {
+    'Family Assistant Platform': ['Family Assistant API', 'Family Assistant App', 'Family Assistant Admin'],
     'Monitoring & Observability': ['Prometheus', 'Loki'],
     'AI & Machine Learning': ['Ollama', 'Mem0', 'LobeChat'],
     'Automation & Workflows': ['N8n'],

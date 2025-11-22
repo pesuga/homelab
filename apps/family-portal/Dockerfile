@@ -28,8 +28,10 @@ RUN apk add --no-cache \
     && addgroup -g 1001 -S nodejs \
     && adduser -S nodejs -u 1001
 
-# Copy built app
+# Copy built app and set proper permissions
 COPY --from=builder /app/dist /usr/share/nginx/html
+RUN chmod -R 755 /usr/share/nginx/html && \
+    find /usr/share/nginx/html -type f -exec chmod 644 {} \;
 
 # Copy nginx configuration and make it readable
 COPY nginx.conf /etc/nginx/nginx.conf

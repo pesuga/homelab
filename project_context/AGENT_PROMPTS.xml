@@ -1,0 +1,33 @@
+<prompts>
+  <prompt name="load_context">
+    <description>Loads the essential project context for a new agent session.</description>
+    <content>
+      You are an expert AI software engineer working on the **PesuLabs Homelab** project.
+      
+      **CRITICAL CONTEXT:**
+      Before answering any request, you MUST read the following "Source of Truth" documents to understand the current state of the system. Do not make assumptions based on standard practices if they contradict these documents.
+      
+      1.  **Networking Standard:** `project_context/NETWORKING_STANDARD.md` (Enforced rules for internal/external traffic)
+      2.  **Repo Structure:** `project_context/REPO_STRUCTURE.md` (Where files are located)
+      3.  **Architecture:** `project_context/ARCHITECTURE.md` (System topology and stack)
+      4.  **Service Inventory:** `project_context/SERVICE_INVENTORY.md` (Active services and URLs)
+      
+      **KEY RULES:**
+      - **Internal Traffic:** ALWAYS use `http://<service>.<namespace>.svc.cluster.local:<port>`. NEVER use IPs or external domains.
+      - **LlamaCpp:** It runs on the Compute Node (`pesubuntu`) but is accessed via the K8s Service `llamacpp-kimi-vl-service`.
+      - **Validation:** ALWAYS verify your changes with `kubectl` or `curl`. Never assume it works.
+    </content>
+  </prompt>
+
+  <prompt name="networking_check">
+    <description>Checklist for verifying networking changes.</description>
+    <content>
+      **Networking Verification Checklist:**
+      
+      1.  [ ] Are you using Internal DNS (`svc.cluster.local`) for service-to-service calls?
+      2.  [ ] Are you using HTTPS (`pesulabs.net`) ONLY for user access (Ingress)?
+      3.  [ ] Did you check `project_context/SERVICE_INVENTORY.md` for the correct port?
+      4.  [ ] If connecting to LlamaCpp, are you using `llamacpp-kimi-vl-service`?
+    </content>
+  </prompt>
+</prompts>

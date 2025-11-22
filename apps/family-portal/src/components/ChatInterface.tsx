@@ -3,6 +3,7 @@ import { ChatMessage as ChatMessageType } from '../types/chat';
 import { sendChatMessage, getOrCreateSessionId, ChatApiError } from '../utils/chatApi';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
+import LoadingSpinner from './LoadingSpinner';
 import { MessageSquare, Trash2, AlertCircle, Home } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -211,6 +212,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ userId, onNavigateHome })
                 )}
               </div>
             ))}
+            {/* Loading spinner when waiting for response */}
+            {isLoading && <LoadingSpinner />}
             <div ref={messagesEndRef} />
           </>
         )}

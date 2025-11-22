@@ -16,16 +16,26 @@ export class ChatApiError extends Error {
 }
 
 /**
- * Send a chat message to the backend API
+ * Send a chat message to the backend API using OpenAI-compatible endpoint
  */
 export async function sendChatMessage(request: ChatRequest): Promise<ChatResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}/chat`, {
+    // Use OpenAI-compatible endpoint which doesn't require authentication
+    const response = await fetch(`${API_BASE_URL}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'user',
+            content: request.message
+          }
+        ],
+        user: request.user_id || 'guest',
+        stream: false
+      }),
     });
 
     if (!response.ok) {
@@ -41,8 +51,14 @@ export async function sendChatMessage(request: ChatRequest): Promise<ChatRespons
       );
     }
 
-    const data: ChatResponse = await response.json();
-    return data;
+    const data = await response.json();
+
+    // Convert OpenAI response format to our ChatResponse format
+    return {
+      response: data.choices[0].message.content,
+      session_id: request.session_id || '',
+      metadata: data.metadata
+    };
   } catch (error) {
     if (error instanceof ChatApiError) {
       throw error;

@@ -6,16 +6,26 @@ metadata:
   labels:
     app.kubernetes.io/name: llamacpp
     app.kubernetes.io/component: service
-    app.kubernetes.io/instance: kimi-vl
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
   - port: 8080
-    targetPort: http
-    nodePort: 30180
+    targetPort: 8081
     protocol: TCP
     name: http
-  selector:
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: llamacpp-kimi-vl-service
+  namespace: llamacpp
+  labels:
     app.kubernetes.io/name: llamacpp
-    app.kubernetes.io/component: deployment
-    app.kubernetes.io/instance: kimi-vl
+    app.kubernetes.io/component: service
+subsets:
+- addresses:
+  - ip: 100.72.98.106  # pesubuntu Tailscale IP
+  ports:
+  - name: http
+    port: 8081
+    protocol: TCP

@@ -19,7 +19,7 @@ rules:
   resources: ["ingresses", "ingressclasses"]
   verbs: ["get", "list", "watch"]
 - apiGroups: ["traefik.io"]
-  resources: ["ingressroutes", "middlewares", "middlewaretcps", "ingressrouteudps", "tlsoptions", "tlsstores", "serverstransports"]
+  resources: ["ingressroutes", "ingressroutetcps", "ingressrouteudps", "middlewares", "middlewaretcps", "tlsoptions", "tlsstores", "serverstransports", "serverstransporttcps", "traefikservices"]
   verbs: ["get", "list", "watch"]
 - apiGroups: ["traefik.io"]
   resources: ["ingressroutes/status"]

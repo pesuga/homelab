@@ -48,6 +48,7 @@ from api.routes.admin_mcp import router as admin_mcp_router
 
 # Family Tools (Simplified member interface)
 from api.routes.family_tools import router as family_tools_router
+from api.services.llm_service import LLMService
 
 # Authentication
 from api.routers.auth import router as auth_router
@@ -550,7 +551,10 @@ async def get_db_pool():
         password=settings.postgres_password,
         database=settings.postgres_db,
         min_size=2,
-        max_size=10
+        max_size=10,
+        ssl=False,
+        timeout=30,
+        command_timeout=60
     )
 
 
@@ -586,34 +590,28 @@ def get_mock_family_member(user_id: str = "demo_user") -> FamilyMemberProfile:
     )
 
 
-class MockAgent:
-    """Mock agent for testing purposes."""
 
-    async def chat(self, message: str, user_id: str, thread_id: str, user_profile: dict = None):
-        """Mock chat response."""
-        # Handle case where user_profile is None
-        user_name = user_profile.get('name', 'User') if user_profile else 'Guest'
-        message_preview = message[:100] + ('...' if len(message) > 100 else '')
-
-        return {
-            "response": f"Hello {user_name}! I received your message: '{message_preview}'",
-            "memories_used": 0
-        }
 
 
 # Initialize mock agent
-agent = MockAgent()
+agent = LLMService()
 
 
 @app.on_event("startup")
 async def startup():
     """Startup event handler."""
     global db_pool
-    db_pool = await get_db_pool()
+    try:
+        db_pool = await get_db_pool()
+        print(f"   - PostgreSQL: {settings.postgres_host}:{settings.postgres_port}")
+    except Exception as e:
+        print(f"⚠️  PostgreSQL connection failed: {e}")
+        print("   - Running in limited mode without database")
+        db_pool = None
+
     print(f"✅ Family Assistant API started on {settings.api_host}:{settings.api_port}")
     print(f"   - Ollama: {settings.ollama_base_url}")
     print(f"   - Mem0: {settings.mem0_api_url}")
-    print(f"   - PostgreSQL: {settings.postgres_host}:{settings.postgres_port}")
 
 
 @app.on_event("shutdown")
@@ -972,22 +970,14 @@ async def chat(
 
         enhanced_message = f"{request.message}\n\n{analysis_text}" if request.message else analysis_text
 
-    # Chat with agent (placeholder - would integrate with actual agent)
+    # Chat with agent
     try:
-        # This would integrate with the actual Family Assistant agent
-        # result = await agent.chat(
-        #     message=enhanced_message,
-        #     user_id=request.user_id,
-        #     thread_id=thread_id,
-        #     user_profile=profile_dict
-        # )
-
-        # Mock response for now
-        result = {
-            "response": f"Hello {profile_dict['name']}! I understand your message. " +
-                     ("I also processed your multimedia content." if content_processed else ""),
-            "memories_used": 0
-        }
+        result = await agent.chat(
+            message=enhanced_message,
+            user_id=request.user_id,
+            thread_id=thread_id,
+            user_profile=profile_dict
+        )
 
         # Store in conversation history with enhanced content
         async with db_pool.acquire() as conn:
@@ -995,19 +985,20 @@ async def chat(
             await conn.execute("""
                 INSERT INTO conversation_history (thread_id, user_id, role, content, metadata)
                 VALUES ($1, $2, $3, $4, $5)
-            """, thread_id, request.user_id, "user", enhanced_message or request.message, {
+            """, thread_id, request.user_id, "user", enhanced_message or request.message, json.dumps({
                 "multimodal": bool(request.multimodal_content),
                 "content_processed": content_processed,
                 "analysis_results": analysis_results
-            })
+            }))
 
             # Store assistant response
             await conn.execute("""
                 INSERT INTO conversation_history (thread_id, user_id, role, content, metadata)
                 VALUES ($1, $2, $3, $4, $5)
-            """, thread_id, request.user_id, "assistant", result["response"], {
-                "response_type": "multimodal_chat"
-            })
+            """, thread_id, request.user_id, "assistant", result["response"], json.dumps({
+                "response_type": "multimodal_chat",
+                "memories_used": result.get("memories_used", 0)
+            }))
 
         return ChatResponse(
             response=result["response"],

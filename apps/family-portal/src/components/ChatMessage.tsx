@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ChatMessage as ChatMessageType } from '../types/chat';
-import { User, Bot, Clock, AlertCircle } from 'lucide-react';
+import { User, Bot, Clock, AlertCircle, ChevronDown, ChevronRight, Brain } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface ChatMessageProps {
@@ -8,10 +8,28 @@ interface ChatMessageProps {
   showTimestamp?: boolean;
 }
 
+// Parse message to extract thinking and response parts
+const parseMessage = (content: string) => {
+  const thinkingRegex = /◁think▷([\s\S]*?)◁\/think▷/g;
+  const matches = [...content.matchAll(thinkingRegex)];
+
+  if (matches.length === 0) {
+    return { thinking: null, response: content };
+  }
+
+  const thinking = matches.map(m => m[1].trim()).join('\n\n');
+  const response = content.replace(thinkingRegex, '').trim();
+
+  return { thinking, response };
+};
+
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, showTimestamp = true }) => {
   const isUser = message.sender === 'user';
   const isError = message.status === 'error';
   const isSending = message.status === 'sending';
+  const [isThinkingExpanded, setIsThinkingExpanded] = useState(false);
+
+  const { thinking, response } = !isUser ? parseMessage(message.content) : { thinking: null, response: message.content };
 
   return (
     <div
@@ -48,8 +66,31 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, showTimestamp = true
               <span className="text-xs font-semibold">Failed to send</span>
             </div>
           )}
+
+          {/* Thinking section (collapsed by default, grayed out) */}
+          {thinking && (
+            <div className="mb-3">
+              <button
+                onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}
+                className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                {isThinkingExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                <Brain size={14} />
+                <span className="font-medium">Thinking process</span>
+              </button>
+              {isThinkingExpanded && (
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <p className="text-xs leading-relaxed whitespace-pre-wrap break-words text-gray-600 dark:text-gray-400">
+                    {thinking}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Main response */}
           <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-            {message.content}
+            {response}
           </p>
         </div>
 

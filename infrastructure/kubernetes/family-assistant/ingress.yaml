@@ -1,0 +1,58 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: family-portal-ingress
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: family-portal
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: family-assistant
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - family.pesulabs.net
+    secretName: family-portal-tls
+  rules:
+  - host: family.pesulabs.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: family-assistant-frontend
+            port:
+              number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: family-api-ingress
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: family-api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: family-assistant
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - api.family.pesulabs.net
+    secretName: family-api-tls
+  rules:
+  - host: api.family.pesulabs.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: family-assistant-backend
+            port:
+              number: 8001

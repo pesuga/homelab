@@ -1,0 +1,61 @@
+# Multi-stage build for Family Assistant Backend
+FROM python:3.12-slim as builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ libpq-dev curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies GLOBALLY
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Production stage
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy Python packages from builder - they're in the global site-packages
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application code - FLATTEN src/ structure to /app
+COPY src/api /app/api
+COPY src/config /app/config
+COPY src/database /app/database
+COPY src/migrations /app/migrations
+COPY src/prompts /app/prompts
+COPY src/tools /app/tools
+
+# Copy test files in src/ root to /app
+COPY src/test_*.py /app/
+
+# Copy other required files
+COPY requirements.txt /app/
+COPY start.sh /app/
+COPY run_tests.sh /app/
+
+# Create required directories
+RUN mkdir -p /app/uploads /app/reports
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8001/health || exit 1
+
+# Expose port
+EXPOSE 8001
+
+# Start the application
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8001"]

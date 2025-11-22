@@ -4,6 +4,10 @@ import { FamilyMember, FamilyActivity } from './types/family';
 import AdaptiveHomeScreen from './components/AdaptiveHomeScreen';
 import ChatInterface from './components/ChatInterface';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import AuthCallback from './pages/AuthCallback';
 import { Toaster } from 'react-hot-toast';
 
 // Mock data for development
@@ -140,39 +144,52 @@ const App: React.FC = () => {
   return (
     <ThemeProvider currentUser={currentUser}>
       <Router>
-        <div className="App min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <HomeScreen
-                  currentUser={currentUser}
-                  familyMembers={familyMembers}
-                  familyActivities={familyActivities}
-                  onVoiceInteraction={handleVoiceInteraction}
-                />
-              }
+        <AuthProvider>
+          <div className="App min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+
+              {/* Protected routes */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <HomeScreen
+                      currentUser={currentUser}
+                      familyMembers={familyMembers}
+                      familyActivities={familyActivities}
+                      onVoiceInteraction={handleVoiceInteraction}
+                    />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute>
+                    <ChatPage currentUser={currentUser} />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#fff',
+                  color: '#374151',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                  borderRadius: '12px',
+                  border: '1px solid #e5e7eb',
+                },
+                className: 'dark:!bg-gray-800 dark:!text-gray-100 dark:!border-gray-700',
+              }}
             />
-            <Route
-              path="/chat"
-              element={<ChatPage currentUser={currentUser} />}
-            />
-          </Routes>
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#fff',
-                color: '#374151',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-              },
-              className: 'dark:!bg-gray-800 dark:!text-gray-100 dark:!border-gray-700',
-            }}
-          />
-        </div>
+          </div>
+        </AuthProvider>
       </Router>
     </ThemeProvider>
   );

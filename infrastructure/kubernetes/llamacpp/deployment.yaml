@@ -1,28 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: llamacpp-kimi-vl
+  name: llamacpp-mistral
   namespace: llamacpp
   labels:
     app.kubernetes.io/name: llamacpp
     app.kubernetes.io/component: deployment
-    app.kubernetes.io/instance: kimi-vl
 spec:
   replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: llamacpp
       app.kubernetes.io/component: deployment
-      app.kubernetes.io/instance: kimi-vl
   template:
     metadata:
       labels:
         app.kubernetes.io/name: llamacpp
         app.kubernetes.io/component: deployment
-        app.kubernetes.io/instance: kimi-vl
     spec:
-      hostNetwork: false  # Use pod network to avoid port conflicts
-      hostPID: true       # Use host PID for GPU device access
+      hostNetwork: false  # Use pod network
+      hostPID: true      # Use host PID for GPU device access
       containers:
       - name: llamacpp-server
         image: ubuntu:24.04
@@ -30,44 +27,22 @@ spec:
         command: ["/bin/bash", "-c"]
         args:
           - |
-            echo "Setting up environment for GPU access..."
+            echo "Starting llama.cpp server with Mistral-7B-OpenOrca..."
+            echo "Configuration:"
+            echo "  Model: ${MODEL_PATH}"
+            echo "  Port: ${PORT}"
+            echo "  Parallel slots: ${N_PARALLEL}"
+            echo "  Context size: ${CTX_SIZE}"
+            echo "  GPU layers: ${N_GPU_LAYERS}"
+
+            # Set GPU environment
             export HSA_OVERRIDE_GFX_VERSION=11.0.0
             export ROCR_VISIBLE_DEVICES=0
             export ROCM_PATH=/opt/rocm-6.4.1
 
-            echo "Installing runtime dependencies only..."
-            apt-get update -qq
-            apt-get install -y --no-install-recommends \
-              curl wget jq \
-              libgl1 libglvnd0 libegl1 libgles2 \
-              libvulkan1 vulkan-tools \
-              libcurl4-openssl-dev \
-              libgomp1 \
-              python3 python3-pip
-
-            echo "Building llama.cpp from source..."
-            mkdir -p /tmp/llamacpp/bin
-
-            if true; then
-              echo "Setting up build environment..."
-              apt-get install -y --no-install-recommends \
-                build-essential cmake git \
-                libgl-dev libglvnd-dev libgl1-mesa-dev \
-                libegl1-mesa-dev libgles2-mesa-dev \
-                libvulkan-dev vulkan-tools shaderc \
-                libshaderc-dev glslc \
-                python3 python3-pip
-              git clone https://github.com/ggml-org/llama.cpp.git /tmp/llamacpp-source
-              cd /tmp/llamacpp-source
-              cmake -B build -DGGML_VULKAN=ON -DCMAKE_BUILD_TYPE=Release
-              cmake --build build --config Release -j$(nproc)
-              cp -r build/* /tmp/llamacpp/
-            fi
-
-            echo "Starting llama.cpp server with Kimi-VL model..."
-            exec /tmp/llamacpp/bin/llama-server \
+            # Use pre-built llama.cpp from host with GPU support
+            exec /host/llama.cpp/bin/llama-server \
               -m ${MODEL_PATH} \
-              --mmproj ${MMPROJ_PATH} \
               --host ${HOST} \
               --port ${PORT} \
               -np ${N_PARALLEL} \
@@ -76,8 +51,7 @@ spec:
               --batch-size ${BATCH_SIZE} \
               --ubatch-size ${U_BATCH_SIZE} \
               --threads ${N_THREADS} \
-              --metrics \
-              --log-disable
+              --metrics
         envFrom:
         - configMapRef:
             name: llamacpp-config
@@ -96,14 +70,14 @@ spec:
           httpGet:
             path: /health
             port: http
-          initialDelaySeconds: 120
+          initialDelaySeconds: 60
           periodSeconds: 30
           timeoutSeconds: 10
         readinessProbe:
           httpGet:
             path: /health
             port: http
-          initialDelaySeconds: 60
+          initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
         lifecycle:
@@ -114,16 +88,29 @@ spec:
         - name: host-models
           mountPath: /models
         - name: host-llamacpp
-          mountPath: /home/pesu/llama.cpp
+          mountPath: /host/llama.cpp
+          readOnly: true
+        - name: host-dev
+          mountPath: /dev
+        - name: host-rocm
+          mountPath: /opt/rocm-6.4.1
           readOnly: true
       volumes:
-      - name: host-llamacpp
-        hostPath:
-          path: /home/pesu/llama.cpp
-          type: Directory
       - name: host-models
         hostPath:
           path: /home/pesu/models
           type: Directory
+      - name: host-llamacpp
+        hostPath:
+          path: /home/pesu/llama.cpp
+          type: Directory
+      - name: host-dev
+        hostPath:
+          path: /dev
+          type: Directory
+      - name: host-rocm
+        hostPath:
+          path: /opt/rocm-6.4.1
+          type: DirectoryOrCreate
       nodeSelector:
-        kubernetes.io/hostname: pesubuntu  # Deploy to compute node with GPU
+        kubernetes.io/hostname: pesubuntu

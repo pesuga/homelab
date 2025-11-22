@@ -33,29 +33,48 @@ app.add_middleware(
 )
 
 # Environment configuration
+# Environment configuration
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://100.72.98.106:11434")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "sk-dummy")
 QDRANT_HOST = os.getenv("QDRANT_HOST", "qdrant.homelab.svc.cluster.local")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "mem0_memories")
 LLM_MODEL = os.getenv("LLM_MODEL", "mistral:7b-instruct-q4_K_M")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
+EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", "ollama")
+
+# Configure LLM
+llm_config = {
+    "model": LLM_MODEL,
+    "temperature": 0.1,
+}
+if LLM_PROVIDER == "ollama":
+    llm_config["ollama_base_url"] = OLLAMA_BASE_URL
+elif LLM_PROVIDER == "openai":
+    llm_config["openai_base_url"] = OPENAI_BASE_URL
+    llm_config["api_key"] = OPENAI_API_KEY
+
+# Configure Embedder
+embedder_config = {
+    "model": EMBEDDING_MODEL,
+}
+if EMBEDDING_PROVIDER == "ollama":
+    embedder_config["ollama_base_url"] = OLLAMA_BASE_URL
+elif EMBEDDING_PROVIDER == "openai":
+    embedder_config["openai_base_url"] = OPENAI_BASE_URL
+    embedder_config["api_key"] = OPENAI_API_KEY
 
 # Mem0 configuration
 mem0_config = {
     "llm": {
-        "provider": "ollama",
-        "config": {
-            "model": LLM_MODEL,
-            "ollama_base_url": OLLAMA_BASE_URL,
-            "temperature": 0.1,
-        }
+        "provider": LLM_PROVIDER,
+        "config": llm_config
     },
     "embedder": {
-        "provider": "ollama",
-        "config": {
-            "model": EMBEDDING_MODEL,
-            "ollama_base_url": OLLAMA_BASE_URL
-        }
+        "provider": EMBEDDING_PROVIDER,
+        "config": embedder_config
     },
     "vector_store": {
         "provider": "qdrant",

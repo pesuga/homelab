@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: family-assistant-admin
+  namespace: family-assistant-admin
+  labels:
+    app.kubernetes.io/name: family-assistant-admin
+    app.kubernetes.io/component: admin
+    app.kubernetes.io/part-of: family-assistant
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.middlewares: family-assistant-admin-rate-limit@kubernetescrd,family-assistant-admin-security@kubernetescrd
+    # Security headers
+    traefik.ingress.kubernetes.io/router.headers.customrequestheaders.X-Forwarded-Proto: "https"
+    traefik.ingress.kubernetes.io/router.headers.stsSeconds: "31536000"
+    traefik.ingress.kubernetes.io/router.headers.stsIncludeSubdomains: "true"
+    traefik.ingress.kubernetes.io/router.headers.stsPreload: "true"
+    # Admin-specific security
+    traefik.ingress.kubernetes.io/router.headers.customresponseheaders.X-Frame-Options: "DENY"
+    traefik.ingress.kubernetes.io/router.headers.customresponseheaders.X-Content-Type-Options: "nosniff"
+spec:
+  tls:
+  - hosts:
+    - admin.fa.pesulabs.net
+    secretName: family-assistant-admin-tls
+  rules:
+  - host: admin.fa.pesulabs.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: family-assistant-admin
+            port:
+              number: 3000

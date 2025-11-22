@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: family-assistant-app-http
+  namespace: family-assistant-app
+  labels:
+    app.kubernetes.io/name: family-assistant-app
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: family-assistant
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.middlewares: "https-redirect@homelab"
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: app.fa.pesulabs.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: family-assistant
+            port:
+              number: 80

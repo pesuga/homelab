@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: family-assistant-admin
+  labels:
+    name: family-assistant-admin
+    app.kubernetes.io/name: family-assistant-admin
+    app.kubernetes.io/component: admin
+    app.kubernetes.io/part-of: family-assistant
+    app.kubernetes.io/managed-by: kubectl

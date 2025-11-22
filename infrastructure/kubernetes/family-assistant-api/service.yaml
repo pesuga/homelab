@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: family-assistant-api
+  namespace: family-assistant-api
+  labels:
+    app.kubernetes.io/name: family-assistant-api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: family-assistant
+  annotations:
+    prometheus.io/scrape: "false"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8001
+    targetPort: http
+    protocol: TCP
+  - name: admin
+    port: 8123
+    targetPort: admin
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: family-assistant-api
+    app.kubernetes.io/component: backend
