@@ -21,8 +21,8 @@ spec:
         app.kubernetes.io/component: deployment
         app.kubernetes.io/instance: kimi-vl
     spec:
-      hostNetwork: true  # Use host network for GPU access
-      hostPID: true      # Use host PID for GPU device access
+      hostNetwork: false  # Use pod network to avoid port conflicts
+      hostPID: true       # Use host PID for GPU device access
       containers:
       - name: llamacpp-server
         image: ubuntu:24.04
@@ -42,14 +42,14 @@ spec:
               libgl1 libglvnd0 libegl1 libgles2 \
               libvulkan1 vulkan-tools \
               libcurl4-openssl-dev \
+              libgomp1 \
               python3 python3-pip
 
-            echo "Copying pre-built llama.cpp..."
+            echo "Building llama.cpp from source..."
             mkdir -p /tmp/llamacpp/bin
-            cp -r /home/pesu/llama.cpp/bin/* /tmp/llamacpp/bin/ 2>/dev/null || echo "Will build from source"
 
-            if [ ! -f /tmp/llamacpp/bin/llama-server ]; then
-              echo "Building llama.cpp..."
+            if true; then
+              echo "Setting up build environment..."
               apt-get install -y --no-install-recommends \
                 build-essential cmake git \
                 libgl-dev libglvnd-dev libgl1-mesa-dev \
@@ -85,9 +85,6 @@ spec:
         - containerPort: 8080
           name: http
           protocol: TCP
-        volumeMounts:
-        - name: models-storage
-          mountPath: /models
         resources:
           requests:
             memory: "8Gi"
@@ -114,18 +111,12 @@ spec:
             exec:
               command: ["/bin/sh", "-c", "pkill llama-server || true"]
         volumeMounts:
-        - name: models-storage
+        - name: host-models
           mountPath: /models
         - name: host-llamacpp
           mountPath: /home/pesu/llama.cpp
           readOnly: true
-        - name: host-models
-          mountPath: /home/pesu/models
-          readOnly: true
       volumes:
-      - name: models-storage
-        persistentVolumeClaim:
-          claimName: llamacpp-models-pvc
       - name: host-llamacpp
         hostPath:
           path: /home/pesu/llama.cpp
