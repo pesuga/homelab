@@ -127,7 +127,7 @@ spec:
             - name: SECRET_KEY
               value: ChangeMe!2024#Secure # TODO: Move to Secret
             - name: PYTHONPATH
-              value: /app:/app/api:/app/config:/app/agents:/app/services:/app/models
+              value: /app/src
 
             # Observability - DISABLED until OTEL collector deployed
             - name: OTEL_SDK_DISABLED
