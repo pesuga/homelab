@@ -185,7 +185,7 @@ export default function AccessibilityWrapper({ children }: AccessibilityWrapperP
     '--animation-duration': settings.reducedMotion ? '0.01s' : '0.3s',
     '--border-width': settings.focusVisible ? '3px' : '2px',
     '--font-family': settings.dyslexiaFont ? "'OpenDyslexic', 'Comic Sans MS', sans-serif" : "inherit"
-  };
+  } as React.CSSProperties;
 
   return (
     <AccessibilityContext.Provider value={{ settings, updateSettings, announceToScreenReader }}>

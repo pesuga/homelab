@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { useFamilyData } from "@/hooks/useFamilyData";
 import { FamilyMember, ParentalControls } from "@/lib/api-client";
+import UserProfileEditor from "@/components/knowledge/UserProfileEditor";
 
 export default function MyFamily() {
   const [activeTab, setActiveTab] = useState("members");
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [profileEditorMember, setProfileEditorMember] = useState<FamilyMember | null>(null);
 
   const {
     members,
@@ -54,6 +56,7 @@ export default function MyFamily() {
 
   const tabs = [
     { id: "members", name: "Family Members", icon: "👥" },
+    { id: "profiles", name: "AI Profiles", icon: "🤖" },
     { id: "controls", name: "Parental Controls", icon: "🛡️" },
     { id: "features", name: "Feature Flags", icon: "🚩" },
     { id: "reports", name: "Activity Reports", icon: "📊" },
@@ -188,6 +191,12 @@ export default function MyFamily() {
                       Edit
                     </button>
                     <button
+                      onClick={() => setProfileEditorMember(member)}
+                      className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                    >
+                      AI Profile
+                    </button>
+                    <button
                       onClick={() => handleDeleteMember(member.id)}
                       className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                     >
@@ -209,6 +218,103 @@ export default function MyFamily() {
           >
             + Add Family Member
           </button>
+        </div>
+      )}
+
+      {/* AI Profiles Tab */}
+      {activeTab === "profiles" && (
+        <div className="space-y-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-2">
+              AI Assistant Profiles
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Configure personalized AI assistant settings for each family member including roles, skills, and preferences.
+            </p>
+          </div>
+
+          {membersLoading ? (
+            <div className="text-center py-12">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading profiles...</p>
+            </div>
+          ) : members.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                No family members found. Add family members first to configure their AI profiles.
+              </p>
+              <button
+                onClick={() => setActiveTab("members")}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Add Family Members
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {members.map((member) => (
+                <div
+                  key={member.id}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+                >
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="text-3xl">{member.avatar || getAvatarEmoji(member.role)}</div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                            {member.name}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {member.email}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Role:</span>
+                        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 text-xs rounded">
+                          {member.role}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Language:</span>
+                        <span className="text-gray-800 dark:text-gray-200">
+                          {member.language_preference === "en" ? "English" :
+                           member.language_preference === "es" ? "Spanish" : "Bilingual"}
+                        </span>
+                      </div>
+
+                      {member.last_active && (
+                        <div className="text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">Last active:</span>
+                          <span className="text-gray-800 dark:text-gray-200 ml-1">
+                            {new Date(member.last_active).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <button
+                        onClick={() => setProfileEditorMember(member)}
+                        className="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Configure AI Profile
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -498,6 +604,20 @@ export default function MyFamily() {
             </>
           )}
         </div>
+      )}
+
+      {/* User Profile Editor Modal */}
+      {profileEditorMember && (
+        <UserProfileEditor
+          userId={profileEditorMember.id}
+          userName={profileEditorMember.name}
+          isOpen={!!profileEditorMember}
+          onClose={() => setProfileEditorMember(null)}
+          onSuccess={() => {
+            // Optional: refresh data or show success message
+            console.log(`Profile updated for ${profileEditorMember.name}`);
+          }}
+        />
       )}
     </div>
   );

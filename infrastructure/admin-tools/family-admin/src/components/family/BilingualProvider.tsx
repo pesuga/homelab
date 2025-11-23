@@ -295,7 +295,7 @@ export default function BilingualProvider({ children }: BilingualProviderProps) 
       };
 
       if (roleDefaults[user.role as keyof typeof roleDefaults] && !savedProficiency) {
-        setProficiency(roleDefaults[user.role as keyof typeof roleDefaults]);
+        setProficiency(roleDefaults[user.role as keyof typeof roleDefaults] as ProficiencyLevel);
       }
     }
   }, [user?.role, language]);

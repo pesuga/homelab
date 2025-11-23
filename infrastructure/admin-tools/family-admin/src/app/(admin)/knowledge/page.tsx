@@ -90,7 +90,7 @@ export default function KnowledgePage() {
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin" />
-              <span className="ml-2">Loading {type}s...</span>
+              <span className="ml-2 text-gray-700 dark:text-gray-300">Loading {type}s...</span>
             </div>
           ) : prompts && prompts.length > 0 ? (
             <div className="grid gap-3">
@@ -103,7 +103,7 @@ export default function KnowledgePage() {
                     <Badge variant={type === 'role' ? 'default' : 'secondary'}>
                       {type.slice(0, -1).toUpperCase()}
                     </Badge>
-                    <span className="font-medium">{prompt}</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{prompt}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
@@ -130,7 +130,7 @@ export default function KnowledgePage() {
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Knowledge Base</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Knowledge Base</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
           Manage roles and skills that define how family members interact with the AI assistant.
         </p>

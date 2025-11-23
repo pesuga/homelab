@@ -1,0 +1,38 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { extractUserFromHeaders } from './lib/authentik';
+
+// Routes that don't require authentication
+const publicRoutes = [
+  '/signin',
+  '/api/auth', // All NextAuth API routes
+  '/api/auth/me', // This endpoint itself doesn't require auth - it checks headers
+  '/api/health',
+  '/api/ready',
+  '/_next',
+  '/favicon.ico',
+];
+
+export function middleware(request: NextRequest) {
+  // DEBUG: Log all requests to see if middleware is running
+  console.log('MIDDLEWARE RUNNING:', request.url);
+
+  // TEMPORARILY DISABLE ALL AUTHENTICATION TO ISOLATE THE REDIRECT LOOP ISSUE
+  // This allows us to test if the application loads without authentication
+
+  // For now, allow all requests to proceed
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+};

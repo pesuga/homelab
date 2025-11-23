@@ -183,9 +183,13 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
   }
+  /* Exclude buttons from the border override to preserve outline/ghost variants */
+  button,
+  [role="button"],
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+    border-color: inherit;
   }
   body {
     @apply relative font-normal font-outfit z-1 bg-gray-50;

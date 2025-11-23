@@ -47,7 +47,7 @@ export const Tabs: React.FC<TabsProps> = ({ defaultValue = '', className = '', c
 
 export const TabsList: React.FC<TabsListProps> = ({ children, className = '' }) => {
   return (
-    <div className={`flex space-x-1 border-b border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`inline-flex items-center p-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm ${className}`}>
       {children}
     </div>
   );
@@ -59,11 +59,12 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({ value, children, class
 
   return (
     <button
+      type="button"
       onClick={() => setActiveTab(value)}
-      className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+      className={`inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
         isActive
-          ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-          : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+          ? 'bg-white text-blue-700 shadow-md dark:bg-gray-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+          : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-white/50 dark:hover:bg-gray-600/50'
       } ${className}`}
     >
       {children}

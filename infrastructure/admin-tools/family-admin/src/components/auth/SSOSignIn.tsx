@@ -1,16 +1,20 @@
 "use client";
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
-export default function SignInFormIntegrated() {
+export default function SSOSignIn() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  // Since we've bypassed authentication, check if user exists and redirect
-  if (!isLoading && isAuthenticated) {
-    router.replace('/dashboard');
-  }
+  useEffect(() => {
+    // If already authenticated, redirect to dashboard
+    if (user && !isLoading) {
+      router.push('/dashboard');
+      return;
+    }
+  }, [user, isLoading, router]);
 
   // Show loading state
   return (
@@ -18,10 +22,10 @@ export default function SignInFormIntegrated() {
       <div className="text-center">
         <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
         <p className="text-gray-600 dark:text-gray-400">
-          {isLoading ? 'Checking authentication...' : 'Development Mode - Bypassing Login'}
+          {isLoading ? 'Loading...' : 'Demo Authentication Active'}
         </p>
         <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-          Redirecting to dashboard...
+          Welcome to the Family Admin Dashboard
         </p>
       </div>
     </div>

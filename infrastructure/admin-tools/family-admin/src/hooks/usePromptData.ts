@@ -16,7 +16,7 @@ interface UsePromptDataReturn {
   // Operations
   getCorePrompt: () => Promise<void>;
   getRolePrompt: (role: string) => Promise<void>;
-  buildPrompt: (userId: string, options?: PromptBuildRequest) => Promise<void>;
+  buildPrompt: (userId: string, options?: Partial<PromptBuildRequest>) => Promise<void>;
 
   // Available roles
   availableRoles: string[];
@@ -36,8 +36,19 @@ export function usePromptData(): UsePromptDataReturn {
     setLoading(true);
     setError(null);
     try {
-      const prompt = await apiClient.getCorePrompt();
-      setCorePrompt(prompt);
+      const promptResponse = await apiClient.getCorePrompt();
+      // Transform { prompt: string } to PromptResponse format
+      const transformedPrompt: PromptResponse = {
+        system_prompt: promptResponse.prompt,
+        context: '',
+        metadata: {
+          role: 'system',
+          language: 'en',
+          layers: ['core']
+        },
+        prompt: promptResponse.prompt
+      };
+      setCorePrompt(transformedPrompt);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to fetch core prompt';
       setError(message);
@@ -52,10 +63,21 @@ export function usePromptData(): UsePromptDataReturn {
     setLoading(true);
     setError(null);
     try {
-      const prompt = await apiClient.getRolePrompt(role);
+      const promptResponse = await apiClient.getRolePrompt(role);
+      // Transform { prompt: string } to PromptResponse format
+      const transformedPrompt: PromptResponse = {
+        system_prompt: promptResponse.prompt,
+        context: '',
+        metadata: {
+          role: role,
+          language: 'en',
+          layers: ['role']
+        },
+        prompt: promptResponse.prompt
+      };
       setRolePrompts(prev => ({
         ...prev,
-        [role]: prompt
+        [role]: transformedPrompt
       }));
     } catch (error) {
       const message = error instanceof Error ? error.message : `Failed to fetch ${role} prompt`;

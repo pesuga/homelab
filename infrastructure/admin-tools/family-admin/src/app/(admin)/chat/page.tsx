@@ -82,13 +82,13 @@ export default function PromptManager() {
             {corePrompt ? (
               <div>
                 <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  <span>Length: {corePrompt.length.toLocaleString()} chars</span>
-                  <span>Tokens: ~{corePrompt.estimated_tokens.toLocaleString()}</span>
+                  <span>Length: {corePrompt.length?.toLocaleString() || 0} chars</span>
+                  <span>Tokens: ~{corePrompt.estimated_tokens?.toLocaleString() || 0}</span>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 max-h-60 overflow-y-auto">
                   <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-mono">
-                    {corePrompt.prompt.slice(0, 500)}
-                    {corePrompt.prompt.length > 500 && "..."}
+                    {(corePrompt.prompt || corePrompt.system_prompt).slice(0, 500)}
+                    {((corePrompt.prompt || corePrompt.system_prompt).length > 500) && "..."}
                   </pre>
                 </div>
               </div>
@@ -109,27 +109,29 @@ export default function PromptManager() {
                 <div key={role} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <button
-                      onClick={() => getRolePrompt(role)}
+                      onClick={() => {
+                        getRolePrompt(role);
+                        setSelectedRole(role);
+                      }}
                       className={`text-left flex-1 font-medium capitalize ${
                         selectedRole === role
                           ? "text-blue-600 dark:text-blue-400"
                           : "text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
                       }`}
-                      onClick={() => setSelectedRole(role)}
                     >
                       {role} Role
                     </button>
                     {rolePrompts[role] && (
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {rolePrompts[role].estimated_tokens} tokens
+                        {rolePrompts[role].estimated_tokens || 0} tokens
                       </span>
                     )}
                   </div>
                   {selectedRole === role && rolePrompts[role] && (
                     <div className="mt-3 bg-gray-50 dark:bg-gray-700/50 rounded p-3 max-h-40 overflow-y-auto">
                       <p className="text-sm text-gray-700 dark:text-gray-300">
-                        {rolePrompts[role].prompt.slice(0, 300)}
-                        {rolePrompts[role].prompt.length > 300 && "..."}
+                        {(rolePrompts[role].prompt || rolePrompts[role].system_prompt).slice(0, 300)}
+                        {((rolePrompts[role].prompt || rolePrompts[role].system_prompt).length > 300) && "..."}
                       </p>
                     </div>
                   )}
@@ -231,7 +233,7 @@ export default function PromptManager() {
               <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Core Prompt Size</span>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  {corePrompt ? `${corePrompt.estimated_tokens.toLocaleString()} tokens` : "N/A"}
+                  {corePrompt ? `${corePrompt.estimated_tokens?.toLocaleString() || 0} tokens` : "N/A"}
                 </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">

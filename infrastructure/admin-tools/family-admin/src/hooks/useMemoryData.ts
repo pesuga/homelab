@@ -52,25 +52,25 @@ export function useMemoryData(): UseMemoryDataReturn {
       const systemLayers: SystemLayer[] = [
         {
           name: 'Redis',
-          status: health.layers.redis?.status === 'healthy' ? 'healthy' : 'unhealthy',
-          latency_ms: health.layers.redis?.latency_ms,
-          details: health.layers.redis,
+          status: health.redis?.connected ? 'healthy' : 'unhealthy',
+          latency_ms: health.redis?.latency_ms,
+          details: health.redis,
           last_check: health.timestamp
         },
         {
           name: 'Mem0',
-          status: health.layers.mem0?.status === 'healthy' ? 'healthy' : 'unhealthy',
-          latency_ms: health.layers.mem0?.latency_ms,
-          details: health.layers.mem0,
+          status: health.mem0?.connected ? 'healthy' : 'unhealthy',
+          latency_ms: undefined, // mem0 doesn't have latency_ms in the interface
+          details: health.mem0,
           last_check: health.timestamp
         },
         {
           name: 'Qdrant',
-          status: health.layers.qdrant?.status === 'healthy' ? 'healthy' : 'unhealthy',
-          latency_ms: health.layers.qdrant?.latency_ms,
+          status: health.qdrant?.connected ? 'healthy' : 'unhealthy',
+          latency_ms: undefined, // qdrant doesn't have latency_ms in the interface
           details: {
-            ...health.layers.qdrant,
-            collections: health.layers.qdrant?.collections
+            ...health.qdrant,
+            collections: health.qdrant?.collections
           },
           last_check: health.timestamp
         }

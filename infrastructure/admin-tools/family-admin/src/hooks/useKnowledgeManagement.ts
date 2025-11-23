@@ -34,6 +34,7 @@ interface UseKnowledgeManagementReturn {
   stats: KnowledgeStats | null;
   loading: boolean;
   error: string | null;
+  CATEGORIES: Array<{ value: string; label: string; description: string }>;
 
   // Form state
   editingDocument: KnowledgeDocument | null;
