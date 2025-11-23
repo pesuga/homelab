@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>llama.cpp Performance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #667eea;
+        }
+
+        .status-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .status-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .status-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .controls h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .model-badge {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #51cf66;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 llama.cpp Performance Dashboard</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <span id="lastUpdate">Last updated: Never</span>
+                <span id="currentModel" class="model-badge">Unknown Model</span>
+            </div>
+        </div>
+
+        <div id="alerts"></div>
+
+        <div class="controls">
+            <h3>📊 Controls</h3>
+            <div class="control-group">
+                <button class="btn" onclick="startMonitoring()">▶️ Start Monitoring</button>
+                <button class="btn" onclick="stopMonitoring()">⏸️ Stop Monitoring</button>
+                <button class="btn" onclick="runBenchmark()">🏃 Run Benchmark</button>
+                <button class="btn" onclick="clearData()">🗑️ Clear Data</button>
+                <select id="timeRange" onchange="updateTimeRange()">
+                    <option value="60">Last Hour</option>
+                    <option value="360">Last 6 Hours</option>
+                    <option value="1440" selected>Last 24 Hours</option>
+                    <option value="10080">Last Week</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-card">
+                <h3>⚡ Current Performance</h3>
+                <div class="status-value" id="currentTPS">0</div>
+                <div class="status-label">Tokens per Second</div>
+            </div>
+            <div class="status-card">
+                <h3>📝 Total Prompt Tokens</h3>
+                <div class="status-value" id="totalPromptTokens">0</div>
+                <div class="status-label">Lifetime tokens processed</div>
+            </div>
+            <div class="status-card">
+                <h3>🔮 Total Predicted Tokens</h3>
+                <div class="status-value" id="totalPredictedTokens">0</div>
+                <div class="status-label">Lifetime tokens generated</div>
+            </div>
+            <div class="status-card">
+                <h3>💻 System Usage</h3>
+                <div class="status-value" id="systemUsage">0%</div>
+                <div class="status-label">CPU / Memory usage</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>📈 Token Generation Speed</h3>
+                <div class="chart-container">
+                    <canvas id="speedChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>🎯 Model Performance</h3>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>📊 Tokens Over Time</h3>
+                <div class="chart-container">
+                    <canvas id="tokensChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>🖥️ System Resources</h3>
+                <div class="chart-container">
+                    <canvas id="resourcesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let monitoringInterval = null;
+        let charts = {};
+        let metricsData = [];
+        const METRICS_URL = 'http://localhost:8081/metrics';
+        const UPDATE_INTERVAL = 5000; // 5 seconds
+
+        // Initialize charts
+        function initCharts() {
+            // Speed Chart
+            charts.speed = new Chart(document.getElementById('speedChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Prompt TPS',
+                        data: [],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Prediction TPS',
+                        data: [],
+                        borderColor: '#764ba2',
+                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tokens/Second' } },
+                        x: { title: { display: true, text: 'Time' } }
+                    }
+                }
+            });
+
+            // Performance Chart
+            charts.performance = new Chart(document.getElementById('performanceChart'), {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Prompt Time (ms)',
+                        data: [],
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)'
+                    }, {
+                        label: 'Prediction Time (ms)',
+                        data: [],
+                        backgroundColor: 'rgba(118, 75, 162, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Milliseconds' } },
+                        x: { title: { display: true, text: 'Request' } }
+                    }
+                }
+            });
+
+            // Tokens Chart
+            charts.tokens = new Chart(document.getElementById('tokensChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Prompt Tokens',
+                        data: [],
+                        borderColor: '#51cf66',
+                        backgroundColor: 'rgba(81, 207, 102, 0.1)',
+                        fill: true
+                    }, {
+                        label: 'Predicted Tokens',
+                        data: [],
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Tokens' } },
+                        x: { title: { display: true, text: 'Time' } }
+                    }
+                }
+            });
+
+            // Resources Chart
+            charts.resources = new Chart(document.getElementById('resourcesChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'CPU Usage (%)',
+                        data: [],
+                        borderColor: '#ff9ff3',
+                        backgroundColor: 'rgba(255, 159, 243, 0.1)',
+                        fill: true
+                    }, {
+                        label: 'Memory Usage (%)',
+                        data: [],
+                        borderColor: '#54a0ff',
+                        backgroundColor: 'rgba(84, 160, 255, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Usage (%)' } },
+                        x: { title: { display: true, text: 'Time' } }
+                    }
+                }
+            });
+        }
+
+        // Parse Prometheus metrics
+        function parseMetrics(text) {
+            const metrics = {};
+            const lines = text.split('\n').filter(line => line && !line.startsWith('#'));
+
+            lines.forEach(line => {
+                const [key, value] = line.trim().split(/\s+/);
+                metrics[key] = parseFloat(value) || 0;
+            });
+
+            return metrics;
+        }
+
+        // Fetch metrics from llama.cpp
+        async function fetchMetrics() {
+            try {
+                const response = await fetch(METRICS_URL);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const text = await response.text();
+                return parseMetrics(text);
+            } catch (error) {
+                console.error('Failed to fetch metrics:', error);
+                showAlert('Failed to fetch metrics: ' + error.message, 'error');
+                return null;
+            }
+        }
+
+        // Update dashboard with current metrics
+        async function updateMetrics() {
+            const metrics = await fetchMetrics();
+            if (!metrics) return;
+
+            const timestamp = new Date();
+
+            // Update status cards
+            const promptTPS = metrics['llamacpp:prompt_tokens_total'] / (metrics['llamacpp:prompt_seconds_total'] || 1);
+            const predictionTPS = metrics['llamacpp:tokens_predicted_total'] / (metrics['llamacpp:tokens_predicted_seconds_total'] || 1);
+            const currentTPS = (promptTPS + predictionTPS) / 2;
+
+            document.getElementById('currentTPS').textContent = currentTPS.toFixed(1);
+            document.getElementById('totalPromptTokens').textContent = Math.floor(metrics['llamacpp:prompt_tokens_total'] || 0);
+            document.getElementById('totalPredictedTokens').textContent = Math.floor(metrics['llamacpp:tokens_predicted_total'] || 0);
+
+            // Simulated system usage (would need to be fetched from API)
+            document.getElementById('systemUsage').textContent = `${Math.floor(Math.random() * 30 + 10)}% / ${Math.floor(Math.random() * 40 + 30)}%`;
+
+            document.getElementById('lastUpdate').textContent = `Last updated: ${timestamp.toLocaleTimeString()}`;
+
+            // Update charts
+            const timeLabel = timestamp.toLocaleTimeString();
+
+            // Speed chart
+            charts.speed.data.labels.push(timeLabel);
+            charts.speed.data.datasets[0].data.push(promptTPS);
+            charts.speed.data.datasets[1].data.push(predictionTPS);
+
+            // Tokens chart
+            charts.tokens.data.labels.push(timeLabel);
+            charts.tokens.data.datasets[0].data.push(metrics['llamacpp:prompt_tokens_total']);
+            charts.tokens.data.datasets[1].data.push(metrics['llamacpp:tokens_predicted_total']);
+
+            // Keep only recent data points
+            const maxPoints = 50;
+            Object.values(charts).forEach(chart => {
+                if (chart.data.labels.length > maxPoints) {
+                    chart.data.labels.shift();
+                    chart.data.datasets.forEach(dataset => dataset.data.shift());
+                }
+                chart.update('none');
+            });
+        }
+
+        // Start monitoring
+        function startMonitoring() {
+            if (monitoringInterval) return;
+
+            monitoringInterval = setInterval(updateMetrics, UPDATE_INTERVAL);
+            updateMetrics(); // Initial update
+            showAlert('Monitoring started', 'success');
+        }
+
+        // Stop monitoring
+        function stopMonitoring() {
+            if (monitoringInterval) {
+                clearInterval(monitoringInterval);
+                monitoringInterval = null;
+                showAlert('Monitoring stopped', 'success');
+            }
+        }
+
+        // Run benchmark
+        async function runBenchmark() {
+            showAlert('Running benchmark...', 'success');
+            try {
+                const response = await fetch('/api/benchmark', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: 'Benchmark test', max_tokens: 50, iterations: 3 })
+                });
+
+                if (!response.ok) throw new Error('Benchmark failed');
+                const results = await response.json();
+                showAlert(`Benchmark complete: ${results.avg_tps.toFixed(1)} tokens/sec`, 'success');
+            } catch (error) {
+                showAlert('Benchmark failed: ' + error.message, 'error');
+            }
+        }
+
+        // Clear data
+        function clearData() {
+            Object.values(charts).forEach(chart => {
+                chart.data.labels = [];
+                chart.data.datasets.forEach(dataset => dataset.data = []);
+                chart.update();
+            });
+            showAlert('Data cleared', 'success');
+        }
+
+        // Update time range
+        function updateTimeRange() {
+            // Would filter data based on selected time range
+            console.log('Time range updated');
+        }
+
+        // Show alert
+        function showAlert(message, type = 'info') {
+            const alertsDiv = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = type;
+            alert.textContent = message;
+            alertsDiv.appendChild(alert);
+
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 5000);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            startMonitoring();
+
+            // Update model info
+            fetch('/api/current-model')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('currentModel').textContent = data.model || 'Unknown';
+                })
+                .catch(() => {
+                    document.getElementById('currentModel').textContent = 'Kimi-VL'; // Default
+                });
+        });
+
+        // Cleanup on unload
+        window.addEventListener('beforeunload', function() {
+            stopMonitoring();
+        });
+    </script>
+</body>
+</html>

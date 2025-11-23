@@ -6,8 +6,8 @@ export async function GET() {
     let backendUrl: string;
 
     if (process.env.NODE_ENV === 'production') {
-      // Production: Use Kubernetes service name
-      backendUrl = 'http://family-assistant-backend.homelab.svc.cluster.local:8001/api/phase2/prompts/roles';
+      // Production: Use HTTPS URL
+      backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://admin.fa.pesulabs.net/api'}/phase2/prompts/roles`;
     } else {
       // Development: Use environment variable or default to localhost
       backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/api/phase2/prompts/roles`;

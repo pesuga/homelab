@@ -16,7 +16,7 @@ from typing import List, Dict, Optional, Any
 from uuid import UUID, uuid4
 import httpx
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct
+from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
 import redis.asyncio as redis
 from pydantic import BaseModel
 
@@ -56,9 +56,9 @@ class MemoryManager:
     def __init__(
         self,
         redis_url: str = "redis://redis.homelab.svc.cluster.local:6379",
-        mem0_url: str = "http://100.81.76.55:30880",
-        qdrant_url: str = "http://100.81.76.55:30633",
-        ollama_url: str = "http://100.72.98.106:11434"
+        mem0_url: str = "http://mem0.homelab.svc.cluster.local:8080",
+        qdrant_url: str = "http://qdrant.homelab.svc.cluster.local:6333",
+        ollama_url: str = "http://llamacpp-service.default.svc.cluster.local:8080"
     ):
         # Layer 1: Redis client
         self.redis_client = None  # Initialized async
@@ -90,6 +90,9 @@ class MemoryManager:
 
         # Initialize Qdrant collections if they don't exist
         await self._initialize_qdrant_collections()
+        
+        # Ensure database tables exist
+        await self._ensure_tables_exist()
 
     async def _initialize_qdrant_collections(self):
         """Create Qdrant collections for family memories"""
@@ -244,6 +247,83 @@ class MemoryManager:
     # Layer 3: PostgreSQL (Structured Data) - Relational Family Data
     # =========================================================================
 
+    async def _ensure_tables_exist(self):
+        """Ensure necessary tables exist"""
+        from api.database import AsyncSessionLocal
+        from sqlalchemy import text
+        
+        async with AsyncSessionLocal() as session:
+            try:
+                # Family Members table
+                await session.execute(text("""
+                    CREATE TABLE IF NOT EXISTS family_members (
+                        id TEXT PRIMARY KEY,
+                        role TEXT NOT NULL,
+                        age_group TEXT,
+                        language_preference TEXT DEFAULT 'en',
+                        active_skills TEXT[] DEFAULT '{}',
+                        preferences JSONB DEFAULT '{}'::jsonb,
+                        first_name TEXT,
+                        last_name TEXT,
+                        nickname TEXT,
+                        email TEXT,
+                        phone TEXT,
+                        bio TEXT,
+                        social_links JSONB DEFAULT '{}'::jsonb,
+                        address JSONB DEFAULT '{}'::jsonb,
+                        date_of_birth TIMESTAMP,
+                        job_title TEXT,
+                        created_at TIMESTAMP DEFAULT NOW(),
+                        updated_at TIMESTAMP DEFAULT NOW()
+                    )
+                """))
+
+                # Add columns if they don't exist (for existing deployments)
+                await session.execute(text("""
+                    ALTER TABLE family_members 
+                    ADD COLUMN IF NOT EXISTS first_name TEXT,
+                    ADD COLUMN IF NOT EXISTS last_name TEXT,
+                    ADD COLUMN IF NOT EXISTS nickname TEXT,
+                    ADD COLUMN IF NOT EXISTS email TEXT,
+                    ADD COLUMN IF NOT EXISTS phone TEXT,
+                    ADD COLUMN IF NOT EXISTS bio TEXT,
+                    ADD COLUMN IF NOT EXISTS social_links JSONB DEFAULT '{}'::jsonb,
+                    ADD COLUMN IF NOT EXISTS address JSONB DEFAULT '{}'::jsonb,
+                    ADD COLUMN IF NOT EXISTS date_of_birth TIMESTAMP,
+                    ADD COLUMN IF NOT EXISTS job_title TEXT;
+                """))
+                
+                # User Preferences table
+                await session.execute(text("""
+                    CREATE TABLE IF NOT EXISTS user_preferences (
+                        user_id TEXT PRIMARY KEY REFERENCES family_members(id),
+                        preferences JSONB DEFAULT '{}'::jsonb,
+                        prompt_style TEXT,
+                        response_length TEXT,
+                        safety_level TEXT,
+                        updated_at TIMESTAMP DEFAULT NOW()
+                    )
+                """))
+                
+                # Conversation Memory table
+                await session.execute(text("""
+                    CREATE TABLE IF NOT EXISTS conversation_memory (
+                        id SERIAL PRIMARY KEY,
+                        user_id TEXT,
+                        conversation_id TEXT,
+                        message_type TEXT,
+                        content TEXT,
+                        embedding VECTOR(768),
+                        metadata JSONB DEFAULT '{}'::jsonb,
+                        created_at TIMESTAMP DEFAULT NOW()
+                    )
+                """))
+                
+                await session.commit()
+            except Exception as e:
+                print(f"Error creating tables: {e}")
+                await session.rollback()
+
     async def save_conversation_to_db(
         self,
         user_id: str,
@@ -253,62 +333,151 @@ class MemoryManager:
         metadata: Optional[Dict[str, Any]] = None
     ):
         """Save conversation to PostgreSQL"""
-        if not self.db_connection:
-            return
-
-        # Generate embedding for semantic search
-        embedding = await self.generate_embedding(content)
-
-        query = """
-        INSERT INTO conversation_memory
-        (user_id, conversation_id, message_type, content, embedding, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        """
-
-        # TODO: Execute with actual database connection
-        # await conn.execute(query, user_id, conversation_id, message_type,
-        #                    content, embedding, json.dumps(metadata or {}))
+        from api.database import AsyncSessionLocal
+        from sqlalchemy import text
+        
+        async with AsyncSessionLocal() as session:
+            try:
+                # Generate embedding for semantic search
+                embedding = await self.generate_embedding(content)
+                
+                query = text("""
+                INSERT INTO conversation_memory
+                (user_id, conversation_id, message_type, content, embedding, metadata)
+                VALUES (:user_id, :conversation_id, :message_type, :content, :embedding, :metadata)
+                """)
+                
+                await session.execute(query, {
+                    "user_id": user_id,
+                    "conversation_id": conversation_id,
+                    "message_type": message_type,
+                    "content": content,
+                    "embedding": str(embedding), # pgvector expects string or list
+                    "metadata": json.dumps(metadata or {})
+                })
+                await session.commit()
+            except Exception as e:
+                print(f"Error saving to DB: {e}")
+                await session.rollback()
 
     async def get_user_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Get user profile from PostgreSQL"""
-        if not self.db_connection:
-            return None
+        from api.database import AsyncSessionLocal
+        from sqlalchemy import text
+        
+        async with AsyncSessionLocal() as session:
+            try:
+                query = text("""
+                SELECT 
+                    id, role, age_group, language_preference, active_skills, preferences,
+                    first_name, last_name, nickname, email, phone, bio, social_links, address,
+                    date_of_birth, job_title,
+                    created_at, updated_at
+                FROM family_members
+                WHERE id = :user_id
+                """)
+                
+                result = await session.execute(query, {"user_id": user_id})
+                row = result.mappings().first()
+                
+                if not row:
+                    # Create default profile if not exists
+                    default_role = "parent"  # Default to parent
+                    await session.execute(
+                        text("""
+                            INSERT INTO family_members (id, role)
+                            VALUES (:id, :role)
+                        """),
+                        {"id": user_id, "role": default_role}
+                    )
+                    await session.commit()
+                    return {
+                        "id": user_id,
+                        "role": default_role,
+                        "active_skills": [],
+                        "preferences": {}
+                    }
+                    
+                return dict(row)
+                
+            except Exception as e:
+                print(f"Error getting user profile: {e}")
+                # Fallback
+                return {
+                    "id": user_id,
+                    "role": "parent",
+                    "language_preference": "en",
+                    "active_skills": []
+                }
 
-        query = """
-        SELECT id, telegram_id, first_name, role, age_group,
-               language_preference, active_skills, preferences
-        FROM family_members
-        WHERE id = $1
-        """
-
-        # TODO: Execute with actual database connection and return result
-        # result = await conn.fetchrow(query, user_id)
-        # return dict(result) if result else None
-
-        # Temporary fallback
-        return {
-            "id": user_id,
-            "role": "parent",
-            "language_preference": "en",
-            "active_skills": []
-        }
+    async def update_user_profile(self, user_id: str, updates: Dict[str, Any]) -> bool:
+        """Update user profile in PostgreSQL"""
+        from api.database import AsyncSessionLocal
+        from sqlalchemy import text
+        
+        async with AsyncSessionLocal() as session:
+            try:
+                # Build update query dynamically
+                set_clauses = []
+                params = {"user_id": user_id}
+                
+                for key, value in updates.items():
+                    if key == "active_skills":
+                        set_clauses.append("active_skills = :active_skills")
+                        params["active_skills"] = value
+                    elif key == "preferences":
+                        set_clauses.append("preferences = :preferences")
+                        params["preferences"] = json.dumps(value)
+                    elif key == "social_links":
+                        set_clauses.append("social_links = :social_links")
+                        params["social_links"] = json.dumps(value)
+                    elif key == "address":
+                        set_clauses.append("address = :address")
+                        params["address"] = json.dumps(value)
+                    else:
+                        set_clauses.append(f"{key} = :{key}")
+                        params[key] = value
+                
+                if not set_clauses:
+                    return False
+                    
+                set_clauses.append("updated_at = NOW()")
+                
+                query = text(f"""
+                UPDATE family_members
+                SET {', '.join(set_clauses)}
+                WHERE id = :user_id
+                """)
+                
+                result = await session.execute(query, params)
+                await session.commit()
+                
+                return result.rowcount > 0
+            except Exception as e:
+                print(f"Error updating user profile: {e}")
+                await session.rollback()
+                return False
 
     async def get_user_preferences(self, user_id: str) -> Dict[str, Any]:
         """Get user preferences from PostgreSQL"""
-        if not self.db_connection:
-            return {}
-
-        query = """
-        SELECT preferences, prompt_style, response_length, safety_level
-        FROM user_preferences
-        WHERE user_id = $1
-        """
-
-        # TODO: Execute with actual database connection
-        # result = await conn.fetchrow(query, user_id)
-        # return dict(result) if result else {}
-
-        return {}
+        from api.database import AsyncSessionLocal
+        from sqlalchemy import text
+        
+        async with AsyncSessionLocal() as session:
+            try:
+                query = text("""
+                SELECT preferences
+                FROM family_members
+                WHERE id = :user_id
+                """)
+                
+                result = await session.execute(query, {"user_id": user_id})
+                row = result.mappings().first()
+                
+                return row["preferences"] if row and row["preferences"] else {}
+            except Exception as e:
+                print(f"Error getting preferences: {e}")
+                return {}
 
     # =========================================================================
     # Layer 4: Qdrant (Vector Search) - Semantic Memory Retrieval
@@ -347,11 +516,21 @@ class MemoryManager:
         """Semantic search in Qdrant"""
         query_embedding = await self.generate_embedding(query)
 
+        # Convert filter_conditions dict to proper Qdrant Filter object
+        qdrant_filter = None
+        if filter_conditions:
+            field_conditions = []
+            for key, value in filter_conditions.items():
+                field_conditions.append(
+                    FieldCondition(key=key, match=MatchValue(value=value))
+                )
+            qdrant_filter = Filter(must=field_conditions)
+
         search_result = self.qdrant_client.search(
             collection_name=collection,
             query_vector=query_embedding,
             limit=limit,
-            query_filter=filter_conditions
+            query_filter=qdrant_filter
         )
 
         return [

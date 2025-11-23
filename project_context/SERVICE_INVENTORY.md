@@ -1,7 +1,7 @@
 # Service Inventory
 
 **Status:** ACTIVE
-**Last Updated:** 2025-11-20 (Evening)
+**Last Updated:** 2025-11-22
 
 ## Active Services
 
@@ -10,7 +10,7 @@
 | **N8n** | `http://n8n.homelab.svc.cluster.local:80` | `https://n8n.fa.pesulabs.net` | Workflow automation |
 | **Qdrant** | `http://qdrant.homelab.svc.cluster.local:6333` | - | Vector Database |
 | **Mem0** | `http://mem0.homelab.svc.cluster.local:8000` | - | Memory Service |
-| **LlamaCpp** | `http://llamacpp-kimi-vl-service.llamacpp.svc.cluster.local:8080` | - | LLM Inference (Service points to LAN IP) |
+| **LlamaCpp** | `http://llamacpp-service.default.svc.cluster.local:8081` | - | LLM Inference (Configurable models, GPU-accelerated) |
 | **PostgreSQL** | `postgres.homelab.svc.cluster.local:5432` | - | Main Database |
 | **Redis** | `redis.homelab.svc.cluster.local:6379` | - | Cache |
 | **Authentik** | `http://authentik-server.authentik.svc.cluster.local:80` | `https://auth.pesulabs.net` | Identity Provider |
@@ -46,7 +46,7 @@ All critical services operational as of 2025-11-20 evening:
 
 ## Critical Notes
 
-1.  **LlamaCpp:** Runs on `pesubuntu` with `hostNetwork: true`. Accessed via a K8s Service (`llamacpp-kimi-vl-service`) that points to the LAN IP `192.168.8.129`.
+1.  **LlamaCpp:** Runs on `pesubuntu` as systemd service `llamacpp-configurable`. Configurable models (Kimi-VL multimodal, Mistral-7B-OpenOrca 16K context) with GPU acceleration (1 layer, Vulkan). Accessed via K8s Service pointing to Tailscale IP `100.86.122.109`.
 2.  **Golden Rules Compliance:** All services now use internal DNS (`http://<service>.<namespace>.svc.cluster.local:<port>`) for service-to-service communication.
 3.  **Port Standardization:** Web services expose port 80, mapping to container ports (80→9000 Authentik, 80→3000 admin, 80→5678 N8N).
 4.  **External Access:** All external routes use Traefik IngressRoute with TLS via Cloudflare DNS-01 (certResolver: default).

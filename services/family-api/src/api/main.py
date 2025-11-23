@@ -13,8 +13,13 @@ import psutil
 import subprocess
 import json
 import asyncio
+import logging
 from pathlib import Path
 from config.settings import settings
+import sys
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 # Import multimodal models and services
 from api.models.multimodal import (
@@ -97,7 +102,7 @@ app = FastAPI(
     - WebSocket support for real-time updates
     - Comprehensive audit logging and usage analytics
     """,
-    version="2.0.0",
+    version="2.2.0",
     terms_of_service="https://homelab.pesulabs.net/terms",
     contact={
         "name": "Family Assistant Support",
@@ -635,7 +640,7 @@ async def shutdown():
                 "application/json": {
                     "example": {
                         "message": "Family Assistant API",
-                        "version": "2.0.0",
+                        "version": "2.2.0",
                         "status": "running",
                         "docs": "/docs",
                         "openapi": "/openapi.json",
@@ -650,7 +655,7 @@ async def root():
     """Root endpoint returning API information."""
     return {
         "message": "Family Assistant API",
-        "version": "2.0.0",
+        "version": "2.2.0",
         "status": "running",
         "docs": "/docs",
         "openapi": "/openapi.json",
@@ -664,7 +669,7 @@ async def root():
     "/health",
     tags=["Core"],
     summary="Health Check",
-    description="Basic health check endpoint showing service status",
+    description="Enhanced health check endpoint with actual service connectivity",
     responses={
         200: {
             "description": "Service Health",
@@ -673,8 +678,8 @@ async def root():
                     "example": {
                         "status": "healthy",
                         "services": {
-                            "ollama": "http://localhost:11434",
-                            "mem0": "http://100.81.76.55:30880",
+                            "llamacpp": "http://llamacpp-service.default.svc.cluster.local:8081",
+                            "mem0": "http://mem0.homelab.svc.cluster.local:8080",
                             "postgres": "postgres.homelab.svc.cluster.local:5432"
                         },
                         "timestamp": "2025-01-17T12:00:00Z"
@@ -685,32 +690,16 @@ async def root():
     }
 )
 async def health():
-    """Comprehensive health check endpoint."""
+    """Enhanced health check endpoint with actual service connectivity."""
     from datetime import datetime
+    import aiohttp
 
-    # Basic health check
+    # Enhanced health check with actual connectivity tests
     health_status = {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "version": "2.0.0",
-        "services": {
-            "ollama": {
-                "url": settings.ollama_base_url,
-                "status": "configured"
-            },
-            "mem0": {
-                "url": settings.mem0_api_url,
-                "status": "configured"
-            },
-            "postgres": {
-                "url": f"{settings.postgres_host}:{settings.postgres_port}",
-                "status": "configured"
-            },
-            "redis": {
-                "url": f"{settings.redis_host}:{settings.redis_port}",
-                "status": "configured"
-            }
-        },
+        "version": "2.2.0",
+        "services": {},
         "api": {
             "openapi": "/openapi.json",
             "docs": "/docs",
@@ -718,6 +707,70 @@ async def health():
             "dashboard": "/dashboard/system-health"
         }
     }
+
+    # Check llama.cpp service
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=3)) as session:
+            async with session.get(f"{settings.llamacpp_base_url}/health") as response:
+                health_status["services"]["llamacpp"] = {
+                    "url": settings.llamacpp_base_url,
+                    "status": "healthy" if response.status == 200 else "unhealthy",
+                    "response_time_ms": response.headers.get("X-Response-Time", "unknown")
+                }
+    except:
+        health_status["services"]["llamacpp"] = {
+            "url": settings.llamacpp_base_url,
+            "status": "unreachable",
+            "error": "Connection failed"
+        }
+
+    # Check Mem0 service
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=3)) as session:
+            async with session.get(f"{settings.mem0_api_url}/health") as response:
+                health_status["services"]["mem0"] = {
+                    "url": settings.mem0_api_url,
+                    "status": "healthy" if response.status == 200 else "unhealthy"
+                }
+    except:
+        health_status["services"]["mem0"] = {
+            "url": settings.mem0_api_url,
+            "status": "unreachable",
+            "error": "Connection failed"
+        }
+
+    # Check PostgreSQL
+    try:
+        if db_pool:
+            async with db_pool.acquire() as conn:
+                await conn.fetchval("SELECT 1")
+                health_status["services"]["postgres"] = {
+                    "url": f"{settings.postgres_host}:{settings.postgres_port}",
+                    "status": "healthy"
+                }
+        else:
+            health_status["services"]["postgres"] = {
+                "url": f"{settings.postgres_host}:{settings.postgres_port}",
+                "status": "unhealthy",
+                "error": "No database connection pool"
+            }
+    except Exception as e:
+        health_status["services"]["postgres"] = {
+            "url": f"{settings.postgres_host}:{settings.postgres_port}",
+            "status": "unhealthy",
+            "error": str(e)
+        }
+
+    # Check Redis (simplified)
+    health_status["services"]["redis"] = {
+        "url": f"{settings.redis_host}:{settings.redis_port}",
+        "status": "configured"  # Basic Redis check
+    }
+
+    # Determine overall status
+    unhealthy_services = [s for s in health_status["services"].values() if s.get("status") == "unhealthy" or s.get("status") == "unreachable"]
+    if unhealthy_services:
+        health_status["status"] = "degraded" if len(unhealthy_services) < len(health_status["services"]) else "unhealthy"
 
     return health_status
 
@@ -1490,7 +1543,7 @@ async def get_dashboard_stats():
             "content": {
                 "application/json": {
                     "example": {
-                        "version": "2.0.0",
+                        "version": "2.2.0",
                         "features": {
                             "mcp_integration": True,
                             "family_management": True,
@@ -1514,9 +1567,10 @@ async def get_dashboard_stats():
 async def get_api_info():
     """Get detailed API information and capabilities."""
     return {
-        "version": "2.0.0",
+        "version": "2.2.0",
         "api_title": "Family Assistant API",
-        "description": "Privacy-focused AI assistant with MCP integration and family management",
+        "description": "Enhanced privacy-focused AI assistant with MCP integration and family management",
+        "build_timestamp": "2025-11-23T22:00:00Z",
         "features": {
             "core_chat": True,
             "mcp_integration": True,
@@ -1637,91 +1691,165 @@ async def openai_chat_completions(request: OpenAIChatRequest):
     the Family Assistant with full memory and context awareness.
     """
     import time
+    import traceback
 
-    # Extract user_id from request.user or default to "default"
-    user_id = request.user or "default"
+    try:
+        # Extract user_id from request.user or default to "default"
+        user_id = request.user or "default"
+        print(f"DEBUG: Request received for user_id={user_id}")
+        # Get last message
+        if not request.messages:
+            raise HTTPException(status_code=400, detail="No messages provided")
 
-    # Get the last user message
-    user_messages = [msg for msg in request.messages if msg.role == "user"]
-    if not user_messages:
-        raise HTTPException(status_code=400, detail="No user message found")
-
-    last_message = user_messages[-1].content
-
-    # Generate thread_id from user_id
-    thread_id = f"thread_{user_id}_{uuid.uuid4().hex[:8]}"
-
-    # Get user profile
-    async with db_pool.acquire() as conn:
-        user_row = await conn.fetchrow(
-            "SELECT * FROM user_profiles WHERE user_id = $1",
-            user_id
-        )
-
-        if user_row:
-            import json
-            permissions = user_row["permissions"]
-            if isinstance(permissions, str):
-                permissions = json.loads(permissions)
-            preferences = user_row["preferences"]
-            if isinstance(preferences, str):
-                preferences = json.loads(preferences)
-
-            user_profile = {
-                "user_id": user_row["user_id"],
-                "name": user_row["name"],
-                "role": user_row["role"],
-                "age": user_row["age"],
-                "permissions": permissions,
-                "preferences": preferences
-            }
+        user_messages = [m for m in request.messages if m.role == "user"]
+        if not user_messages:
+             # Fallback if no user message found (shouldn't happen with valid request)
+             last_message = request.messages[-1].content
         else:
-            user_profile = None
+             last_message = user_messages[-1].content
+        
+        print(f"DEBUG: Last message: {last_message[:50]}...")
+
+        # Generate thread_id from user_id
+        thread_id = f"thread_{user_id}_{uuid.uuid4().hex[:8]}"
+
+        # Get user profile
+        user_profile = None
+        if user_id != "default":
+            print("DEBUG: Fetching user profile from DB")
+            try:
+                # Validate UUID format before querying
+                uuid.UUID(user_id)
+                async with db_pool.acquire() as conn:
+                    user_row = await conn.fetchrow(
+                        "SELECT * FROM user_profiles WHERE user_id = $1",
+                        user_id
+                    )
+
+                    if user_row:
+                        import json
+                        permissions = user_row["permissions"]
+                        if isinstance(permissions, str):
+                            permissions = json.loads(permissions)
+                        preferences = user_row["preferences"]
+                        if isinstance(preferences, str):
+                            preferences = json.loads(preferences)
+
+                        user_profile = {
+                            "user_id": user_row["user_id"],
+                            "name": user_row["name"],
+                            "role": user_row["role"],
+                            "age": user_row["age"],
+                            "permissions": permissions,
+                            "preferences": preferences
+                        }
+            except (ValueError, TypeError):
+                # Invalid UUID or other error, treat as guest/default
+                logger.warning(f"Invalid user_id format: {user_id}, treating as guest")
+                pass
+        else:
+            print("DEBUG: Skipping DB lookup for default user")
 
         # Chat with agent
+        print("DEBUG: Calling agent.chat")
         result = await agent.chat(
             message=last_message,
             user_id=user_id,
             thread_id=thread_id,
             user_profile=user_profile
         )
+        print("DEBUG: agent.chat returned")
+
+        # Check if result contains an error
+        if "error" in result:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "LLM service error",
+                    "message": result.get("response", "Failed to generate response"),
+                    "details": result.get("error", "Unknown error in LLM service")
+                }
+            )
 
         # Store in conversation history
-        await conn.execute("""
-            INSERT INTO conversation_history (thread_id, user_id, role, content)
-            VALUES ($1, $2, $3, $4), ($5, $6, $7, $8)
-        """, thread_id, user_id, "user", last_message,
-             thread_id, user_id, "assistant", result["response"])
+        if user_id != "default":
+            try:
+                async with db_pool.acquire() as conn:
+                    await conn.execute("""
+                        INSERT INTO conversation_history (thread_id, user_id, role, content)
+                        VALUES ($1, $2, $3, $4), ($5, $6, $7, $8)
+                    """, thread_id, user_id, "user", last_message,
+                         thread_id, user_id, "assistant", result["response"])
 
-        # Audit log
-        import json
-        await conn.execute("""
-            INSERT INTO audit_log (user_id, action, resource, details)
-            VALUES ($1, $2, $3, $4::jsonb)
-        """, user_id, "chat", "openai_api", json.dumps({"model": request.model, "thread_id": thread_id}))
+                    # Audit log
+                    import json
+                    await conn.execute("""
+                        INSERT INTO audit_log (user_id, action, resource, details)
+                        VALUES ($1, $2, $3, $4)
+                    """, user_id, "chat_completion", "llm", json.dumps({
+                        "model": request.model,
+                        "tokens": len(result["response"]) // 4
+                    }))
+            except Exception as e:
+                logger.error(f"Failed to log chat history: {e}")
 
-    # Format as OpenAI response
-    return {
-        "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
-        "object": "chat.completion",
-        "created": int(time.time()),
-        "model": request.model,
-        "choices": [
-            {
+        return OpenAIChatResponse(
+            id=f"chatcmpl-{uuid.uuid4().hex}",
+            created=int(time.time()),
+            model=request.model,
+            choices=[{
                 "index": 0,
                 "message": {
                     "role": "assistant",
                     "content": result["response"]
                 },
                 "finish_reason": "stop"
+            }],
+            usage={
+                "prompt_tokens": len(last_message) // 4,
+                "completion_tokens": len(result["response"]) // 4,
+                "total_tokens": (len(last_message) + len(result["response"])) // 4
             }
-        ],
-        "usage": {
-            "prompt_tokens": len(last_message.split()),
-            "completion_tokens": len(result["response"].split()),
-            "total_tokens": len(last_message.split()) + len(result["response"].split())
-        }
-    }
+        )
+
+
+    except HTTPException:
+        # Re-raise HTTPExceptions as-is (they already have proper detail format)
+        raise
+
+    except asyncpg.PostgresError as e:
+        logger.error(f"Database error in chat endpoint: {str(e)}")
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "Database error",
+                "message": "Unable to access database",
+                "details": f"PostgreSQL error: {str(e)}"
+            }
+        )
+
+    except ConnectionError as e:
+        logger.error(f"Service connection failed: {str(e)}")
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "Service unavailable",
+                "message": "Unable to connect to required services",
+                "details": f"Connection error: {str(e)}"
+            }
+        )
+
+    except Exception as e:
+        logger.exception("Unexpected error in chat endpoint")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "An unexpected error occurred while processing your request",
+                "details": f"{type(e).__name__}: {str(e)}",
+                "traceback": traceback.format_exc() if settings.debug else None
+            }
+        )
 
 
 @app.get("/v1/models")

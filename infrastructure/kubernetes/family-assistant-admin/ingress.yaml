@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: family-assistant-admin
-  namespace: family-assistant-admin
+  namespace: homelab
   labels:
     app.kubernetes.io/name: family-assistant-admin
     app.kubernetes.io/component: admin
@@ -11,7 +11,7 @@ metadata:
     kubernetes.io/ingress.class: traefik
     cert-manager.io/cluster-issuer: letsencrypt-prod
     traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.middlewares: family-assistant-admin-rate-limit@kubernetescrd,family-assistant-admin-security@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: authentik@authentik,family-assistant-admin-rate-limit@kubernetescrd,family-assistant-admin-security@kubernetescrd
     # Security headers
     traefik.ingress.kubernetes.io/router.headers.customrequestheaders.X-Forwarded-Proto: "https"
     traefik.ingress.kubernetes.io/router.headers.stsSeconds: "31536000"
@@ -33,6 +33,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: family-assistant-admin
+            name: family-admin
             port:
               number: 3000

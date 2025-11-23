@@ -1,16 +1,74 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { UserProfile as ApiUserProfile } from "@/lib/api-client";
 
-export default function UserInfoCard() {
+// Extended profile interface for UI components
+interface UserProfile extends ApiUserProfile {
+  bio?: string;
+  phone?: string;
+  location?: string;
+  social_links?: {
+    facebook?: string;
+    twitter?: string;
+    linkedin?: string;
+    instagram?: string;
+  };
+  address?: {
+    country?: string;
+    city_state?: string;
+    postal_code?: string;
+    tax_id?: string;
+  };
+}
+
+interface UserInfoCardProps {
+  profile?: UserProfile | null;
+  onUpdate: (updates: Partial<UserProfile>) => void;
+  isLoading: boolean;
+}
+
+export default function UserInfoCard({ profile, onUpdate, isLoading }: UserInfoCardProps) {
   const { isOpen, openModal, closeModal } = useModal();
+  const [formData, setFormData] = useState({
+    first_name: profile?.first_name || '',
+    last_name: profile?.last_name || '',
+    email: profile?.email || '',
+    phone: profile?.phone || '',
+    bio: profile?.bio || ''
+  });
+
+  // Update form data when profile changes
+  useEffect(() => {
+    setFormData({
+      first_name: profile?.first_name || '',
+      last_name: profile?.last_name || '',
+      email: profile?.email || '',
+      phone: profile?.phone || '',
+      bio: profile?.bio || ''
+    });
+  }, [profile]);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...");
+    const updates: Partial<UserProfile> = {
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      email: formData.email,
+      phone: formData.phone,
+      bio: formData.bio
+    };
+    onUpdate(updates);
     closeModal();
   };
   return (
@@ -27,7 +85,7 @@ export default function UserInfoCard() {
                 First Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Musharof
+                {profile?.first_name || 'Demo'}
               </p>
             </div>
 
@@ -36,7 +94,7 @@ export default function UserInfoCard() {
                 Last Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Chowdhury
+                {profile?.last_name || 'Admin'}
               </p>
             </div>
 
@@ -45,7 +103,7 @@ export default function UserInfoCard() {
                 Email address
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                randomuser@pimjo.com
+                {profile?.email || 'admin@demo.local'}
               </p>
             </div>
 
@@ -54,7 +112,7 @@ export default function UserInfoCard() {
                 Phone
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                +09 363 398 46
+                {profile?.phone || '+09 363 398 46'}
               </p>
             </div>
 
@@ -63,7 +121,7 @@ export default function UserInfoCard() {
                 Bio
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Team Manager
+                {profile?.bio || 'Team Manager'}
               </p>
             </div>
           </div>
@@ -148,27 +206,47 @@ export default function UserInfoCard() {
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div className="col-span-2 lg:col-span-1">
                     <Label>First Name</Label>
-                    <Input type="text" defaultValue="Musharof" />
+                    <Input
+                      type="text"
+                      value={formData.first_name}
+                      onChange={(e) => handleInputChange('first_name', e.target.value)}
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Last Name</Label>
-                    <Input type="text" defaultValue="Chowdhury" />
+                    <Input
+                      type="text"
+                      value={formData.last_name}
+                      onChange={(e) => handleInputChange('last_name', e.target.value)}
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Email Address</Label>
-                    <Input type="text" defaultValue="randomuser@pimjo.com" />
+                    <Input
+                      type="text"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Phone</Label>
-                    <Input type="text" defaultValue="+09 363 398 46" />
+                    <Input
+                      type="text"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                    />
                   </div>
 
                   <div className="col-span-2">
                     <Label>Bio</Label>
-                    <Input type="text" defaultValue="Team Manager" />
+                    <Input
+                      type="text"
+                      value={formData.bio}
+                      onChange={(e) => handleInputChange('bio', e.target.value)}
+                    />
                   </div>
                 </div>
               </div>
@@ -177,8 +255,8 @@ export default function UserInfoCard() {
               <Button size="sm" variant="outline" onClick={closeModal}>
                 Close
               </Button>
-              <Button size="sm" onClick={handleSave}>
-                Save Changes
+              <Button size="sm" onClick={handleSave} disabled={isLoading}>
+                {isLoading ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </form>

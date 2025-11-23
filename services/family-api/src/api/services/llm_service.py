@@ -14,6 +14,7 @@ class LLMService:
 
     def __init__(self):
         self.base_url = settings.llamacpp_base_url
+        print(f"DEBUG: LLMService initialized with base_url={self.base_url}")
         self.model = settings.llamacpp_model
         self.timeout = 60.0  # Seconds
         # Initialize managers lazily or via dependency injection pattern if possible
@@ -62,6 +63,7 @@ class LLMService:
             }
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
+                print(f"DEBUG: Sending request to {self.base_url}/v1/chat/completions")
                 response = await client.post(
                     f"{self.base_url}/v1/chat/completions",
                     json=payload,
@@ -84,10 +86,27 @@ class LLMService:
                         "memories_used": 0
                     }
                     
+        except httpx.HTTPError as e:
+            logger.error(f"HTTP error in LLM chat: {str(e)}")
+            return {
+                "response": "I'm having trouble connecting to the language model. Please try again later.",
+                "error": f"HTTP error: {str(e)}",
+                "error_type": "http_error",
+                "memories_used": 0
+            }
+        except httpx.ConnectError as e:
+            logger.error(f"Connection error to LLM service: {str(e)}")
+            return {
+                "response": "Unable to connect to the language model service. Please try again later.",
+                "error": f"Connection failed: {str(e)}",
+                "error_type": "connection_error",
+                "memories_used": 0
+            }
         except Exception as e:
-            logger.error(f"Error in LLM chat: {str(e)}")
+            logger.error(f"Error in LLM chat: {str(e)}", exc_info=True)
             return {
                 "response": "I encountered an error while processing your request.",
-                "error": str(e),
+                "error": f"{type(e).__name__}: {str(e)}",
+                "error_type": "unknown_error",
                 "memories_used": 0
             }

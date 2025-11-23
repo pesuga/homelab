@@ -15,8 +15,8 @@ class Settings(BaseSettings):
         case_sensitive=False
     )
 
-    # LLM Configuration - llama.cpp with Kimi-VL
-    llamacpp_base_url: str = "http://llamacpp-kimi-vl-service.llamacpp.svc.cluster.local:8080"
+    # LLM Configuration - llama.cpp
+    llamacpp_base_url: str = "http://llamacpp-service.default.svc.cluster.local:8080"
     llamacpp_model: str = "/models/Kimi-VL-A3B-Thinking-2506-Q4_K_M.gguf"
     llamacpp_temperature: float = 0.7
     llamacpp_max_tokens: int = 2048
@@ -43,8 +43,7 @@ class Settings(BaseSettings):
         return self.llamacpp_max_tokens
 
     # PostgreSQL
-    # FIXME: DNS resolution is failing in the cluster, using IP temporarily
-    postgres_host: str = "10.43.239.209"  # "postgres.homelab.svc.cluster.local"
+    postgres_host: str = "postgres.homelab.svc.cluster.local"
     postgres_port: int = 5432
     postgres_user: str = "homelab"
     postgres_password: str = ""
@@ -253,3 +252,4 @@ class Settings(BaseSettings):
 
 # Global settings instance
 settings = Settings()
+print(f"DEBUG: Settings loaded. llamacpp_base_url={settings.llamacpp_base_url}")

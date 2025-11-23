@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
       - name: family-admin
-        image: 100.81.76.55:30500/family-admin:v1.1.0
+        image: 100.81.76.55:30500/family-admin:v1.2.0
         imagePullPolicy: Always
         ports:
         - name: http
@@ -49,6 +49,8 @@ spec:
         # Client-side URLs (embedded in browser JavaScript)
         - name: NEXT_PUBLIC_APP_URL
           value: "https://app.fa.pesulabs.net"
+        - name: NEXT_PUBLIC_API_URL
+          value: "https://admin.fa.pesulabs.net/api"
 
         # Authentication - NextAuth
         - name: NEXTAUTH_SECRET

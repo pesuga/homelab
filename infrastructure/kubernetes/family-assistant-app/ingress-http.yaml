@@ -9,17 +9,17 @@ metadata:
     app.kubernetes.io/part-of: family-assistant
   annotations:
     kubernetes.io/ingress.class: "traefik"
-    traefik.ingress.kubernetes.io/router.middlewares: "https-redirect@homelab"
+    traefik.ingress.kubernetes.io/router.middlewares: "https-redirect@family-assistant-app"
 spec:
   ingressClassName: traefik
   rules:
-  - host: app.fa.pesulabs.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: family-assistant
-            port:
-              number: 80
+    - host: app.fa.pesulabs.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: family-assistant
+                port:
+                  number: 80

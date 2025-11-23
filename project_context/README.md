@@ -13,8 +13,7 @@ This directory contains the **definitive** documentation for the PesuLabs Homela
 | [**REPO_STRUCTURE.md**](./REPO_STRUCTURE.md) | Where to find code, manifests, and configs. |
 | [**SERVICE_INVENTORY.md**](./SERVICE_INVENTORY.md) | List of all active services, their internal URLs, and ports. |
 | [**AUTHENTIK_INTEGRATION.md**](./AUTHENTIK_INTEGRATION.md) | How to protect services with Single Sign-On. |
-| [**SERVICE_INVENTORY.md**](./SERVICE_INVENTORY.md) | List of all active services, their internal URLs, and ports. |
-| [**AUTHENTIK_INTEGRATION.md**](./AUTHENTIK_INTEGRATION.md) | How to protect services with Single Sign-On. |
+| [**LLAMACPP_CONFIGURATION.md**](./LLAMACPP_CONFIGURATION.md) | **AI Core.** llama.cpp LLM service with model switching, monitoring, and GPU acceleration. |
 | [**SESSION-STATE.md**](./SESSION-STATE.md) | **The Living Memory.** A chronological log of sessions, decisions, and rationale. |
 
 ## 🧠 Session State Strategy

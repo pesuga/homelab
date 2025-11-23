@@ -1,0 +1,44 @@
+---
+# Traefik IngressRoute for Family Admin with Authentik SSO
+# This uses the native Traefik CRD instead of standard Kubernetes Ingress
+# for better middleware support
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: family-admin
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: family-admin
+    app.kubernetes.io/component: admin
+    app.kubernetes.io/part-of: family-assistant
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`admin.fa.pesulabs.net`)
+      kind: Rule
+      services:
+        - name: family-admin
+          port: 3000
+      middlewares:
+        - name: family-assistant-admin-security
+  tls:
+    certResolver: default
+---
+# Security middleware for Family Admin
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: family-assistant-admin-security
+  namespace: homelab
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"
+    customResponseHeaders:
+      X-Content-Type-Options: "nosniff"
+      X-Frame-Options: "DENY"
+      X-XSS-Protection: "1; mode=block"
+    stsSeconds: 31536000
+    stsIncludeSubdomains: true
+    stsPreload: true

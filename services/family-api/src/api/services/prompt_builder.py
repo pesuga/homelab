@@ -309,6 +309,30 @@ Always prioritize safety, privacy, and age-appropriate interactions.
         """Update skill prompt"""
         return self.update_file(self.prompts_dir / "skills" / f"{skill}.md", content)
 
+    def delete_file(self, filepath: Path) -> bool:
+        """Delete file and remove from cache"""
+        try:
+            if filepath.exists():
+                filepath.unlink()
+                
+                # Remove from cache
+                cache_key = str(filepath)
+                if cache_key in self.cache:
+                    del self.cache[cache_key]
+                return True
+            return False
+        except Exception as e:
+            print(f"Error deleting file {filepath}: {e}")
+            return False
+
+    def delete_role_prompt(self, role: str) -> bool:
+        """Delete role-specific prompt"""
+        return self.delete_file(self.prompts_dir / "roles" / f"{role}.md")
+
+    def delete_skill_prompt(self, skill: str) -> bool:
+        """Delete skill prompt"""
+        return self.delete_file(self.prompts_dir / "skills" / f"{skill}.md")
+
     def list_roles(self) -> List[str]:
         """List available roles"""
         roles_dir = self.prompts_dir / "roles"
@@ -359,8 +383,22 @@ async def build_user_context_from_db(
         memory_manager: MemoryManager instance for database access
     """
 
-    # Get user profile from database
-    profile = await memory_manager.get_user_profile(user_id)
+    # Handle default/guest user
+    if user_id == "default":
+        return UserContext(
+            user_id="default",
+            role="parent",
+            language_preference="en",
+            active_skills=[],
+            privacy_level="family"
+        )
+
+    try:
+        # Get user profile from database
+        profile = await memory_manager.get_user_profile(user_id)
+    except Exception:
+        # Fallback if DB query fails (e.g. invalid UUID)
+        profile = None
 
     if not profile:
         # Default context if user not found

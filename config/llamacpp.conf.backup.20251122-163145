@@ -1,0 +1,55 @@
+# llama.cpp Configuration
+# Edit this file and restart the service to change models
+
+# Model Configuration
+MODEL_PATH=/home/pesu/models/llamacpp/Kimi-VL-A3B-Thinking-2506-Q4_K_M.gguf
+MMPROJ_PATH=/home/pesu/models/llamacpp/mmproj-Kimi-VL-A3B-Thinking-2506-Q8_0.gguf
+MODEL_NAME=Kimi-VL
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=8081
+N_PARALLEL=4
+
+# GPU Configuration
+GPU_LAYERS=45
+CTX_SIZE=8192
+BATCH_SIZE=512
+U_BATCH_SIZE=128
+THREADS=8
+
+# Special Flags
+METRICS=true
+LOG_DISABLE=false
+ENVIRONMENT=GGML_VULKAN_DEVICE=0
+
+# Available Models (uncomment to use)
+# ========================================
+
+# Option 1: Kimi-VL (Current - Multimodal)
+MODEL_PATH=/home/pesu/models/llamacpp/Kimi-VL-A3B-Thinking-2506-Q4_K_M.gguf
+#MMPROJ_PATH=/home/pesu/models/llamacpp/mmproj-Kimi-VL-A3B-Thinking-2506-Q8_0.gguf
+#MODEL_NAME=Kimi-VL
+CTX_SIZE=4096
+
+# Option 2: Mistral-7B-OpenOrca (Text-only, 16K context)
+MODEL_PATH=/home/pesu/models/mistral-7b-openorca.Q5_K_M.gguf
+#MMPROJ_PATH=  # (Not needed for text-only models)
+#MODEL_NAME=Mistral-7B-OpenOrca
+CTX_SIZE=16384
+N_PARALLEL=2
+#GPU_LAYERS=32
+
+# Option 3: Mixtral-8x7B (Text-only, 32K context)
+MODEL_PATH=/home/pesu/models/mixtral-8x7b-v0.1.Q4_K_M.gguf
+#MODEL_NAME=Mixtral-8x7B
+CTX_SIZE=32768
+N_PARALLEL=2
+#GPU_LAYERS=28
+
+# Option 4: Llama-3.1-8B (Text-only, 32K context)
+MODEL_PATH=/home/pesu/models/llama-3.1-8b-instruct.Q4_K_M.gguf
+#MODEL_NAME=Llama-3.1-8B-Instruct
+CTX_SIZE=32768
+N_PARALLEL=2
+#GPU_LAYERS=28

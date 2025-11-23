@@ -1,16 +1,73 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { UserProfile as ApiUserProfile } from "@/lib/api-client";
 
-export default function UserAddressCard() {
+// Extended profile interface for UI components
+interface UserProfile extends ApiUserProfile {
+  bio?: string;
+  phone?: string;
+  location?: string;
+  social_links?: {
+    facebook?: string;
+    twitter?: string;
+    linkedin?: string;
+    instagram?: string;
+  };
+  address?: {
+    country?: string;
+    city_state?: string;
+    postal_code?: string;
+    tax_id?: string;
+  };
+}
+
+interface UserAddressCardProps {
+  profile?: UserProfile | null;
+  onUpdate: (updates: Partial<UserProfile>) => void;
+  isLoading: boolean;
+}
+
+export default function UserAddressCard({ profile, onUpdate, isLoading }: UserAddressCardProps) {
   const { isOpen, openModal, closeModal } = useModal();
+  const [formData, setFormData] = useState({
+    country: profile?.address?.country || '',
+    city_state: profile?.address?.city_state || '',
+    postal_code: profile?.address?.postal_code || '',
+    tax_id: profile?.address?.tax_id || ''
+  });
+
+  // Update form data when profile changes
+  useEffect(() => {
+    setFormData({
+      country: profile?.address?.country || '',
+      city_state: profile?.address?.city_state || '',
+      postal_code: profile?.address?.postal_code || '',
+      tax_id: profile?.address?.tax_id || ''
+    });
+  }, [profile]);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...");
+    const updates: Partial<UserProfile> = {
+      address: {
+        country: formData.country,
+        city_state: formData.city_state,
+        postal_code: formData.postal_code,
+        tax_id: formData.tax_id
+      }
+    };
+    onUpdate(updates);
     closeModal();
   };
   return (
@@ -28,7 +85,7 @@ export default function UserAddressCard() {
                   Country
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  United States
+                  {profile?.address?.country || 'United States'}
                 </p>
               </div>
 
@@ -37,7 +94,7 @@ export default function UserAddressCard() {
                   City/State
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Phoenix, Arizona, United States.
+                  {profile?.address?.city_state || 'Arizona, United States'}
                 </p>
               </div>
 
@@ -46,7 +103,7 @@ export default function UserAddressCard() {
                   Postal Code
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  ERT 2489
+                  {profile?.address?.postal_code || 'ERT 2489'}
                 </p>
               </div>
 
@@ -55,7 +112,7 @@ export default function UserAddressCard() {
                   TAX ID
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  AS4568384
+                  {profile?.address?.tax_id || 'AS4568384'}
                 </p>
               </div>
             </div>
@@ -99,22 +156,38 @@ export default function UserAddressCard() {
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div>
                   <Label>Country</Label>
-                  <Input type="text" defaultValue="United States" />
+                  <Input
+                    type="text"
+                    value={formData.country}
+                    onChange={(e) => handleInputChange('country', e.target.value)}
+                  />
                 </div>
 
                 <div>
                   <Label>City/State</Label>
-                  <Input type="text" defaultValue="Arizona, United States." />
+                  <Input
+                    type="text"
+                    value={formData.city_state}
+                    onChange={(e) => handleInputChange('city_state', e.target.value)}
+                  />
                 </div>
 
                 <div>
                   <Label>Postal Code</Label>
-                  <Input type="text" defaultValue="ERT 2489" />
+                  <Input
+                    type="text"
+                    value={formData.postal_code}
+                    onChange={(e) => handleInputChange('postal_code', e.target.value)}
+                  />
                 </div>
 
                 <div>
                   <Label>TAX ID</Label>
-                  <Input type="text" defaultValue="AS4568384" />
+                  <Input
+                    type="text"
+                    value={formData.tax_id}
+                    onChange={(e) => handleInputChange('tax_id', e.target.value)}
+                  />
                 </div>
               </div>
             </div>
@@ -122,8 +195,8 @@ export default function UserAddressCard() {
               <Button size="sm" variant="outline" onClick={closeModal}>
                 Close
               </Button>
-              <Button size="sm" onClick={handleSave}>
-                Save Changes
+              <Button size="sm" onClick={handleSave} disabled={isLoading}>
+                {isLoading ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </form>

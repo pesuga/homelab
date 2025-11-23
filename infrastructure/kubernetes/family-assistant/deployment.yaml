@@ -1,12 +1,13 @@
 # Family Assistant Backend Deployment
 # Single Source of Truth - DO NOT create duplicate manifests
-# Last Updated: 2025-11-17
-# Image: 100.81.76.55:30500/family-assistant:me-fixed (working baseline)
+# Last Updated: 2025-11-23
+# Image: 100.81.76.55:30500/family-assistant:v2.2.0-enhanced (latest version)
 #
 # Deployment Strategy:
 # - Rolling updates with 1 replica (resource constraints)
 # - Pinned to pesubuntu node (image availability)
-# - Health checks on port 8001
+# - Enhanced health checks on port 8001
+# - Version: v2.2.0 with improved health monitoring
 #
 # TODO: Move to multi-node when images properly pushed to registry
 # TODO: Enable OTEL when collector is deployed
@@ -20,13 +21,16 @@ metadata:
   labels:
     app: family-assistant-backend
     component: familyai-v3
-    version: v2.0.0
+    version: v2.2.0
 spec:
   replicas: 1
   revisionHistoryLimit: 3 # Keep only last 3 ReplicaSets
   selector:
     matchLabels:
       app: family-assistant-backend
+      app.kubernetes.io/component: backend
+      app.kubernetes.io/name: family-assistant
+      app.kubernetes.io/part-of: familyai-v3
       component: familyai-v3
   strategy:
     type: RollingUpdate
@@ -37,11 +41,14 @@ spec:
     metadata:
       labels:
         app: family-assistant-backend
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/name: family-assistant
+        app.kubernetes.io/part-of: familyai-v3
         component: familyai-v3
-        version: v2.0.0
+        version: v2.2.0
       annotations:
         # Force restart annotation (update timestamp to trigger rolling restart)
-        kubectl.kubernetes.io/restartedAt: "2025-11-17T23:10:00-03:00"
+        kubectl.kubernetes.io/restartedAt: "2025-11-23T22:15:00-03:00"
     spec:
       # Pin to pesubuntu until images are in registry
       nodeSelector:
@@ -49,7 +56,7 @@ spec:
 
       initContainers:
         - name: init-prompts
-          image: 100.81.76.55:30500/family-assistant:v2.1.0-prompts
+          image: 100.81.76.55:30500/family-assistant:v2.2.0-enhanced
           imagePullPolicy: Always
           command:
             [
@@ -64,7 +71,7 @@ spec:
       containers:
         - name: family-assistant
           # IMPORTANT: Always use registry-qualified images
-          image: 100.81.76.55:30500/family-assistant:v2.1.0-prompts
+          image: 100.81.76.55:30500/family-assistant:v2.2.0-enhanced
           imagePullPolicy: Always
 
           ports:
@@ -113,9 +120,9 @@ spec:
 
             # LLM Configuration
             - name: LLAMACPP_BASE_URL
-              value: "http://llamacpp-kimi-vl-service.llamacpp.svc.cluster.local:8080"
+              value: "http://llamacpp-service.default.svc.cluster.local:8081"
             - name: OLLAMA_BASE_URL
-              value: "http://llamacpp-kimi-vl-service.llamacpp.svc.cluster.local:8080" # Backwards compat
+              value: "http://llamacpp-service.default.svc.cluster.local:8081" # Backwards compat
 
             # Service URLs
             - name: MEM0_API_URL
@@ -186,7 +193,13 @@ spec:
           volumeMounts:
             - name: prompts-volume
               mountPath: "/app/prompts-data"
+            - name: source-code
+              mountPath: "/app/src"
 
       volumes:
         - name: prompts-volume
           emptyDir: {}
+        - name: source-code
+          hostPath:
+            path: /home/pesu/Rakuflow/systems/homelab/services/family-api/src
+            type: Directory

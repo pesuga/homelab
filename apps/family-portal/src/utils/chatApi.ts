@@ -1,8 +1,8 @@
 import { ChatRequest, ChatResponse, ChatError } from '../types/chat';
 
-// Use relative path to proxy through nginx (avoids mixed content and CORS)
-// Frontend is served via HTTPS, backend is accessed via same origin
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+// Use relative path - backend API is at root path /v1/chat/completions
+// Requests go through the same origin (app.fa.pesulabs.net proxies to backend)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export class ChatApiError extends Error {
   constructor(

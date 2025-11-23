@@ -242,6 +242,28 @@ async def build_prompt(
         )
 
 
+@router.delete("/prompts/role/{role}")
+async def delete_role_prompt(
+    role: str,
+    prompt_builder: PromptBuilder = Depends(get_prompt_builder)
+):
+    """Delete role-specific prompt"""
+    try:
+        success = prompt_builder.delete_role_prompt(role)
+        if not success:
+            raise HTTPException(status_code=404, detail=f"Role prompt not found or could not be deleted: {role}")
+        
+        return {"message": f"Role prompt for {role} deleted successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete role prompt: {str(e)}"
+        )
+
+
 @router.get("/prompts/role/{role}")
 async def get_role_prompt(
     role: str,
@@ -424,6 +446,31 @@ async def update_skill_prompt(
         )
 
 
+
+
+
+@router.delete("/prompts/skill/{skill}")
+async def delete_skill_prompt(
+    skill: str,
+    prompt_builder: PromptBuilder = Depends(get_prompt_builder)
+):
+    """Delete skill-specific prompt"""
+    try:
+        success = prompt_builder.delete_skill_prompt(skill)
+        if not success:
+            raise HTTPException(status_code=404, detail=f"Skill prompt not found or could not be deleted: {skill}")
+        
+        return {"message": f"Skill prompt for {skill} deleted successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete skill prompt: {str(e)}"
+        )
+
+
 # ==============================================================================
 # User Profile Management
 # ==============================================================================
@@ -474,15 +521,29 @@ async def update_user_profile(
     memory_manager: MemoryManager = Depends(get_memory_manager)
 ):
     """Update user profile and preferences"""
-    # TODO: Implement database update logic
-    return {
-        "success": True,
-        "user_id": user_id,
-        "updated_fields": [
-            k for k, v in request.dict(exclude_unset=True).items()
-            if v is not None
-        ]
-    }
+    try:
+        updates = request.dict(exclude_unset=True, exclude={"user_id"})
+        
+        if not updates:
+            raise HTTPException(status_code=400, detail="No fields to update")
+            
+        success = await memory_manager.update_user_profile(user_id, updates)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail=f"User not found: {user_id}")
+            
+        return {
+            "success": True,
+            "user_id": user_id,
+            "updated_fields": list(updates.keys())
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to update user profile: {str(e)}"
+        )
 
 
 # ==============================================================================
