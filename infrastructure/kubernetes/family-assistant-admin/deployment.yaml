@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
       - name: family-admin
-        image: 100.81.76.55:30500/family-admin:latest
+        image: 100.81.76.55:30500/family-admin:v1.1.0
         imagePullPolicy: Always
         ports:
         - name: http
@@ -50,7 +50,7 @@ spec:
         - name: NEXT_PUBLIC_APP_URL
           value: "https://app.fa.pesulabs.net"
 
-        # Authentication
+        # Authentication - NextAuth
         - name: NEXTAUTH_SECRET
           valueFrom:
             secretKeyRef:
@@ -58,6 +58,23 @@ spec:
               key: nextauth-secret
         - name: NEXTAUTH_URL
           value: "https://admin.fa.pesulabs.net"
+
+        # Authentication - Authentik OIDC
+        - name: AUTHENTIK_ISSUER
+          valueFrom:
+            secretKeyRef:
+              name: family-admin-oidc
+              key: issuer
+        - name: AUTHENTIK_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: family-admin-oidc
+              key: client-id
+        - name: AUTHENTIK_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: family-admin-oidc
+              key: client-secret
 
         # Application settings
         - name: NODE_ENV
