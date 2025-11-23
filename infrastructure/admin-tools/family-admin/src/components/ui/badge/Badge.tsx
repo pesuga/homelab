@@ -1,6 +1,6 @@
 import React from "react";
 
-type BadgeVariant = "light" | "solid";
+type BadgeVariant = "light" | "solid" | "default" | "secondary" | "destructive" | "outline";
 type BadgeSize = "sm" | "md";
 type BadgeColor =
   | "primary"
@@ -12,12 +12,13 @@ type BadgeColor =
   | "dark";
 
 interface BadgeProps {
-  variant?: BadgeVariant; // Light or solid variant
+  variant?: BadgeVariant; // Badge variant
   size?: BadgeSize; // Badge size
   color?: BadgeColor; // Badge color
   startIcon?: React.ReactNode; // Icon at the start
   endIcon?: React.ReactNode; // Icon at the end
   children: React.ReactNode; // Badge content
+  className?: string;
 }
 
 const Badge: React.FC<BadgeProps> = ({
@@ -27,6 +28,7 @@ const Badge: React.FC<BadgeProps> = ({
   startIcon,
   endIcon,
   children,
+  className = '',
 }) => {
   const baseStyles =
     "inline-flex items-center px-2.5 py-0.5 justify-center gap-1 rounded-full font-medium";
@@ -61,14 +63,55 @@ const Badge: React.FC<BadgeProps> = ({
       light: "bg-gray-400 dark:bg-white/5 text-white dark:text-white/80",
       dark: "bg-gray-700 text-white dark:text-white",
     },
+    default: {
+      primary: "bg-blue-600 text-white",
+      secondary: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+      destructive: "bg-red-600 text-white",
+      outline: "border border-gray-200 bg-white text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200",
+    },
+    secondary: {
+      primary: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+      secondary: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+      destructive: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+      outline: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+    },
+    destructive: {
+      primary: "bg-red-600 text-white",
+      secondary: "bg-red-600 text-white",
+      destructive: "bg-red-600 text-white",
+      outline: "bg-red-600 text-white",
+    },
+    outline: {
+      primary: "border border-gray-200 bg-white text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200",
+      secondary: "border border-gray-200 bg-white text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200",
+      destructive: "border border-gray-200 bg-white text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200",
+      outline: "border border-gray-200 bg-white text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200",
+    },
   };
 
   // Get styles based on size and color variant
   const sizeClass = sizeStyles[size];
-  const colorStyles = variants[variant][color];
+
+  // Simplified color mapping
+  const getColorClass = () => {
+    switch (variant) {
+      case 'default':
+        return 'bg-blue-600 text-white';
+      case 'secondary':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+      case 'destructive':
+        return 'bg-red-600 text-white';
+      case 'outline':
+        return 'border border-gray-200 bg-white text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200';
+      default:
+        return 'bg-blue-600 text-white';
+    }
+  };
+
+  const colorStyles = getColorClass();
 
   return (
-    <span className={`${baseStyles} ${sizeClass} ${colorStyles}`}>
+    <span className={`${baseStyles} ${sizeClass} ${colorStyles} ${className}`}>
       {startIcon && <span className="mr-1">{startIcon}</span>}
       {children}
       {endIcon && <span className="ml-1">{endIcon}</span>}
@@ -76,4 +119,5 @@ const Badge: React.FC<BadgeProps> = ({
   );
 };
 
+export { Badge };
 export default Badge;
