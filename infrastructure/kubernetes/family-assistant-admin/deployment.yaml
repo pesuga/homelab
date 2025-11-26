@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
       - name: family-admin
-        image: 100.81.76.55:30500/family-admin:v1.3.0
+        image: 100.81.76.55:30500/family-admin:v1.4.0
         imagePullPolicy: Always
         ports:
         - name: http
