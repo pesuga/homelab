@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     )
 
     # LLM Configuration - llama.cpp
-    llamacpp_base_url: str = "http://llamacpp-service.default.svc.cluster.local:8080"
+    llamacpp_base_url: str = "http://llamacpp-service.default.svc.cluster.local:8081"
     llamacpp_model: str = "/models/Kimi-VL-A3B-Thinking-2506-Q4_K_M.gguf"
     llamacpp_temperature: float = 0.7
     llamacpp_max_tokens: int = 2048

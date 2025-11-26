@@ -1,0 +1,313 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-01-16",
+  "nodes": {
+    "service_node": {
+      "hostname": "asuna",
+      "local_ip": "192.168.8.185",
+      "tailscale_ip": "100.81.76.55",
+      "os": "Ubuntu 24.04.3 LTS",
+      "purpose": "Kubernetes orchestration and service hosting"
+    },
+    "compute_node": {
+      "hostname": "pesubuntu",
+      "local_ip": "dynamic",
+      "tailscale_ip": "100.72.98.106",
+      "os": "Ubuntu 25.10",
+      "purpose": "LLM inference with GPU acceleration"
+    }
+  },
+  "services": {
+    "n8n": {
+      "name": "N8n Workflow Automation",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 30678,
+      "url": "http://100.81.76.55:30678",
+      "health_endpoint": "/healthz",
+      "expected_status": 200,
+      "description": "Low-code workflow automation platform",
+      "critical": true,
+      "validation_commands": [
+        "curl -f http://100.81.76.55:30678/healthz",
+        "kubectl get pods -n homelab -l app=n8n",
+        "kubectl logs -n homelab -l app=n8n --tail=10"
+      ]
+    },
+    "prometheus": {
+      "name": "Prometheus Metrics",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 30090,
+      "url": "http://100.81.76.55:30090",
+      "health_endpoint": "/-/healthy",
+      "expected_status": 200,
+      "description": "Metrics collection and monitoring",
+      "critical": true,
+      "validation_commands": [
+        "curl -f http://100.81.76.55:30090/-/healthy",
+        "kubectl get pods -n homelab -l app=prometheus",
+        "curl http://100.81.76.55:30090/api/v1/targets"
+      ]
+    },
+    "loki": {
+      "name": "Loki Log Aggregation",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 30314,
+      "url": "http://100.81.76.55:30314",
+      "health_endpoint": "/ready",
+      "expected_status": 200,
+      "description": "Log aggregation and querying",
+      "critical": true,
+      "validation_commands": [
+        "curl -f http://100.81.76.55:30314/ready",
+        "kubectl get pods -n homelab -l app=loki",
+        "curl http://100.81.76.55:30314/loki/api/v1/labels"
+      ]
+    },
+    "qdrant": {
+      "name": "Qdrant Vector Database",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 30633,
+      "url": "http://100.81.76.55:30633",
+      "health_endpoint": "/collections",
+      "expected_status": 200,
+      "description": "Vector similarity search for RAG",
+      "critical": true,
+      "validation_commands": [
+        "curl -f http://100.81.76.55:30633/collections",
+        "kubectl get pods -n homelab -l app=qdrant",
+        "curl http://100.81.76.55:30633/health"
+      ]
+    },
+    "docker_registry": {
+      "name": "Docker Registry",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 30500,
+      "url": "http://100.81.76.55:30500",
+      "health_endpoint": "/v2/_catalog",
+      "expected_status": 200,
+      "description": "Container image registry",
+      "critical": false,
+      "validation_commands": [
+        "curl -f http://100.81.76.55:30500/v2/_catalog",
+        "kubectl get pods -n homelab -l app=registry"
+      ]
+    },
+    "homelab_dashboard": {
+      "name": "Homelab Dashboard",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 30800,
+      "url": "http://100.81.76.55:30800",
+      "health_endpoint": "/",
+      "expected_status": [200, 429],
+      "description": "Main homelab management interface",
+      "critical": true,
+      "validation_commands": [
+        "curl -f http://100.81.76.55:30800/",
+        "kubectl get pods -n homelab -l app=homelab-dashboard"
+      ]
+    },
+    "mem0": {
+      "name": "Mem0 AI Memory",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 30880,
+      "url": "http://100.81.76.55:30880",
+      "health_endpoint": "/docs",
+      "expected_status": 200,
+      "description": "AI memory layer for conversations",
+      "critical": true,
+      "validation_commands": [
+        "curl -f http://100.81.76.55:30880/docs",
+        "kubectl get pods -n homelab -l app=mem0"
+      ]
+    },
+    "lobechat": {
+      "name": "LobeChat AI Interface",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 30910,
+      "url": "http://100.81.76.55:30910",
+      "health_endpoint": "/",
+      "expected_status": [200, 302, 307],
+      "description": "AI chat interface with memory",
+      "critical": false,
+      "validation_commands": [
+        "curl -L -f http://100.81.76.55:30910/",
+        "kubectl get pods -n homelab -l app=lobechat"
+      ]
+    },
+    "whisper": {
+      "name": "Whisper Speech-to-Text",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 30900,
+      "url": "http://100.81.76.55:30900",
+      "health_endpoint": "/",
+      "expected_status": 200,
+      "description": "Speech-to-text processing service",
+      "critical": false,
+      "validation_commands": [
+        "curl -f http://100.81.76.55:30900/",
+        "kubectl get pods -n homelab -l app=whisper"
+      ]
+    },
+    "family_assistant": {
+      "name": "Family Assistant",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 30080,
+      "url": "http://100.81.76.55:30080",
+      "health_endpoint": ["/health", "/"],
+      "expected_status": 200,
+      "description": "Family AI platform with dashboard",
+      "critical": false,
+      "development": true,
+      "validation_commands": [
+        "curl -f http://100.81.76.55:30080/",
+        "kubectl get pods -n homelab -l app=family-assistant",
+        "kubectl logs -n homelab -l app=family-assistant --tail=10"
+      ]
+    },
+    "ollama_native": {
+      "name": "Ollama Native",
+      "node": "compute_node",
+      "namespace": null,
+      "port": 11434,
+      "url": "http://100.72.98.106:11434",
+      "health_endpoint": "/api/version",
+      "expected_status": 200,
+      "description": "Native LLM inference on compute node",
+      "critical": true,
+      "validation_commands": [
+        "ssh pesu@100.72.98.106 'curl -f http://localhost:11434/api/version'",
+        "ssh pesu@100.72.98.106 'systemctl status ollama'",
+        "ssh pesu@100.72.98.106 'ollama list'"
+      ]
+    },
+    "ollama_k8s": {
+      "name": "Ollama Kubernetes",
+      "node": "service_node",
+      "namespace": "ollama",
+      "port": 30277,
+      "url": "http://100.81.76.55:30277",
+      "health_endpoint": "/api/version",
+      "expected_status": 200,
+      "description": "Kubernetes LLM inference with GPU",
+      "critical": true,
+      "validation_commands": [
+        "curl -f http://100.81.76.55:30277/api/version",
+        "kubectl get pods -n ollama -l app=ollama",
+        "kubectl logs -n ollama -l app=ollama --tail=10"
+      ]
+    },
+    "postgresql": {
+      "name": "PostgreSQL Database",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 5432,
+      "url": "postgres.homelab.svc.cluster.local:5432",
+      "health_endpoint": null,
+      "expected_status": null,
+      "description": "Primary database for applications",
+      "critical": true,
+      "internal": true,
+      "validation_commands": [
+        "kubectl get pods -n homelab -l app=postgres",
+        "kubectl exec -n homelab postgres-pod -- pg_isready",
+        "kubectl exec -n homelab postgres-pod -- psql -U homelab -d homelab -c 'SELECT 1;'"
+      ]
+    },
+    "redis": {
+      "name": "Redis Cache",
+      "node": "service_node",
+      "namespace": "homelab",
+      "port": 6379,
+      "url": "redis.homelab.svc.cluster.local:6379",
+      "health_endpoint": null,
+      "expected_status": null,
+      "description": "Cache and job queue",
+      "critical": true,
+      "internal": true,
+      "validation_commands": [
+        "kubectl get pods -n homelab -l app=redis",
+        "kubectl exec -n homelab redis-pod -- redis-cli ping"
+      ]
+    }
+  },
+  "validation_rules": {
+    "response_time_thresholds": {
+      "fast_ms": 200,
+      "medium_ms": 1000,
+      "slow_ms": 5000
+    },
+    "resource_thresholds": {
+      "cpu_warning": 70,
+      "cpu_critical": 90,
+      "memory_warning": 70,
+      "memory_critical": 90,
+      "disk_warning": 80,
+      "disk_critical": 95
+    },
+    "gpu_thresholds": {
+      "memory_warning": 12,
+      "memory_critical": 15,
+      "utilization_warning": 80,
+      "utilization_critical": 95
+    },
+    "kubernetes_health": {
+      "min_ready_pods": 1,
+      "max_restart_count": 5,
+      "pending_timeout_seconds": 300
+    }
+  },
+  "troubleshooting_playbooks": {
+    "service_down": [
+      "Check pod status: kubectl get pods -n <namespace> -l app=<service>",
+      "Check service status: kubectl get svc -n <namespace> <service>",
+      "Check logs: kubectl logs -n <namespace> -l app=<service> --tail=20",
+      "Restart deployment: kubectl rollout restart deployment/<service> -n <namespace>",
+      "Verify endpoints: kubectl get endpoints -n <namespace> <service>"
+    ],
+    "slow_response": [
+      "Check resource usage: kubectl top pods -n <namespace>",
+      "Check pod events: kubectl describe pod <pod-name> -n <namespace>",
+      "Check network latency: ping <service-ip>",
+      "Check node resources: kubectl top nodes",
+      "Review application logs for performance issues"
+    ],
+    "connection_refused": [
+      "Verify service exists: kubectl get svc -n <namespace>",
+      "Check port mapping: kubectl describe svc <service> -n <namespace>",
+      "Check pod is ready: kubectl get pods -n <namespace>",
+      "Test network policies: kubectl get networkpolicies -n <namespace>",
+      "Check firewall rules on nodes"
+    ],
+    "gpu_not_detected": [
+      "Check GPU hardware: rocminfo",
+      "Check ROCm installation: rocm-smi",
+      "Check kernel modules: lsmod | grep amdgpu",
+      "Verify Ollama GPU access: curl http://localhost:11434/api/version",
+      "Restart Ollama with GPU: systemctl restart ollama"
+    ]
+  },
+  "monitoring_endpoints": {
+    "prometheus_targets": "http://100.81.76.55:30090/api/v1/targets",
+    "loki_labels": "http://100.81.76.55:30314/loki/api/v1/labels",
+    "service_mesh": null
+  },
+  "backup_procedures": {
+    "postgresql": "kubectl exec -n homelab postgres-pod -- pg_dump -U homelab homelab > backup.sql",
+    "configurations": "kubectl get all,pvc -n homelab -o yaml > cluster-backup.yaml",
+    "models": "ssh pesu@100.72.98.106 'tar -czf ollama-models.tar.gz ~/.ollama/'"
+  },
+  "alert_contacts": {
+    "primary": "homelab@pesulabs.net",
+    "emergency": ["System Administrator", "Infrastructure Team"]
+  }
+}

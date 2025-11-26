@@ -58,7 +58,7 @@ class MemoryManager:
         redis_url: str = "redis://redis.homelab.svc.cluster.local:6379",
         mem0_url: str = "http://mem0.homelab.svc.cluster.local:8080",
         qdrant_url: str = "http://qdrant.homelab.svc.cluster.local:6333",
-        ollama_url: str = "http://llamacpp-service.default.svc.cluster.local:8080"
+        ollama_url: str = "http://llamacpp-service.default.svc.cluster.local:8081"
     ):
         # Layer 1: Redis client
         self.redis_client = None  # Initialized async

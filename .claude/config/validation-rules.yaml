@@ -1,0 +1,335 @@
+# Homelab Validation Rules
+version: "1.0"
+last_updated: "2025-01-16"
+
+# Global validation settings
+global:
+  timeout_seconds: 10
+  retry_count: 3
+  parallel_validation: true
+  save_history: true
+  history_file: ".claude/data/validation-history.json"
+
+# Service validation criteria
+service_validation:
+  # HTTP status codes considered successful
+  success_status_codes: [200, 201, 202, 302, 307]
+
+  # HTTP status codes that indicate warnings
+  warning_status_codes: [429, 502, 503, 504]
+
+  # Response time thresholds in milliseconds
+  response_time:
+    excellent_ms: 100
+    good_ms: 500
+    acceptable_ms: 2000
+    poor_ms: 5000
+
+  # Validation methods in order of preference
+  validation_methods:
+    - "http_endpoint"
+    - "kubernetes_status"
+    - "process_check"
+    - "network_port"
+
+  # Services to validate in quick mode
+  critical_services:
+    - "homelab_dashboard"
+    - "n8n"
+    - "ollama_native"
+    - "kubernetes_cluster"
+    - "network_connectivity"
+
+# Kubernetes validation rules
+kubernetes:
+  cluster_health:
+    # Minimum number of ready nodes
+    min_ready_nodes: 2
+
+    # Maximum number of unhealthy pods per namespace
+    max_unhealthy_pods:
+      homelab: 2
+      ollama: 1
+      kube-system: 1
+
+    # Pod restart thresholds
+    pod_restart_threshold:
+      warning: 3
+      critical: 10
+
+    # Resource utilization thresholds
+    resource_thresholds:
+      cpu:
+        warning_percent: 70
+        critical_percent: 90
+      memory:
+        warning_percent: 75
+        critical_percent: 90
+
+    # Storage thresholds
+    storage:
+      pvc_bound_percent: 100  # All PVCs should be bound
+      disk_usage:
+        warning_percent: 80
+        critical_percent: 95
+
+# Node-specific validation rules
+nodes:
+  service_node:
+    hostname: "asuna"
+    ip: "100.81.76.55"
+    checks:
+      - "kubernetes_status"
+      - "docker_status"
+      - "disk_space"
+      - "memory_usage"
+      - "service_connectivity"
+
+    resource_thresholds:
+      disk_space:
+        warning_gb: 20
+        critical_gb: 10
+      memory_usage:
+        warning_percent: 80
+        critical_percent: 90
+
+  compute_node:
+    hostname: "pesubuntu"
+    ip: "100.72.98.106"
+    checks:
+      - "ollama_status"
+      - "gpu_detection"
+      - "gpu_memory"
+      - "disk_space"
+      - "memory_usage"
+
+    gpu_thresholds:
+      memory_usage:
+        warning_gb: 12
+        critical_gb: 15
+      utilization:
+        warning_percent: 80
+        critical_percent: 95
+
+    resource_thresholds:
+      disk_space:
+        warning_gb: 100
+        critical_gb: 50
+      memory_usage:
+        warning_percent: 85
+        critical_percent: 95
+
+# Service-specific validation rules
+services:
+  homelab_dashboard:
+    name: "Homelab Dashboard"
+    port: 30800
+    health_path: "/"
+    expected_status: [200, 429]  # 429 for rate limiting
+    timeout_seconds: 15
+    critical: true
+
+  n8n:
+    name: "N8n Workflow Automation"
+    port: 30678
+    health_path: "/healthz"
+    expected_status: [200]
+    timeout_seconds: 10
+    critical: true
+
+  ollama_native:
+    name: "Ollama Native LLM"
+    port: 11434
+    health_path: "/api/version"
+    expected_status: [200]
+    timeout_seconds: 20
+    critical: true
+    node: "compute_node"
+
+  ollama_k8s:
+    name: "Ollama Kubernetes LLM"
+    port: 30277
+    health_path: "/api/version"
+    expected_status: [200]
+    timeout_seconds: 20
+    critical: true
+    namespace: "ollama"
+
+  prometheus:
+    name: "Prometheus Metrics"
+    port: 30090
+    health_path: "/-/healthy"
+    expected_status: [200]
+    timeout_seconds: 10
+    critical: true
+
+  loki:
+    name: "Loki Log Aggregation"
+    port: 30314
+    health_path: "/ready"
+    expected_status: [200]
+    timeout_seconds: 10
+    critical: true
+
+  qdrant:
+    name: "Qdrant Vector Database"
+    port: 30633
+    health_path: "/collections"
+    expected_status: [200]
+    timeout_seconds: 10
+    critical: true
+
+  mem0:
+    name: "Mem0 AI Memory"
+    port: 30880
+    health_path: "/docs"
+    expected_status: [200]
+    timeout_seconds: 10
+    critical: true
+
+  postgresql:
+    name: "PostgreSQL Database"
+    internal: true
+    validation_method: "kubernetes_exec"
+    checks:
+      - "pod_running"
+      - "database_connection"
+      - "query_test"
+    critical: true
+
+  redis:
+    name: "Redis Cache"
+    internal: true
+    validation_method: "kubernetes_exec"
+    checks:
+      - "pod_running"
+      - "redis_ping"
+    critical: true
+
+# Network validation rules
+network:
+  connectivity:
+    # Hosts to ping for connectivity testing
+    ping_targets:
+      service_node: "100.81.76.55"
+      compute_node: "100.72.98.106"
+      gateway: "192.168.8.1"
+
+    # Services to test HTTP connectivity
+    http_targets:
+      - name: "Homelab Dashboard"
+        url: "http://100.81.76.55:30800"
+      - name: "N8n"
+        url: "http://100.81.76.55:30678"
+      - name: "Ollama"
+        url: "http://100.72.98.106:11434"
+
+    # DNS resolution checks
+    dns_checks:
+      - "postgres.homelab.svc.cluster.local"
+      - "redis.homelab.svc.cluster.local"
+      - "kubernetes.default.svc.cluster.local"
+
+# Session validation rules
+session_validation:
+  # Claims that require verification
+  verifiable_claims:
+    - pattern: "all services working"
+      validation: "full_service_check"
+    - pattern: "deployment complete"
+      validation: "service_deployment_check"
+    - pattern: "infrastructure ready"
+      validation: "kubernetes_cluster_check"
+    - pattern: "GPU.*working"
+      validation: "gpu_status_check"
+
+  # Required evidence for claims
+  evidence_requirements:
+    "all services working":
+      min_critical_services: 5
+      max_failed_services: 0
+    "deployment complete":
+      deployment_status: "ready"
+      pod_count: "expected"
+    "infrastructure ready":
+      kubernetes_status: "healthy"
+      storage_status: "available"
+
+  # False positive patterns to flag
+  false_positive_patterns:
+    - ".*working perfectly.*"
+    - ".*all good.*"
+    - ".*no issues.*"
+    - ".*everything fine.*"
+
+# Alerting and reporting rules
+alerting:
+  # When to generate alerts
+  conditions:
+    critical_services_down: 1
+    warning_services_down: 3
+    cluster_issues: true
+    resource_exhaustion: true
+    network_isolation: true
+
+  # Report generation
+  reports:
+    save_to_file: true
+    output_directory: "claudedocs/validation-reports/"
+    formats: ["markdown", "json"]
+    include_suggestions: true
+    include_history: true
+
+# Integration settings
+integrations:
+  # Existing health check scripts to use
+  health_check_scripts:
+    - "scripts/health-check-all.sh"
+    - "scripts/service-check-urls.sh"
+    - "infrastructure/compute-node/scripts/health-check.sh"
+
+  # Commands to run for validation
+  validation_commands:
+    kubectl: "kubectl"
+    curl: "curl"
+    ping: "ping"
+    ssh: "ssh"
+
+  # File paths for status persistence
+  persistence:
+    validation_history: ".claude/data/validation-history.json"
+    service_baselines: ".claude/data/service-baselines.json"
+    issue_patterns: ".claude/data/issue-patterns.json"
+
+# Performance and optimization
+performance:
+  # Validation timeouts
+  timeouts:
+    http_check: 10
+    kubernetes_check: 30
+    network_check: 5
+    overall_validation: 120
+
+  # Concurrency settings
+  concurrency:
+    max_parallel_checks: 10
+    service_check_timeout: 15
+    node_check_timeout: 30
+
+  # Caching settings
+  caching:
+    service_status_cache_seconds: 60
+    dns_cache_seconds: 300
+    baseline_cache_seconds: 3600
+
+# Development and testing
+development:
+  # Validation for development services
+  development_services:
+    - "family_assistant"
+
+  # More lenient thresholds for development
+  development_thresholds:
+    response_time_multiplier: 2.0
+    restart_tolerance_multiplier: 2.0
+    resource_tolerance_percent: 10
