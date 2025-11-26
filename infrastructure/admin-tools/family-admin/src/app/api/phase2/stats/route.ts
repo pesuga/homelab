@@ -1,6 +1,7 @@
 /**
  * Server-side proxy for Phase 2 stats endpoint
  * Prevents mixed content errors by keeping HTTP requests server-side
+ * Transforms backend response to match frontend expectations
  */
 
 import { NextResponse } from 'next/server';
@@ -25,7 +26,18 @@ export async function GET() {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+
+    // Transform backend response to match frontend SystemStats interface
+    const transformed = {
+      total_memories: data.total_memories || 0,
+      memories_by_layer: data.memories_by_layer || {},
+      total_users: data.total_users || data.users_active_today || 0,
+      active_conversations: data.active_conversations || data.total_conversations || 0,
+      storage_usage_mb: data.storage_usage_mb || data.storage_used_mb || 0,
+      cache_hit_rate: data.cache_hit_rate || 0
+    };
+
+    return NextResponse.json(transformed);
   } catch (error) {
     console.error('Error proxying to Phase 2 stats endpoint:', error);
     return NextResponse.json(
