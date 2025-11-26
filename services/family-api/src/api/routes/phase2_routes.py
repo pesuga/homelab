@@ -22,6 +22,16 @@ from api.models.memory import (
     MemoryHealthResponse, MemoryStatsResponse,
     UserContext, MemoryContext
 )
+from api.models.knowledge import (
+    CorePromptMetadata,
+    CorePromptDetail,
+    CorePromptUpdateRequest,
+    CorePromptRollbackRequest,
+    CorePromptUpdateResponse,
+    CorePromptRollbackResponse,
+    CorePromptsListResponse,
+    PromptVersionsListResponse
+)
 from api.services.memory_manager import MemoryManager, create_memory_manager
 from api.services.prompt_builder import (
     PromptBuilder,
@@ -29,6 +39,7 @@ from api.services.prompt_builder import (
     build_user_context_from_db,
     assemble_full_prompt
 )
+from api.services.version_manager import VersionManager
 
 
 # Create router
@@ -42,6 +53,7 @@ router = APIRouter(prefix="/api/phase2", tags=["Phase 2 - Memory & Prompts"])
 # Global instances (initialized on startup)
 _memory_manager: Optional[MemoryManager] = None
 _prompt_builder: Optional[PromptBuilder] = None
+_version_manager: Optional[VersionManager] = None
 
 
 async def get_memory_manager() -> MemoryManager:
@@ -58,6 +70,14 @@ async def get_prompt_builder() -> PromptBuilder:
     if _prompt_builder is None:
         _prompt_builder = create_prompt_builder()
     return _prompt_builder
+
+
+def get_version_manager() -> VersionManager:
+    """Dependency to get VersionManager instance"""
+    global _version_manager
+    if _version_manager is None:
+        _version_manager = VersionManager()
+    return _version_manager
 
 
 # ==============================================================================
@@ -334,13 +354,179 @@ async def update_core_prompt(
         success = prompt_builder.update_core_prompt(content)
         if not success:
             raise HTTPException(status_code=500, detail="Failed to update core prompt")
-        
+
         return {"message": "Core prompt updated successfully"}
 
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to update core prompt: {str(e)}"
+        )
+
+
+# ==============================================================================
+# Core Prompt Management with Version History
+# ==============================================================================
+
+@router.get("/prompts/core/list", response_model=CorePromptsListResponse)
+async def list_core_prompts(
+    version_manager: VersionManager = Depends(get_version_manager)
+):
+    """
+    List all core prompts (FAMILY_ASSISTANT, PRINCIPLES, RULES) with metadata.
+
+    Returns metadata including version count, size, token estimates for each prompt.
+    """
+    try:
+        prompts = version_manager.list_core_prompts()
+        return CorePromptsListResponse(
+            prompts=prompts,
+            total_count=len(prompts)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to list core prompts: {str(e)}"
+        )
+
+
+@router.get("/prompts/core/{name}", response_model=CorePromptDetail)
+async def get_core_prompt_detail(
+    name: str,
+    version_manager: VersionManager = Depends(get_version_manager)
+):
+    """
+    Get specific core prompt with full content and version history.
+
+    Valid names: FAMILY_ASSISTANT, PRINCIPLES, RULES
+    """
+    try:
+        metadata = version_manager.get_prompt_metadata(name)
+        content = version_manager.get_current_content(name)
+        versions = version_manager.get_versions(name)
+
+        return CorePromptDetail(
+            metadata=metadata,
+            content=content,
+            versions=versions
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get core prompt: {str(e)}"
+        )
+
+
+@router.put("/prompts/core/{name}", response_model=CorePromptUpdateResponse)
+async def update_core_prompt_with_version(
+    name: str,
+    request: CorePromptUpdateRequest,
+    version_manager: VersionManager = Depends(get_version_manager)
+):
+    """
+    Update a core prompt and create version backup.
+
+    Automatically creates a versioned backup of the current content before updating.
+    Keeps last 10 versions per prompt.
+    """
+    try:
+        response = version_manager.update_prompt(name, request)
+        return response
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to update core prompt: {str(e)}"
+        )
+
+
+@router.get("/prompts/core/{name}/versions", response_model=PromptVersionsListResponse)
+async def get_core_prompt_versions(
+    name: str,
+    version_manager: VersionManager = Depends(get_version_manager)
+):
+    """
+    Get version history for a specific core prompt.
+
+    Returns list of all versions with timestamps, authors, and change summaries.
+    """
+    try:
+        versions = version_manager.get_versions(name)
+        return PromptVersionsListResponse(
+            name=name,
+            versions=versions,
+            total_count=len(versions)
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get versions: {str(e)}"
+        )
+
+
+@router.get("/prompts/core/{name}/versions/{timestamp}")
+async def get_core_prompt_version_content(
+    name: str,
+    timestamp: str,
+    version_manager: VersionManager = Depends(get_version_manager)
+):
+    """
+    Get content of a specific version.
+
+    Timestamp format: 2025-11-26T10:30:00Z or 2025-11-26T10-30-00Z
+    """
+    try:
+        content = version_manager.get_version_content(name, timestamp)
+        if content is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Version not found: {timestamp}"
+            )
+
+        return {
+            "name": name,
+            "timestamp": timestamp,
+            "content": content,
+            "length": len(content),
+            "estimated_tokens": len(content) // 4
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get version content: {str(e)}"
+        )
+
+
+@router.post("/prompts/core/{name}/rollback", response_model=CorePromptRollbackResponse)
+async def rollback_core_prompt(
+    name: str,
+    request: CorePromptRollbackRequest,
+    version_manager: VersionManager = Depends(get_version_manager)
+):
+    """
+    Rollback to a previous version.
+
+    Creates a backup of current state before rolling back.
+    Allows safe restoration of previous prompt versions.
+    """
+    try:
+        response = version_manager.rollback(name, request)
+        return response
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to rollback prompt: {str(e)}"
         )
 
 
