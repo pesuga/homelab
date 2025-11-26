@@ -1,6 +1,7 @@
 /**
  * Server-side proxy for Phase 2 health endpoint
  * Prevents mixed content errors by keeping HTTP requests server-side
+ * Transforms backend response to match frontend expectations
  */
 
 import { NextResponse } from 'next/server';
@@ -25,7 +26,30 @@ export async function GET() {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+
+    // Transform backend response to match frontend Phase2Health interface
+    const transformed = {
+      status: data.status || 'unknown',
+      redis: {
+        connected: data.layers?.redis?.status === 'healthy',
+        latency_ms: data.layers?.redis?.latency_ms || 0
+      },
+      mem0: {
+        connected: data.layers?.mem0?.status === 'healthy',
+        status: data.layers?.mem0?.status || 'unknown'
+      },
+      qdrant: {
+        connected: data.layers?.qdrant?.status === 'healthy',
+        collections: data.layers?.qdrant?.collections || 0
+      },
+      ollama: {
+        connected: data.layers?.ollama?.status === 'healthy' || false,
+        models: data.layers?.ollama?.models || []
+      },
+      timestamp: data.timestamp
+    };
+
+    return NextResponse.json(transformed);
   } catch (error) {
     console.error('Error proxying to Phase 2 health endpoint:', error);
     return NextResponse.json(
