@@ -1,5 +1,5 @@
 /**
- * Server-side proxy for Phase 2 prompts/roles endpoint
+ * Server-side proxy for Phase 2 prompts/core endpoint
  * Prevents mixed content errors by keeping HTTP requests server-side
  */
 
@@ -9,7 +9,7 @@ const FAMILY_API_URL = process.env.FAMILY_API_URL || 'http://family-assistant-ba
 
 export async function GET() {
   try {
-    const response = await fetch(`${FAMILY_API_URL}/api/phase2/prompts/roles`, {
+    const response = await fetch(`${FAMILY_API_URL}/api/phase2/prompts/core`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -27,7 +27,7 @@ export async function GET() {
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error proxying to Phase 2 prompts/roles endpoint:', error);
+    console.error('Error proxying to Phase 2 prompts/core endpoint:', error);
     return NextResponse.json(
       { error: 'Failed to connect to backend', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

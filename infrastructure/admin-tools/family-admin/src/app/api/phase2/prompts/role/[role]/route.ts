@@ -1,5 +1,5 @@
 /**
- * Server-side proxy for Phase 2 prompts/roles endpoint
+ * Server-side proxy for Phase 2 prompts/role/[role] endpoint
  * Prevents mixed content errors by keeping HTTP requests server-side
  */
 
@@ -7,9 +7,13 @@ import { NextResponse } from 'next/server';
 
 const FAMILY_API_URL = process.env.FAMILY_API_URL || 'http://family-assistant-backend.homelab.svc:8001';
 
-export async function GET() {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ role: string }> }
+) {
   try {
-    const response = await fetch(`${FAMILY_API_URL}/api/phase2/prompts/roles`, {
+    const { role } = await params;
+    const response = await fetch(`${FAMILY_API_URL}/api/phase2/prompts/role/${role}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -27,7 +31,7 @@ export async function GET() {
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error proxying to Phase 2 prompts/roles endpoint:', error);
+    console.error('Error proxying to Phase 2 prompts/role endpoint:', error);
     return NextResponse.json(
       { error: 'Failed to connect to backend', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
