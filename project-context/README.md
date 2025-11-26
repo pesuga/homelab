@@ -140,16 +140,9 @@ kubectl describe pod <pod>         # Pod details
 ```
 
 ---
-
 ## Service URLs
 
-- **Dashboard**: https://dash.pesulabs.net
-- **N8n**: https://n8n.homelab.pesulabs.net
-- **Family Assistant**: https://family-assistant.homelab.pesulabs.net
-- **Ollama (Native)**: http://100.72.98.106:11434
-- **Prometheus**: https://prometheus.homelab.pesulabs.net
-- **Grafana**: https://grafana.homelab.pesulabs.net
-
+Refer to `@project-context/services.md` for service URLs
 ---
 
 ## Important Notes
@@ -177,8 +170,6 @@ kubectl describe pod <pod>         # Pod details
 - Check `KNOWLEDGE.md` for common patterns
 - Review `ARCHITECTURE.md` for system design context
 - Use `.claude/skills/homelab-troubleshooting/main.md` for diagnostic procedures
-- See `CLAUDE.md` for Claude Code specific instructions
-
 ---
 
 **Last Updated**: 2025-11-26

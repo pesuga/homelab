@@ -1,0 +1,28 @@
+{
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": ".claude/hooks/auto-validate-deployment.sh",
+                        "timeout": 30
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "matcher": "*",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": ".claude/hooks/session-end-validation.sh",
+                        "timeout": 60
+                    }
+                ]
+            }
+        ]
+    }
+}
