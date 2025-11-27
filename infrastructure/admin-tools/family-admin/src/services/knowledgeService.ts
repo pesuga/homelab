@@ -66,27 +66,8 @@ export const knowledgeService = {
   },
 
   getCorePromptDetail: async (name: string): Promise<CorePromptDetail> => {
-    // Since backend only has /prompts/core (single endpoint), we fetch from there
-    // and only support FAMILY_ASSISTANT for now
-    if (name !== 'FAMILY_ASSISTANT') {
-      // For other prompts, return empty content with metadata
-      return {
-        metadata: {
-          name: name,
-          display_name: name.replace(/_/g, ' '),
-          description: `Core prompt: ${name}`,
-          file_path: `/prompts/core/${name}.md`,
-          version_count: 0,
-          last_modified: new Date().toISOString(),
-          size_bytes: 0,
-          token_estimate: 0,
-        },
-        content: '',
-        versions: [],
-      };
-    }
-
-    const response = await fetch(`${BASE_URL}/prompts/core`);
+    // Use the versioned endpoint for individual prompt details
+    const response = await fetch(`${BASE_URL}/prompts/core/${name}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch core prompt: ${name}`);
     }
@@ -94,17 +75,17 @@ export const knowledgeService = {
 
     return {
       metadata: {
-        name: name,
-        display_name: 'Family Assistant',
-        description: 'Core system prompt defining the AI assistant\'s role and capabilities',
-        file_path: `/prompts/core/${name}.md`,
-        version_count: 0,
-        last_modified: new Date().toISOString(),
-        size_bytes: data.length || 0,
-        token_estimate: data.estimated_tokens || 0,
+        name: data.metadata.name,
+        display_name: data.metadata.display_name,
+        description: data.metadata.description,
+        file_path: data.metadata.file_path,
+        version_count: data.metadata.version_count,
+        last_modified: data.metadata.last_modified,
+        size_bytes: data.metadata.size_bytes,
+        token_estimate: data.metadata.token_estimate,
       },
-      content: data.prompt || '',
-      versions: [],
+      content: data.content,
+      versions: data.versions,
     };
   },
 
@@ -112,20 +93,16 @@ export const knowledgeService = {
     name: string,
     request: CorePromptUpdateRequest
   ): Promise<CorePromptUpdateResponse> => {
-    // Since backend only has /prompts/core (single endpoint), we update there
-    // and only support FAMILY_ASSISTANT for now
-    if (name !== 'FAMILY_ASSISTANT') {
-      throw new Error(`Only FAMILY_ASSISTANT prompt is currently supported for editing`);
-    }
-
-    const response = await fetch(`${BASE_URL}/prompts/core`, {
+    // Use the versioned endpoint for individual prompt updates
+    const response = await fetch(`${BASE_URL}/prompts/core/${name}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         content: request.content,
-        change_summary: request.change_summary || 'Manual update'
+        change_summary: request.change_summary || 'Manual update',
+        author: request.author || 'admin'
       }),
     });
     if (!response.ok) {
@@ -133,27 +110,13 @@ export const knowledgeService = {
     }
     const data = await response.json();
 
-    // Parse the simple response from backend
+    // Return the response from backend (already in correct format)
     return {
-      success: true,
-      name: name,
-      previous_version: {
-        timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        filename: `${name}.md`,
-        author: 'system',
-        change_summary: 'Previous version',
-        size_bytes: request.content.length,
-        token_estimate: Math.ceil(request.content.length / 4),
-      },
-      new_version: {
-        timestamp: new Date().toISOString(),
-        filename: `${name}.md`,
-        author: request.author || 'admin',
-        change_summary: request.change_summary || 'Manual update',
-        size_bytes: request.content.length,
-        token_estimate: Math.ceil(request.content.length / 4),
-      },
-      message: data.message || 'Core prompt updated successfully',
+      success: data.success,
+      name: data.name,
+      previous_version: data.previous_version,
+      new_version: data.new_version,
+      message: data.message,
     };
   },
 
