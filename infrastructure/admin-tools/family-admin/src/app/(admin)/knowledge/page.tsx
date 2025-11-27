@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useCorePrompts, useSkills, useCorePromptDetail, useUpdateCorePrompt } from '@/hooks/useKnowledge';
 import PromptEditor from '@/components/knowledge/PromptEditor';
-import PromptTester from '@/components/knowledge/PromptTester';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -234,7 +233,6 @@ export default function KnowledgePage() {
         <TabsList>
           <TabsTrigger value="core">Core Prompts</TabsTrigger>
           <TabsTrigger value="skills">Skills</TabsTrigger>
-          <TabsTrigger value="tester">Prompt Tester</TabsTrigger>
         </TabsList>
 
         <TabsContent value="core">
@@ -243,10 +241,6 @@ export default function KnowledgePage() {
 
         <TabsContent value="skills">
           <SkillsList />
-        </TabsContent>
-
-        <TabsContent value="tester">
-          <PromptTester />
         </TabsContent>
       </Tabs>
 
