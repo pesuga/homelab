@@ -1,66 +1,162 @@
 "use client";
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useRoles, useSkills } from '@/hooks/useKnowledge';
+import { useState, useEffect } from 'react';
+import { useCorePrompts, useSkills, useCorePromptDetail, useUpdateCorePrompt } from '@/hooks/useKnowledge';
 import PromptEditor from '@/components/knowledge/PromptEditor';
 import PromptTester from '@/components/knowledge/PromptTester';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Plus, Edit, Trash2, Users, Zap } from 'lucide-react';
+import { Loader2, Plus, Edit, FileText, Zap, Save, X, History } from 'lucide-react';
+import { CorePromptMetadata } from '@/types/knowledge';
 
 export default function KnowledgePage() {
-  const [selectedPrompt, setSelectedPrompt] = useState<{ type: 'role' | 'skill'; name: string } | null>(null);
+  const [selectedPrompt, setSelectedPrompt] = useState<{ type: 'core' | 'skill'; name: string } | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [isNewPromptOpen, setIsNewPromptOpen] = useState(false);
-  const [newPromptType, setNewPromptType] = useState<'role' | 'skill'>('role');
-  const [newPromptName, setNewPromptName] = useState('');
+  const [isCoreEditorOpen, setIsCoreEditorOpen] = useState(false);
+  const [isNewSkillOpen, setIsNewSkillOpen] = useState(false);
+  const [newSkillName, setNewSkillName] = useState('');
+  const [editingCorePrompt, setEditingCorePrompt] = useState<string | null>(null);
+  const [corePromptContent, setCorePromptContent] = useState('');
+  const [changeDescription, setChangeDescription] = useState('');
 
-  const { data: roles, isLoading: rolesLoading, error: rolesError } = useRoles();
+  const { data: corePromptsData, isLoading: coreLoading, error: coreError } = useCorePrompts();
   const { data: skills, isLoading: skillsLoading, error: skillsError } = useSkills();
+  const { data: corePromptDetail, isLoading: detailLoading } = useCorePromptDetail(editingCorePrompt || '');
+  const updateCorePrompt = useUpdateCorePrompt();
 
-  const handleEditPrompt = (type: 'role' | 'skill', name: string) => {
-    setSelectedPrompt({ type, name });
+  const corePrompts = corePromptsData?.prompts || [];
+
+  const handleEditCorePrompt = (name: string) => {
+    setEditingCorePrompt(name);
+    setIsCoreEditorOpen(true);
+    setChangeDescription('');
+  };
+
+  const handleSaveCorePrompt = async () => {
+    if (!editingCorePrompt || !corePromptContent) return;
+
+    try {
+      await updateCorePrompt.mutateAsync({
+        name: editingCorePrompt,
+        content: corePromptContent,
+        changeSummary: changeDescription || undefined,
+      });
+      setIsCoreEditorOpen(false);
+      setEditingCorePrompt(null);
+      setCorePromptContent('');
+      setChangeDescription('');
+    } catch (error) {
+      console.error('Failed to save core prompt:', error);
+    }
+  };
+
+  const handleEditSkill = (name: string) => {
+    setSelectedPrompt({ type: 'skill', name });
     setIsEditorOpen(true);
   };
 
-  const handleNewPrompt = (type: 'role' | 'skill') => {
-    setNewPromptType(type);
-    setNewPromptName('');
-    setIsNewPromptOpen(true);
+  const handleNewSkill = () => {
+    setNewSkillName('');
+    setIsNewSkillOpen(true);
   };
 
-  const handleCreateNewPrompt = () => {
-    if (!newPromptName.trim()) return;
+  const handleCreateNewSkill = () => {
+    if (!newSkillName.trim()) return;
 
-    // Close the dialog and open the editor with the new name
-    setIsNewPromptOpen(false);
-    setSelectedPrompt({ type: newPromptType, name: newPromptName.trim() });
+    setIsNewSkillOpen(false);
+    setSelectedPrompt({ type: 'skill', name: newSkillName.trim() });
     setIsEditorOpen(true);
   };
 
-  const PromptList = ({ type, prompts, isLoading, error }: {
-    type: 'role' | 'skill';
-    prompts: string[] | undefined;
-    isLoading: boolean;
-    error: Error | null;
-  }) => {
-    const icon = type === 'role' ? <Users className="h-4 w-4" /> : <Zap className="h-4 w-4" />;
-    const title = type === 'role' ? 'Roles' : 'Skills';
-    const description = type === 'role'
-      ? 'User roles like parent, child, teenager, etc.'
-      : 'Specialized skills like calendar assistant, coding tutor, etc.';
+  // Update content when detail loads
+  useEffect(() => {
+    if (corePromptDetail && editingCorePrompt && !corePromptContent) {
+      setCorePromptContent(corePromptDetail.content);
+    }
+  }, [corePromptDetail, editingCorePrompt, corePromptContent]);
 
-    if (error) {
+  const CorePromptsList = () => {
+    if (coreError) {
       return (
         <Alert variant="destructive">
           <AlertDescription>
-            Failed to load {type}s: {error.message}
+            Failed to load core prompts: {coreError.message}
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center space-x-2">
+            <FileText className="h-4 w-4" />
+            <CardTitle>Core System Prompts</CardTitle>
+          </div>
+          <CardDescription>
+            Foundation prompts that define the AI assistant's behavior and capabilities.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {coreLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2 text-gray-700 dark:text-gray-300">Loading core prompts...</span>
+            </div>
+          ) : corePrompts.length > 0 ? (
+            <div className="grid gap-3">
+              {corePrompts.map((prompt: CorePromptMetadata) => (
+                <div
+                  key={prompt.name}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <Badge variant="default">CORE</Badge>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">{prompt.display_name || prompt.name}</span>
+                      {prompt.version_count > 0 && (
+                        <Badge variant="outline">{prompt.version_count} {prompt.version_count === 1 ? 'version' : 'versions'}</Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {prompt.last_modified ? `Last updated: ${new Date(prompt.last_modified).toLocaleString()}` : 'No versions yet'}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditCorePrompt(prompt.name)}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              No core prompts found.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const SkillsList = () => {
+    if (skillsError) {
+      return (
+        <Alert variant="destructive">
+          <AlertDescription>
+            Failed to load skills: {skillsError.message}
           </AlertDescription>
         </Alert>
       );
@@ -71,55 +167,53 @@ export default function KnowledgePage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              {icon}
-              <CardTitle>{title}</CardTitle>
+              <Zap className="h-4 w-4" />
+              <CardTitle>Skills</CardTitle>
             </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleNewPrompt(type)}
-              disabled={isLoading}
+              onClick={handleNewSkill}
+              disabled={skillsLoading}
             >
               <Plus className="h-4 w-4 mr-2" />
-              New {type.slice(0, -1)}
+              New Skill
             </Button>
           </div>
-          <CardDescription>{description}</CardDescription>
+          <CardDescription>
+            Specialized capabilities like calendar assistant, coding tutor, etc.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {skillsLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin" />
-              <span className="ml-2 text-gray-700 dark:text-gray-300">Loading {type}s...</span>
+              <span className="ml-2 text-gray-700 dark:text-gray-300">Loading skills...</span>
             </div>
-          ) : prompts && prompts.length > 0 ? (
+          ) : skills && skills.length > 0 ? (
             <div className="grid gap-3">
-              {prompts.map((prompt) => (
+              {skills.map((skill) => (
                 <div
-                  key={prompt}
+                  key={skill}
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
-                    <Badge variant={type === 'role' ? 'default' : 'secondary'}>
-                      {type.slice(0, -1).toUpperCase()}
-                    </Badge>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">{prompt}</span>
+                    <Badge variant="secondary">SKILL</Badge>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{skill}</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditPrompt(type, prompt)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEditSkill(skill)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              No {type}s found. Create your first {type} to get started.
+              No skills found. Create your first skill to get started.
             </div>
           )}
         </CardContent>
@@ -132,33 +226,23 @@ export default function KnowledgePage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Knowledge Base</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Manage roles and skills that define how family members interact with the AI assistant.
+          Manage core prompts and skills that define the AI assistant's capabilities.
         </p>
       </div>
 
-      <Tabs defaultValue="roles" className="space-y-6">
+      <Tabs defaultValue="core" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="roles">Roles</TabsTrigger>
+          <TabsTrigger value="core">Core Prompts</TabsTrigger>
           <TabsTrigger value="skills">Skills</TabsTrigger>
           <TabsTrigger value="tester">Prompt Tester</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="roles">
-          <PromptList
-            type="role"
-            prompts={roles}
-            isLoading={rolesLoading}
-            error={rolesError as Error | null}
-          />
+        <TabsContent value="core">
+          <CorePromptsList />
         </TabsContent>
 
         <TabsContent value="skills">
-          <PromptList
-            type="skill"
-            prompts={skills}
-            isLoading={skillsLoading}
-            error={skillsError as Error | null}
-          />
+          <SkillsList />
         </TabsContent>
 
         <TabsContent value="tester">
@@ -166,8 +250,86 @@ export default function KnowledgePage() {
         </TabsContent>
       </Tabs>
 
-      {/* Edit Prompt Dialog */}
-      {selectedPrompt && (
+      {/* Core Prompt Editor Dialog */}
+      <Dialog open={isCoreEditorOpen} onOpenChange={setIsCoreEditorOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>Edit Core Prompt: {editingCorePrompt}</span>
+            </DialogTitle>
+            <DialogDescription>
+              Modify the core system prompt. Version history will be maintained automatically.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 overflow-y-auto">
+            {detailLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Loading prompt...</span>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Change Description (Optional)
+                  </label>
+                  <Input
+                    value={changeDescription}
+                    onChange={(e) => setChangeDescription(e.target.value)}
+                    placeholder="Describe what you changed..."
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Prompt Content
+                  </label>
+                  <Textarea
+                    value={corePromptContent}
+                    onChange={(e) => setCorePromptContent(e.target.value)}
+                    className="mt-1 min-h-[400px] font-mono text-sm"
+                    placeholder="Enter prompt content..."
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCoreEditorOpen(false);
+                setEditingCorePrompt(null);
+                setCorePromptContent('');
+                setChangeDescription('');
+              }}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveCorePrompt}
+              disabled={!corePromptContent || updateCorePrompt.isPending}
+            >
+              {updateCorePrompt.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Version
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Skill Editor Dialog */}
+      {selectedPrompt && selectedPrompt.type === 'skill' && (
         <PromptEditor
           type={selectedPrompt.type}
           name={selectedPrompt.name}
@@ -180,33 +342,33 @@ export default function KnowledgePage() {
         />
       )}
 
-      {/* New Prompt Dialog */}
-      <Dialog open={isNewPromptOpen} onOpenChange={setIsNewPromptOpen}>
+      {/* New Skill Dialog */}
+      <Dialog open={isNewSkillOpen} onOpenChange={setIsNewSkillOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New {newPromptType === 'role' ? 'Role' : 'Skill'}</DialogTitle>
+            <DialogTitle>Create New Skill</DialogTitle>
             <DialogDescription>
-              Enter a name for the new {newPromptType}. You'll be able to edit the content in the next step.
+              Enter a name for the new skill. You'll be able to edit the content in the next step.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {newPromptType === 'role' ? 'Role' : 'Skill'} Name
+                Skill Name
               </label>
               <Input
-                value={newPromptName}
-                onChange={(e) => setNewPromptName(e.target.value)}
-                placeholder={`Enter ${newPromptType} name...`}
+                value={newSkillName}
+                onChange={(e) => setNewSkillName(e.target.value)}
+                placeholder="Enter skill name..."
                 className="mt-1"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsNewPromptOpen(false)}>
+            <Button variant="outline" onClick={() => setIsNewSkillOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateNewPrompt} disabled={!newPromptName.trim()}>
+            <Button onClick={handleCreateNewSkill} disabled={!newSkillName.trim()}>
               Create and Edit
             </Button>
           </DialogFooter>

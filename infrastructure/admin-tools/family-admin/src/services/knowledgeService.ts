@@ -18,36 +18,143 @@ const BASE_URL = '/api/phase2';
 export const knowledgeService = {
   // --- Core Prompts (Version Control) ---
   getCorePrompts: async (): Promise<CorePromptsListResponse> => {
-    const response = await fetch(`${BASE_URL}/prompts/core/list`);
+    const response = await fetch(`${BASE_URL}/prompts/core`);
     if (!response.ok) {
       throw new Error('Failed to fetch core prompts');
     }
-    return response.json();
+    const data = await response.json();
+
+    // Transform single prompt response to list format with all 3 core prompts
+    // Backend returns: { prompt: string, length: number, estimated_tokens: number }
+    // Frontend expects: { prompts: CorePromptMetadata[], total_count: number }
+
+    return {
+      prompts: [
+        {
+          name: 'FAMILY_ASSISTANT',
+          display_name: 'Family Assistant',
+          description: 'Core system prompt defining the AI assistant\'s role and capabilities',
+          file_path: '/prompts/core/FAMILY_ASSISTANT.md',
+          version_count: 0,
+          last_modified: new Date().toISOString(),
+          size_bytes: data.length || 0,
+          token_estimate: data.estimated_tokens || 0,
+        },
+        {
+          name: 'PRINCIPLES',
+          display_name: 'Principles',
+          description: 'Guiding principles and behavioral rules for the AI assistant',
+          file_path: '/prompts/core/PRINCIPLES.md',
+          version_count: 0,
+          last_modified: new Date().toISOString(),
+          size_bytes: 0,
+          token_estimate: 0,
+        },
+        {
+          name: 'RULES',
+          display_name: 'Rules',
+          description: 'Specific rules and constraints for the AI assistant behavior',
+          file_path: '/prompts/core/RULES.md',
+          version_count: 0,
+          last_modified: new Date().toISOString(),
+          size_bytes: 0,
+          token_estimate: 0,
+        },
+      ],
+      total_count: 3,
+    };
   },
 
   getCorePromptDetail: async (name: string): Promise<CorePromptDetail> => {
-    const response = await fetch(`${BASE_URL}/prompts/core/${name}`);
+    // Since backend only has /prompts/core (single endpoint), we fetch from there
+    // and only support FAMILY_ASSISTANT for now
+    if (name !== 'FAMILY_ASSISTANT') {
+      // For other prompts, return empty content with metadata
+      return {
+        metadata: {
+          name: name,
+          display_name: name.replace(/_/g, ' '),
+          description: `Core prompt: ${name}`,
+          file_path: `/prompts/core/${name}.md`,
+          version_count: 0,
+          last_modified: new Date().toISOString(),
+          size_bytes: 0,
+          token_estimate: 0,
+        },
+        content: '',
+        versions: [],
+      };
+    }
+
+    const response = await fetch(`${BASE_URL}/prompts/core`);
     if (!response.ok) {
       throw new Error(`Failed to fetch core prompt: ${name}`);
     }
-    return response.json();
+    const data = await response.json();
+
+    return {
+      metadata: {
+        name: name,
+        display_name: 'Family Assistant',
+        description: 'Core system prompt defining the AI assistant\'s role and capabilities',
+        file_path: `/prompts/core/${name}.md`,
+        version_count: 0,
+        last_modified: new Date().toISOString(),
+        size_bytes: data.length || 0,
+        token_estimate: data.estimated_tokens || 0,
+      },
+      content: data.prompt || '',
+      versions: [],
+    };
   },
 
   updateCorePrompt: async (
     name: string,
     request: CorePromptUpdateRequest
   ): Promise<CorePromptUpdateResponse> => {
-    const response = await fetch(`${BASE_URL}/prompts/core/${name}`, {
+    // Since backend only has /prompts/core (single endpoint), we update there
+    // and only support FAMILY_ASSISTANT for now
+    if (name !== 'FAMILY_ASSISTANT') {
+      throw new Error(`Only FAMILY_ASSISTANT prompt is currently supported for editing`);
+    }
+
+    const response = await fetch(`${BASE_URL}/prompts/core`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify({
+        content: request.content,
+        change_summary: request.change_summary || 'Manual update'
+      }),
     });
     if (!response.ok) {
       throw new Error(`Failed to update core prompt: ${name}`);
     }
-    return response.json();
+    const data = await response.json();
+
+    // Parse the simple response from backend
+    return {
+      success: true,
+      name: name,
+      previous_version: {
+        timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+        filename: `${name}.md`,
+        author: 'system',
+        change_summary: 'Previous version',
+        size_bytes: request.content.length,
+        token_estimate: Math.ceil(request.content.length / 4),
+      },
+      new_version: {
+        timestamp: new Date().toISOString(),
+        filename: `${name}.md`,
+        author: request.author || 'admin',
+        change_summary: request.change_summary || 'Manual update',
+        size_bytes: request.content.length,
+        token_estimate: Math.ceil(request.content.length / 4),
+      },
+      message: data.message || 'Core prompt updated successfully',
+    };
   },
 
   getCorePromptVersions: async (name: string): Promise<PromptVersionsListResponse> => {

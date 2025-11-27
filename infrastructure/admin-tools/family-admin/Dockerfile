@@ -29,6 +29,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Make prompts/core directory writable for editing
+RUN mkdir -p /app/public/prompts/core && chown -R nextjs:nodejs /app/public/prompts
+
 USER nextjs
 
 EXPOSE 3000
