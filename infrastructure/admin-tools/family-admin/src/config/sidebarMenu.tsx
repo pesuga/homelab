@@ -66,6 +66,15 @@ const ChatIcon = () => (
   </svg>
 );
 
+// BarChart Icon (Analytics)
+const BarChartIcon = () => (
+  <svg className="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <path d="M3 17C3 17.5523 3.44772 18 4 18C4.55228 18 5 17.5523 5 17V11C5 10.4477 4.55228 10 4 10C3.44772 10 3 10.4477 3 11V17Z" />
+    <path d="M9 17C9 17.5523 9.44772 18 10 18C10.5523 18 11 17.5523 11 17V7C11 6.44772 10.5523 6 10 6C9.44772 6 9 6.44772 9 7V17Z" />
+    <path d="M15 17C15 17.5523 15.4477 18 16 18C16.5523 18 17 17.5523 17 17V3C17 2.44772 16.5523 2 16 2C15.4477 2 15 2.44772 15 3V17Z" />
+  </svg>
+);
+
 export const menuGroups: MenuGroup[] = [
   {
     name: "MAIN",
@@ -104,6 +113,11 @@ export const menuGroups: MenuGroup[] = [
         icon: <PlugIcon />,
         label: "MCP & Tools",
         route: "/mcp",
+      },
+      {
+        icon: <BarChartIcon />,
+        label: "Analytics",
+        route: "/analytics/sub-agents",
       },
       {
         icon: <SettingsIcon />,
