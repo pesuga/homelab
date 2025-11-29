@@ -76,6 +76,32 @@ db_query_duration_seconds = Histogram(
     buckets=(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0)
 )
 
+# Sub-Agent Analytics Metrics
+sub_agent_requests_total = Counter(
+    'sub_agent_requests_total',
+    'Total sub-agent requests processed',
+    ['agent_id', 'status']  # status: success, failure
+)
+
+sub_agent_duration_seconds = Histogram(
+    'sub_agent_duration_seconds',
+    'Sub-agent execution duration in seconds',
+    ['agent_id', 'stage'],  # stage: intent, agent, total
+    buckets=(0.01, 0.05, 0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0)
+)
+
+sub_agent_tokens_total = Counter(
+    'sub_agent_tokens_total',
+    'Total tokens consumed by sub-agents',
+    ['agent_id', 'token_type']  # token_type: prompt, completion, skill_prompt
+)
+
+sub_agent_tool_calls_total = Counter(
+    'sub_agent_tool_calls_total',
+    'Total tool calls executed by sub-agents',
+    ['agent_id', 'tool_name', 'status']  # status: success, failure
+)
+
 
 class MetricsMiddleware(BaseHTTPMiddleware):
     """
@@ -205,3 +231,46 @@ def track_memory_operation(operation: str, success: bool):
 def set_active_users(count: int):
     """Set current active user count."""
     active_users_gauge.set(count)
+
+
+# Sub-Agent metric tracking functions
+def track_sub_agent_request(agent_id: str, success: bool):
+    """Track sub-agent request completion."""
+    status = "success" if success else "failure"
+    sub_agent_requests_total.labels(agent_id=agent_id, status=status).inc()
+
+
+def track_sub_agent_duration(agent_id: str, stage: str, duration_seconds: float):
+    """
+    Track sub-agent execution duration by stage.
+
+    Args:
+        agent_id: Agent identifier (e.g., "calendar")
+        stage: Execution stage ("intent", "agent", "total")
+        duration_seconds: Duration in seconds
+    """
+    sub_agent_duration_seconds.labels(agent_id=agent_id, stage=stage).observe(duration_seconds)
+
+
+def track_sub_agent_tokens(agent_id: str, prompt_tokens: int, completion_tokens: int, skill_prompt_tokens: int):
+    """
+    Track token usage for sub-agent execution.
+
+    Args:
+        agent_id: Agent identifier
+        prompt_tokens: Tokens used for user prompt
+        completion_tokens: Tokens used for agent response
+        skill_prompt_tokens: Tokens used for skill prompt loading
+    """
+    if prompt_tokens:
+        sub_agent_tokens_total.labels(agent_id=agent_id, token_type="prompt").inc(prompt_tokens)
+    if completion_tokens:
+        sub_agent_tokens_total.labels(agent_id=agent_id, token_type="completion").inc(completion_tokens)
+    if skill_prompt_tokens:
+        sub_agent_tokens_total.labels(agent_id=agent_id, token_type="skill_prompt").inc(skill_prompt_tokens)
+
+
+def track_sub_agent_tool_call(agent_id: str, tool_name: str, success: bool):
+    """Track individual tool call execution."""
+    status = "success" if success else "failure"
+    sub_agent_tool_calls_total.labels(agent_id=agent_id, tool_name=tool_name, status=status).inc()

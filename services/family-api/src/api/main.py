@@ -55,6 +55,9 @@ from api.routes.admin_mcp import router as admin_mcp_router
 from api.routes.family_tools import router as family_tools_router
 from api.services.llm_service import LLMService
 
+# Analytics (Sub-Agent execution monitoring)
+from api.routes.analytics import router as analytics_router
+
 # Authentication
 from api.routers.auth import router as auth_router
 from api.dependencies import get_current_user_from_token, get_current_admin_user
@@ -205,6 +208,9 @@ app.include_router(admin_mcp_router, tags=["Admin MCP"])
 
 # Family Tools Routes (Two-tier system - member interface)
 app.include_router(family_tools_router, tags=["Family Tools"])
+
+# Analytics Routes (Sub-Agent execution monitoring)
+app.include_router(analytics_router, tags=["Analytics"])
 
 
 # ==============================================================================
