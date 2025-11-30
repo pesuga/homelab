@@ -13,6 +13,7 @@ Key Design Principles:
 """
 
 import logging
+import time
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 from abc import ABC, abstractmethod
@@ -104,32 +105,62 @@ class BaseSubAgent(ABC):
                 - tools_used: List of tools executed
                 - execution_time_ms: Time taken
                 - metadata: Additional context
+                - instrumentation: Performance and token metrics
         """
         if not self._initialized:
             await self.initialize()
 
+        start_time = time.time()
+
         try:
+            # Calculate skill prompt metadata
+            skill_prompt_size = len(self.skill_prompt.encode('utf-8'))
+            # Rough token estimation (1 token ≈ 4 characters)
+            skill_prompt_tokens = len(self.skill_prompt) // 4
+
             # Delegate to subclass implementation
             result = await self._execute_impl(request, user_context, conversation_id)
+
+            # Calculate execution time
+            execution_time_ms = int((time.time() - start_time) * 1000)
+
+            # Build instrumentation data
+            instrumentation = {
+                "skill_prompt_size": skill_prompt_size,
+                "skill_prompt_tokens": skill_prompt_tokens,
+                "agent_execution_time_ms": execution_time_ms,
+                "total_tokens": result.get("total_tokens"),
+                "prompt_tokens": result.get("prompt_tokens"),
+                "completion_tokens": result.get("completion_tokens"),
+                "tool_calls": result.get("tool_calls", [])
+            }
 
             # Ensure standard response format
             return {
                 "agent_id": self.agent_id,
                 "response": result.get("response", ""),
                 "tools_used": result.get("tools_used", []),
-                "execution_time_ms": result.get("execution_time_ms", 0),
+                "execution_time_ms": execution_time_ms,
                 "metadata": result.get("metadata", {}),
+                "instrumentation": instrumentation,
                 "success": True
             }
 
         except Exception as e:
+            execution_time_ms = int((time.time() - start_time) * 1000)
             logger.error(f"Sub-agent '{self.agent_id}' execution failed: {e}", exc_info=True)
             return {
                 "agent_id": self.agent_id,
                 "response": f"I encountered an error while processing your {self.agent_id} request.",
                 "tools_used": [],
-                "execution_time_ms": 0,
+                "execution_time_ms": execution_time_ms,
                 "metadata": {"error": str(e)},
+                "instrumentation": {
+                    "skill_prompt_size": len(self.skill_prompt.encode('utf-8')),
+                    "skill_prompt_tokens": len(self.skill_prompt) // 4,
+                    "agent_execution_time_ms": execution_time_ms,
+                    "error": True
+                },
                 "success": False
             }
 

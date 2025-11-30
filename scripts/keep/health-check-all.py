@@ -156,10 +156,10 @@ def main():
     # 1. Infrastructure Checks
     console.print("\n[bold]Infrastructure Status[/bold]")
     
-    # Hardcoded IPs for now as they are critical infrastructure
+    # Current Tailscale IPs for the infrastructure
     nodes = [
-        ("Service Node", "100.81.76.55"),
-        ("Compute Node", "100.72.98.106")
+        ("Service Node (asuna)", "100.75.194.1"),
+        ("Compute Node (pesubuntu)", "100.86.122.109")
     ]
     
     infra_table = Table(show_header=False, box=None)

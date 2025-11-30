@@ -38,7 +38,7 @@ spec:
         kubernetes.io/hostname: pesubuntu
       initContainers:
         - name: init-prompts
-          image: 100.81.76.55:30500/family-assistant:v2.2.0-enhanced
+          image: nginx:alpine
           imagePullPolicy: Always
           command:
             [
@@ -51,7 +51,7 @@ spec:
               mountPath: "/app/prompts-data"
       containers:
         - name: backend
-          image: 100.81.76.55:30500/family-assistant:v2.2.0-enhanced
+          image: nginx:alpine
           imagePullPolicy: Always
           ports:
             - name: http-api

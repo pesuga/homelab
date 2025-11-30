@@ -32,7 +32,7 @@ spec:
         kubernetes.io/hostname: asuna
       containers:
         - name: frontend
-          image: 100.81.76.55:30500/family-assistant:latest
+          image: nginx:alpine
           imagePullPolicy: Always
           ports:
             - name: http

@@ -2,14 +2,14 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: family-assistant-api
-  namespace: family-assistant-api
+  namespace: fa-platform
   labels:
     app.kubernetes.io/name: family-assistant-api
     app.kubernetes.io/component: backend
     app.kubernetes.io/part-of: family-assistant
     app.kubernetes.io/version: "1.0.0"
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -26,103 +26,110 @@ spec:
         app.kubernetes.io/component: backend
         app.kubernetes.io/part-of: family-assistant
       annotations:
-        checksum/config: "family-assistant-api-config-v1"
+        checksum/config: "family-assistant-api-config-v2"
         prometheus.io/scrape: "false"
     spec:
       containers:
-      - name: family-assistant-api
-        image: 100.81.76.55:30500/family-api:v2.3.0-analytics
-        imagePullPolicy: IfNotPresent
-        ports:
-        - name: http
-          containerPort: 8001
-          protocol: TCP
-        - name: admin
-          containerPort: 8123
-          protocol: TCP
-        env:
-        - name: LLAMACPP_BASE_URL
-          value: "http://llamacpp-kimi-vl-service.llamacpp.svc.cluster.local:8080"
-        - name: MEM0_API_URL
-          value: "http://mem0.homelab.svc.cluster.local:8080"
-        - name: N8N_BASE_URL
-          value: "http://n8n.homelab.svc.cluster.local:5678"
-        - name: QDRANT_URL
-          value: "http://qdrant.homelab.svc.cluster.local:6333"
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: family-assistant-secrets
-              key: database-url
-        - name: REDIS_URL
-          valueFrom:
-            secretKeyRef:
-              name: family-assistant-secrets
-              key: redis-url
-        - name: JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: family-assistant-secrets
-              key: jwt-secret
-        - name: ENVIRONMENT
-          value: "production"
-        - name: LOG_LEVEL
-          value: "INFO"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 3
-          successThreshold: 1
-          failureThreshold: 3
-        startupProbe:
-          httpGet:
-            path: /health
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 30
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 1000
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-        volumeMounts:
-        - name: tmp
-          mountPath: /tmp
-        - name: cache
-          mountPath: /app/cache
+        - name: family-assistant-api
+          image: 100.81.76.55:30500/family-api:v2.3.0-analytics
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8001
+              protocol: TCP
+            - name: admin
+              containerPort: 8123
+              protocol: TCP
+          env:
+            - name: LLAMACPP_BASE_URL
+              value: "http://llamacpp-kimi-vl-service.llamacpp.svc.cluster.local:8080"
+            - name: MEM0_API_URL
+              value: "http://mem0.homelab.svc.cluster.local:8080"
+            - name: N8N_BASE_URL
+              value: "http://n8n.homelab.svc.cluster.local:5678"
+            - name: POSTGRES_HOST
+              value: postgres.homelab.svc.cluster.local.
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: homelab_db
+            - name: POSTGRES_USER
+              value: homelab_user
+            - name: POSTGRES_PASSWORD
+              value: secure_password_change_me
+            - name: REDIS_HOST
+              value: redis.homelab.svc.cluster.local.
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_DB
+              value: "0"
+            - name: QDRANT_URL
+              value: http://qdrant.homelab.svc.cluster.local.:6333
+            - name: QDRANT_GRPC_URL
+              value: http://qdrant.homelab.svc.cluster.local.:6334
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://homelab_user:secure_password_change_me@postgres.homelab.svc.cluster.local.:5432/homelab_db
+            - name: ENVIRONMENT
+              value: "production"
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: SECRET_KEY
+              value: "change-me-in-production"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /app/cache
       volumes:
-      - name: tmp
-        emptyDir: {}
-      - name: cache
-        emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst

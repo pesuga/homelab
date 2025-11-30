@@ -19,6 +19,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
 import redis.asyncio as redis
 from pydantic import BaseModel
+from config.settings import settings
 
 # Import database client (assuming exists from existing code)
 try:
@@ -710,6 +711,6 @@ class MemoryManager:
 
 async def create_memory_manager() -> MemoryManager:
     """Factory function to create and initialize MemoryManager"""
-    manager = MemoryManager()
+    manager = MemoryManager(qdrant_url=settings.qdrant_url)
     await manager.initialize()
     return manager

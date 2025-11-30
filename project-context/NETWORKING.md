@@ -96,7 +96,7 @@ To avoid "What port was that again?" confusion:
 ## Network Topology [VERIFIED 2025-11-26]
 
 ### Tailscale Mesh
-- **Service Node (asuna)**: 100.81.76.55
+- **Service Node (asuna)**: 100.75.194.1
 - **Compute Node (pesubuntu)**: 100.86.122.109
 - **MagicDNS**: Enabled
 - **Purpose**: Secure inter-node communication
@@ -112,6 +112,11 @@ To avoid "What port was that again?" confusion:
 - **Service CIDR**: 10.43.0.0/16 (default K3s)
 - **Pod CIDR**: TBD
 - **Ingress**: Traefik (websecure entrypoint on port 443)
+
+### ⚠️ Known Issue: VXLAN over Tailscale
+**Problem**: Flannel VXLAN (default) drops packets over Tailscale (Layer 3) due to missing Layer 2 headers and MTU issues.
+**Fix**: Must use `flannel-backend: wireguard-native` in K3s config.
+**Status**: Pending Fix (Requires manual node update).
 
 ---
 
