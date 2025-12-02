@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: n8n-config
+  namespace: homelab
+  labels:
+    app: n8n
+    app.kubernetes.io/name: n8n
+    app.kubernetes.io/component: automation
+data:
+  # Basic n8n configuration
+  N8N_HOST: "n8n.fa.pesulabs.net"
+  N8N_PORT: "5678"
+  N8N_PROTOCOL: "https"
+
+  # Execution configuration
+  EXECUTIONS_MODE: "regular"
+  EXECUTIONS_TIMEOUT: "3600"
+  EXECUTIONS_TIMEOUT_MAX: "7200"
+
+  # Timezone
+  GENERIC_TIMEZONE: "America/Sao_Paulo"
+
+  # Metrics (Prometheus integration)
+  N8N_METRICS: "true"
+  N8N_METRICS_PREFIX: "n8n_"
