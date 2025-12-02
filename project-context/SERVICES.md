@@ -36,7 +36,7 @@
 
 ### N8n Workflow Automation
 
-**Status**: ✅ Active [VERIFIED 2025-11-26]
+**Status**: ✅ Active [VERIFIED 2025-12-02]
 **Version**: n8nio/n8n:latest
 **Type**: Workflow Automation Platform
 
@@ -45,21 +45,23 @@
 - **Internal**: `n8n.homelab.svc:80` (K8s ClusterIP: 10.43.166.66)
 - **Health Check**: https://n8n.fa.pesulabs.net/
 
-**Deployment**: [VERIFIED 2025-11-26]
+**Deployment**: [VERIFIED 2025-12-02]
 - Namespace: `homelab`
-- Pod: `n8n-6764597bdd-w49m6` (1/1 Running, 0 restarts)
+- Pod: `n8n-6cdb74c9f6-kvksf` (1/1 Running, 3 restarts)
 - IngressRoute: `n8n`
 - Replicas: 1
+- ConfigMap: `n8n-config` (environment configuration)
+- PVC: `n8n-pvc` (5Gi persistent storage)
 
 **Technology**:
 - Platform: N8n
-- Database: PostgreSQL (homelab namespace)
-- Storage: Persistent volume
+- Database: PostgreSQL (homelab namespace, database: n8n)
+- Storage: Persistent volume (local-path)
 
 **Purpose**: Workflow automation and integration platform
 
-**Last Deployment**: 5 days ago (from kubectl age)
-**Health Status**: ✅ Pod Running
+**Last Deployment**: 2025-12-02 (ConfigMap fix applied)
+**Health Status**: ✅ Pod Running, HTTP 200 OK
 
 ---
 
@@ -353,26 +355,33 @@
 
 ### Mem0 (Memory Service)
 
-**Status**: ✅ Active [VERIFIED 2025-11-26]
-**Version**: mem0-api:latest (custom build)
+**Status**: ✅ Active [VERIFIED 2025-12-02]
+**Version**: python:3.11-slim with runtime dependencies
 **Type**: AI Memory Management
 
 **Endpoints**:
-- **Internal**: `mem0.homelab.svc:8080` (K8s ClusterIP: 10.43.144.87)
-- **NodePort**: `100.81.76.55:30880` (K8s NodePort: 10.43.16.196)
+- **Internal**: `mem0.homelab.svc:8080` (K8s ClusterIP: 10.43.105.77)
+- **Health Check**: http://mem0.homelab.svc:8080/health
 
-**Deployment**: [VERIFIED 2025-11-26]
+**Deployment**: [VERIFIED 2025-12-02]
 - Namespace: `homelab`
-- Pod: `mem0-664c8756bd-bj82q` (1/1 Running, 6 days uptime)
+- Pod: `mem0-647cbd5dc6-twkrf` (1/1 Running)
+- ConfigMap: `mem0-config` (environment configuration)
+- ConfigMap: `mem0-source-code` (FastAPI application source)
+- Dependencies: Installed at runtime (fastapi, uvicorn, mem0ai, pydantic, qdrant-client, redis, python-dotenv)
 
 **Technology**:
-- Platform: Mem0 API
-- Vector DB: Qdrant integration
-- LLM: LlamaCpp integration (OpenAI compatible)
+- Platform: Mem0 API (FastAPI wrapper)
+- Base Image: python:3.11-slim
+- Vector DB: Qdrant integration (qdrant.homelab.svc.cluster.local:6333)
+- LLM: OpenAI-compatible endpoint (mistral:7b-instruct-q4_K_M)
+- Embeddings: text-embedding-3-small (OpenAI-compatible)
+- Collection: mem0_memories
 
-**Purpose**: Long-term memory management for AI assistants
+**Purpose**: Long-term memory management for AI assistants with semantic search
 
-**Health Status**: ✅ Running (6 days uptime)
+**Last Deployment**: 2025-12-02 (Fixed image configuration from nginx to Python)
+**Health Status**: ✅ Running, Health endpoint responding 200 OK
 
 ---
 
@@ -398,7 +407,7 @@ Ollama
 
 ---
 
-## Service Status Summary [VERIFIED 2025-11-26]
+## Service Status Summary [VERIFIED 2025-12-02]
 
 | Service | Status | Endpoint | Health Check |
 |---------|--------|----------|--------------|
@@ -412,13 +421,26 @@ Ollama
 | PostgreSQL | ✅ Active | Internal | - |
 | Redis | ✅ Active | Internal | - |
 | Qdrant | ✅ Active | Internal | - |
-| Mem0 | ✅ Active | Internal | - |
-| Prometheus | ✅ Active | http://100.81.76.55:30190 | /-/healthy |
-| Loki | ✅ Active | http://100.81.76.55:30314 | /ready |
+| Mem0 | ✅ Active | Internal | /health |
+| Prometheus | ✅ Active | http://100.75.194.1:30190 | /-/healthy |
+| Loki | ✅ Active | http://100.75.194.1:30314 | /ready |
 
 ---
 
 ## Recent Service Changes
+
+### 2025-12-02: N8n and Mem0 Fixes
+**N8n Deployment Fix**:
+- Created missing ConfigMap `n8n-config` with required environment variables
+- Created PVC `n8n-pvc` for persistent storage (5Gi)
+- Created database `n8n` in PostgreSQL
+- Status: ✅ Fixed - Pod running successfully
+
+**Mem0 Deployment Fix**:
+- Changed base image from `nginx:alpine` to `python:3.11-slim`
+- Implemented runtime dependency installation (fastapi, uvicorn, mem0ai, etc.)
+- Fixed CrashLoopBackOff issue caused by incorrect container image
+- Status: ✅ Fixed - Pod running with health endpoint responding
 
 ### 2025-11-23: Family Assistant v1.1.0
 - Added comprehensive Knowledge Base management

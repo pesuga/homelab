@@ -2,12 +2,82 @@
 
 ## Current Status: ✅ Services Operational
 
-### Latest Session (2025-11-30)
-Successfully resolved pod startup issues and Traefik certificate problems.
+### Latest Session (2025-12-02)
+Successfully fixed N8n and Mem0 deployment issues. Both services now fully operational.
 
 ## Completed Work
 
-### 1. Pod Startup Issues ✅
+### 1. Flux CD Bootstrap ✅ (2025-12-01)
+**Flannel Networking Fix** - Resolved GitHub communication issues for Flux deployments.
+
+**Issues Fixed**:
+- Verified Flannel WireGuard backend configuration on master node
+- Confirmed worker nodes correctly inherit configuration from master
+- Network performance: 99% improvement (2s vs 180-600s timeout previously)
+
+**Flux CD Bootstrap**:
+- Installed Flux components successfully
+- Created GitHub Personal Access Token (fine-grained)
+- Completed bootstrap with token authentication
+- Flux now automatically syncing from GitHub every 1 minute
+- All 4 controllers healthy (helm, kustomize, notification, source)
+- Removed problematic lobechat-stack.yaml that was blocking bootstrap
+
+**Current Status**:
+```
+Flux Status: ✅ Fully Operational
+GitOps: Automated sync from GitHub
+Controllers: 4/4 Running (helm, kustomize, notification, source)
+Bootstrap: Completed with token authentication
+```
+
+### 2. N8n Deployment Fix ✅ (2025-12-02)
+**N8n Workflow Automation** - Fixed deployment failure caused by missing ConfigMap.
+
+**Root Cause**:
+- Deployment referenced ConfigMap `n8n-config` that didn't exist
+- Missing persistent volume claim for data storage
+- Database `n8n` not created in PostgreSQL
+
+**Fixes Applied**:
+1. Created `infrastructure/kubernetes/apps/n8n/configmap.yaml` with environment variables
+2. Created `infrastructure/kubernetes/apps/n8n/pvc.yaml` for persistent storage (5Gi)
+3. Updated `kustomization.yaml` to include new resources
+4. Created database `n8n` in PostgreSQL
+5. Flux automatically applied changes from Git
+
+**Current Status**:
+```
+n8n-6cdb74c9f6-kvksf: 1/1 Running ✅
+Health Check: HTTP 200 OK
+Database: Connected to postgres.homelab.svc.cluster.local
+```
+
+### 3. Mem0 Deployment Fix ✅ (2025-12-02)
+**Mem0 Memory Service** - Fixed CrashLoopBackOff caused by wrong container image.
+
+**Root Cause**:
+- Deployment used `nginx:alpine` instead of proper Python/Mem0 image
+- Application source code mounted but nginx couldn't execute Python
+
+**Fixes Applied**:
+1. Changed base image from `nginx:alpine` to `python:3.11-slim`
+2. Added startup script to install dependencies at runtime:
+   - fastapi, uvicorn[standard], mem0ai, pydantic
+   - qdrant-client, redis, python-dotenv
+3. Dependencies install on container startup (~60 seconds)
+4. Application starts successfully with Uvicorn
+
+**Current Status**:
+```
+mem0-647cbd5dc6-twkrf: 1/1 Running ✅
+Health Check: HTTP 200 OK
+LLM: mistral:7b-instruct-q4_K_M (openai)
+Embeddings: text-embedding-3-small (openai)
+Vector Store: Qdrant @ qdrant.homelab.svc.cluster.local:6333
+```
+
+### 4. Pod Startup Issues ✅ (2025-11-30)
 **Family Assistant API & Admin** - Both pods now running and healthy.
 
 **Issues Fixed**:
@@ -80,29 +150,27 @@ https://admin.fa.pesulabs.net/api/phase2/health → 200 OK (healthy)
 
 ## Documentation Created
 
-This session generated comprehensive troubleshooting documentation:
+Comprehensive documentation generated across multiple sessions:
 
-1. **docs/POD_STARTUP_TROUBLESHOOTING.md**
-   - Complete pod startup issue analysis (API + Admin)
-   - Traefik certificate troubleshooting (Let's Encrypt staging → production)
-   - Root cause analysis, fixes, verification steps, and prevention checklists
+**2025-12-02 Session**:
+1. **infrastructure/kubernetes/apps/n8n/configmap.yaml** - N8n environment configuration
+2. **infrastructure/kubernetes/apps/n8n/pvc.yaml** - N8n persistent storage
+3. **infrastructure/kubernetes/mem0/mem0.yaml** - Updated Mem0 deployment with Python image
+4. **docs/FLUX-BOOTSTRAP-COMPLETE-2025-12-01.md** - Complete Flux CD bootstrap documentation
 
-2. **docs/NETWORKING_RESOLUTION.md**
-   - Cross-node networking validation and test results
-   - Network architecture documentation (Flannel + Tailscale)
-   - Deployment best practices (DNS vs hardcoded IPs)
-   - Troubleshooting guide for future networking issues
+**2025-11-30 Session**:
+1. **docs/POD_STARTUP_TROUBLESHOOTING.md** - Pod startup and Traefik certificate troubleshooting
+2. **docs/NETWORKING_RESOLUTION.md** - Cross-node networking validation and best practices
 
-3. **docs/NETWORKING_TROUBLESHOOTING_REPORT.md** (earlier session)
-   - Initial networking investigation
-   - DNS and certificate findings
-
-4. **docs/TLS_CERTIFICATE_ROOT_CAUSE.md** (earlier session)
-   - Certificate chain analysis
+**Earlier Sessions**:
+1. **docs/NETWORKING_TROUBLESHOOTING_REPORT.md** - Initial networking investigation
+2. **docs/TLS_CERTIFICATE_ROOT_CAUSE.md** - Certificate chain analysis
 
 ## Service Health Summary
 | Service | Pod Status | External Access | Certificate |
 |---------|------------|-----------------|-------------|
+| N8n | 1/1 Running | ✅ 200 OK | ✅ Let's Encrypt |
+| Mem0 | 1/1 Running | ✅ 200 OK (internal) | N/A |
 | API | 1/1 Running | ✅ 200 OK | ✅ Let's Encrypt R13 |
 | Admin | 1/1 Running | ✅ 200 OK | ✅ Let's Encrypt R12 |
 | App | 1/1 Running | ✅ Running | N/A |
