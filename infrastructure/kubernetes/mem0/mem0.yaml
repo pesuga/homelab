@@ -66,8 +66,15 @@ spec:
     spec:
       containers:
       - name: mem0
-        image: nginx:alpine
+        image: python:3.11-slim
         imagePullPolicy: IfNotPresent
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            echo "Installing dependencies..."
+            pip install --no-cache-dir fastapi uvicorn[standard] mem0ai pydantic qdrant-client redis python-dotenv
+            echo "Starting Mem0 API..."
+            cd /app && python app.py
         envFrom:
         - configMapRef:
             name: mem0-config
