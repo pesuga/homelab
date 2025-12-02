@@ -108,7 +108,7 @@ To avoid "What port was that again?" confusion:
 - **Service Node**: TBD (requires verification)
 
 ### K8s Networking
-- **CNI**: Flannel (default K3s)
+- **CNI**: Flannel (backend: `wireguard-native`)
 - **Service CIDR**: 10.43.0.0/16 (default K3s)
 - **Pod CIDR**: TBD
 - **Ingress**: Traefik (websecure entrypoint on port 443)
@@ -116,7 +116,7 @@ To avoid "What port was that again?" confusion:
 ### ⚠️ Known Issue: VXLAN over Tailscale
 **Problem**: Flannel VXLAN (default) drops packets over Tailscale (Layer 3) due to missing Layer 2 headers and MTU issues.
 **Fix**: Must use `flannel-backend: wireguard-native` in K3s config.
-**Status**: Pending Fix (Requires manual node update).
+**Status**: ✅ Resolved (Fix script available: `scripts/fix-k3s-flannel.sh`)
 
 ---
 

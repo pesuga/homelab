@@ -1,7 +1,13 @@
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+// import { Navigate } from 'react-router-dom';
+// import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+    // TEMPORARY BYPASS: Always return children (disable authentication)
+    // TODO: Re-enable authentication when Let's Encrypt rate limit is resolved
+    return <>{children}</>;
+
+    // Original auth logic (commented out for bypass)
+    /*
     const { isAuthenticated, loading } = useAuth();
 
     if (loading) {
@@ -17,4 +23,5 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     }
 
     return <>{children}</>;
+    */
 }

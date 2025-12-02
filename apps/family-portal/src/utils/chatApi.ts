@@ -1,8 +1,8 @@
 import { ChatRequest, ChatResponse, ChatError } from '../types/chat';
 
-// Use relative path - backend API is at root path /v1/chat/completions
-// Requests go through the same origin (app.fa.pesulabs.net proxies to backend)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+// Use /api prefix - nginx proxies /api/* to backend at /api/*
+// Requests: /api/v1/chat/completions -> family-assistant-api:8001/v1/chat/completions
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export class ChatApiError extends Error {
   constructor(
@@ -54,8 +54,13 @@ export async function sendChatMessage(request: ChatRequest): Promise<ChatRespons
     const data = await response.json();
 
     // Convert OpenAI response format to our ChatResponse format
+    const rawResponse = data.choices[0].message.content;
+
+    // Clean up chat formatting tokens from the response
+    const cleanedResponse = cleanLLMResponse(rawResponse);
+
     return {
-      response: data.choices[0].message.content,
+      response: cleanedResponse,
       session_id: request.session_id || '',
       metadata: data.metadata
     };
@@ -104,4 +109,28 @@ export function getOrCreateSessionId(): string {
  */
 export function clearSession(): void {
   localStorage.removeItem('family_chat_session_id');
+}
+
+/**
+ * Clean up LLM response by removing chat formatting tokens
+ */
+function cleanLLMResponse(response: string): string {
+  if (!response) return response;
+
+  // Remove chat formatting tokens
+  let cleaned = response
+    // Remove <|im_start|> and <|im_end|> tokens
+    .replace(/<\|im_(start|end)\|>/g, '')
+    // Remove role markers (user, assistant, system) that follow tokens
+    .replace(/<\|im_(start|end)\|>\s*(user|assistant|system)\n*/g, '')
+    // Remove standalone role markers
+    .replace(/^(user|assistant|system)\n*/gm, '')
+    // Remove any remaining empty lines at start
+    .replace(/^\s*\n+/, '')
+    // Remove any remaining empty lines at end
+    .replace(/\n+\s*$/, '')
+    // Trim whitespace
+    .trim();
+
+  return cleaned;
 }

@@ -82,8 +82,8 @@ Two-node Kubernetes homelab providing self-hosted AI services, automation, and f
 - Exit node: TBD
 - ACLs: TBD
 
-**IP Assignments**: [VERIFIED 2025-11-26]
-- Service node (asuna): 100.81.76.55 (Tailscale), LAN IP TBD
+**IP Assignments**: [VERIFIED 2025-11-30]
+- Service node (asuna): 100.75.194.1 (Tailscale), 192.168.8.185 (LAN)
 - Compute node (pesubuntu): 100.86.122.109 (Tailscale), 192.168.8.129 (LAN)
 
 ### Traefik Ingress

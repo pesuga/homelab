@@ -69,6 +69,10 @@ from api.observability.metrics import setup_metrics
 from api.middleware.rate_limit import setup_rate_limiting
 from api.middleware.security import SecurityHeadersMiddleware
 
+# Chat Logging
+from api.services.chat_logger import get_chat_logger
+from api.middleware.session_tracking import SessionTrackingMiddleware, SessionContext
+
 # Initialize FastAPI app
 app = FastAPI(
     title="Family Assistant API",
@@ -179,6 +183,9 @@ setup_rate_limiting(app)
 # Security headers middleware (first in chain)
 app.add_middleware(SecurityHeadersMiddleware)
 
+# Session tracking middleware (for performance timing and chat logging)
+app.add_middleware(SessionTrackingMiddleware)
+
 # CORS middleware (after security headers)
 app.add_middleware(
     CORSMiddleware,
@@ -225,11 +232,29 @@ async def on_startup():
     print("=" * 80)
     await startup_event()
 
+    # Initialize chat logger
+    try:
+        chat_logger = await get_chat_logger()
+        await chat_logger.start()
+        print("✅ Chat logger initialized")
+    except Exception as e:
+        print(f"⚠️  Failed to initialize chat logger: {e}")
+        logger.error(f"Failed to initialize chat logger: {e}", exc_info=True)
+
 
 @app.on_event("shutdown")
 async def on_shutdown():
     """Cleanup services on application shutdown"""
     await shutdown_event()
+
+    # Stop chat logger
+    try:
+        chat_logger = await get_chat_logger()
+        await chat_logger.stop()
+        print("✅ Chat logger stopped")
+    except Exception as e:
+        print(f"⚠️  Failed to stop chat logger: {e}")
+        logger.error(f"Failed to stop chat logger: {e}", exc_info=True)
 
 
 # Enhanced Request/Response models with multimodal support
@@ -1035,7 +1060,8 @@ async def chat(
             message=enhanced_message,
             user_id=request.user_id,
             thread_id=thread_id,
-            user_profile=profile_dict
+            user_profile=profile_dict,
+            request_start_time=request.state.start_time
         )
 
         # Store in conversation history with enhanced content
@@ -1762,7 +1788,8 @@ async def openai_chat_completions(request: OpenAIChatRequest):
             message=last_message,
             user_id=user_id,
             thread_id=thread_id,
-            user_profile=user_profile
+            user_profile=user_profile,
+            request_start_time=request.state.start_time
         )
         print("DEBUG: agent.chat returned")
 

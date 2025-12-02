@@ -21,6 +21,24 @@ class Settings(BaseSettings):
     llamacpp_temperature: float = 0.7
     llamacpp_max_tokens: int = 2048
 
+    # Chat Logging Configuration
+    chat_log_dir: str = "/var/log/family-assistant/chat-sessions"
+    chat_log_retention_days: int = 30
+    chat_log_compression_days: int = 7
+    chat_log_batch_size: int = 10
+    chat_log_flush_interval_seconds: float = 5.0
+    chat_log_max_queue_size: int = 1000
+    chat_log_enabled: bool = True
+
+    # Token Economics Configuration
+    token_costs_per_million: Dict[str, float] = {
+        "Kimi-VL-A3B": 0.20,
+        "Mistral-7B": 0.15,
+        "Mixtral-8x7B": 0.35,
+        "Llama-3.1-8B": 0.18,
+        "default": 0.20
+    }
+
     # Backward compatibility for ollama references
     @property
     def ollama_base_url(self) -> str:

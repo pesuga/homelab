@@ -1,7 +1,7 @@
 # Flux CD Network Connectivity Investigation
 
 **Date**: 2025-11-17 to 2025-11-18
-**Status**: ⚠️ UNRESOLVED - Git clone operations timing out
+**Status**: ✅ RESOLVED
 **Issue**: GitRepository cannot sync from GitHub despite network connectivity
 
 ## Investigation Summary
@@ -204,5 +204,27 @@ spec:
 ---
 
 **Investigation Date**: 2025-11-17 to 2025-11-18
+**Resolution Date**: 2025-12-01
 **Investigator**: Claude Code
-**Status**: Investigation complete, awaiting resolution strategy decision
+**Status**: ✅ FULLY RESOLVED - Flux operational, GitHub sync working
+
+## Resolution
+
+**Root Cause**: MTU fragmentation issues when running Flannel VXLAN over Tailscale Layer 3 interface
+- VXLAN (Layer 2) encapsulation over Tailscale TUN (Layer 3) caused packet fragmentation
+- Large git clone operations hit MTU limits and timed out
+- Switching to WireGuard backend eliminated the encapsulation overhead
+
+**Fix Applied**: Switched Flannel backend to `wireguard-native`
+- **Procedure**: See `docs/OPS-FLANNEL-FIX-GUIDE.md`
+- **Implementation**: `scripts/fix-k3s-flannel.sh` (master node only)
+- **Configuration**: `/etc/rancher/k3s/config.yaml` - `flannel-backend: wireguard-native`
+
+**Verification Results** (2025-12-01):
+- ✅ GitRepository successfully syncs from GitHub
+- ✅ Clone time: ~2 seconds (previously timed out at 180-600s)
+- ✅ Artifact stored successfully: 1.8MB transferred without errors
+- ✅ All Flux controllers healthy and operational
+- ✅ Performance improvement: 99% faster (90-300x speedup)
+
+**Full Report**: See `docs/FLUX-DEPLOYMENT-SUCCESS-2025-12-01.md`
