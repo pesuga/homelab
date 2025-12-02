@@ -2,6 +2,7 @@
 """
 Comprehensive Homelab Health Check
 Checks infrastructure, Kubernetes, services, TLS certificates, and pod status
+Generates markdown report in system-wide-hc-reports/ directory
 """
 
 import re
@@ -11,7 +12,7 @@ import socket
 import ssl
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, NamedTuple
+from typing import Dict, List, Optional, NamedTuple, Tuple
 from dataclasses import dataclass
 
 try:
@@ -35,8 +36,12 @@ except ImportError:
 PROJECT_ROOT = Path(__file__).parent.parent
 SERVICES_FILE = PROJECT_ROOT / "project-context" / "SERVICES.md"
 TIMEOUT_SECONDS = 5
+REPORTS_DIR = Path(__file__).parent / "system-wide-hc-reports"
 
 console = Console()
+
+# Ensure reports directory exists
+REPORTS_DIR.mkdir(exist_ok=True)
 
 @dataclass
 class ServiceCheck:
@@ -325,6 +330,160 @@ def check_services():
 
     return healthy_count == total_count, results
 
+def generate_markdown_report(infra_ok: bool, services_ok: bool, results: List[Dict]) -> Tuple[str, Path]:
+    """Generate markdown health check report."""
+    timestamp = datetime.now()
+    report_filename = f"health-check-{timestamp.strftime('%Y-%m-%d-%H%M%S')}.md"
+    report_path = REPORTS_DIR / report_filename
+
+    healthy_count = sum(1 for r in results if r['healthy'])
+    total_count = len(results)
+    health_percent = int((healthy_count / total_count) * 100) if total_count > 0 else 0
+
+    failed = [r for r in results if not r['healthy']]
+    operational = [r for r in results if r['healthy']]
+
+    # Generate report content
+    report = f"""# Homelab System-Wide Health Check Report
+
+**Report Generated**: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}
+**Overall Health**: {health_percent}% ({healthy_count}/{total_count} services healthy)
+**Status**: {'🔴 SYSTEMS DEGRADED' if not services_ok or not infra_ok else '✅ ALL SYSTEMS OPERATIONAL'}
+
+---
+
+## Infrastructure Status
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| Service Node (asuna) | {'✅ Online' if infra_ok else '❌ Offline'} | 100.75.194.1 |
+| Compute Node (pesubuntu) | {'✅ Online' if infra_ok else '❌ Offline'} | 100.86.122.109 |
+| Kubernetes Cluster | {'✅ Ready' if infra_ok else '❌ Not Ready'} | 2/2 nodes expected |
+
+---
+
+## Service Health Summary
+
+### ✅ Operational Services ({len(operational)})
+
+"""
+
+    for svc in operational:
+        report += f"- **{svc['name']}**: All checks passed\n"
+        if svc['details']:
+            for pod in svc['details']:
+                report += f"  - Pod: `{pod['name']}` - Status: {pod['status']}, Ready: {pod['ready']}\n"
+
+    if failed:
+        report += f"\n### ⚠️ Services with Issues ({len(failed)})\n\n"
+        for svc in failed:
+            report += f"#### {svc['name']}\n\n"
+            if svc['details']:
+                report += "**Pod Status:**\n"
+                for pod in svc['details']:
+                    status_emoji = "✅" if pod.get('healthy', False) else "❌"
+                    report += f"- {status_emoji} `{pod['name']}`\n"
+                    report += f"  - Status: {pod['status']}\n"
+                    report += f"  - Ready: {pod['ready']}\n"
+                    report += f"  - Restarts: {pod['restarts']}\n"
+            else:
+                report += "**Issue:** No pods found for this service\n"
+            report += "\n"
+
+    report += """---
+
+## Detailed Service Inventory
+
+| Service | External Access | TLS Cert | Pod Status | Notes |
+|---------|-----------------|----------|------------|-------|
+"""
+
+    for service in SERVICES:
+        if service.expected_status != "Active":
+            continue
+
+        # Find result for this service
+        result = next((r for r in results if r['name'] == service.name), None)
+
+        external = "N/A"
+        if service.external_url:
+            # Check if service is operational
+            if result and result['healthy']:
+                external = "✅ Accessible"
+            else:
+                external = "❌ Error"
+
+        tls = "N/A"
+        if service.external_url and service.external_url.startswith('https'):
+            hostname = service.external_url.split('://')[1].split('/')[0]
+            cert_info = check_tls_cert(hostname)
+            if cert_info['valid']:
+                tls = f"✅ Valid ({cert_info['days_until_expiry']}d)"
+            else:
+                tls = "❌ Invalid"
+
+        pod_status = "✅ Healthy" if result and result['healthy'] else "⚠️ Issues"
+
+        notes = f"{service.namespace} namespace"
+
+        report += f"| {service.name} | {external} | {tls} | {pod_status} | {notes} |\n"
+
+    report += """
+---
+
+## Recommendations
+
+"""
+
+    if failed:
+        report += "### Immediate Actions Required\n\n"
+        for svc in failed:
+            report += f"1. **Investigate {svc['name']}**:\n"
+            report += f"   ```bash\n"
+            report += f"   kubectl get pods -n {next(s.namespace for s in SERVICES if s.name == svc['name'])}\n"
+            report += f"   kubectl describe pods -n {next(s.namespace for s in SERVICES if s.name == svc['name'])}\n"
+            report += f"   kubectl logs -n {next(s.namespace for s in SERVICES if s.name == svc['name'])} -l {next(s.pod_selector for s in SERVICES if s.name == svc['name'])}\n"
+            report += f"   ```\n\n"
+    else:
+        report += "### System Status: Excellent\n\n"
+        report += "All services are operational. No immediate actions required.\n\n"
+
+    report += """### Routine Maintenance
+
+- Monitor TLS certificate expiry dates (renew if <30 days)
+- Review pod restart counts (investigate if >5 restarts)
+- Check resource usage (CPU/memory) for potential optimization
+- Verify backup procedures are functioning
+
+---
+
+## Health Check Script
+
+This report was generated by: `scripts/health-check-comprehensive.py`
+
+**Features:**
+- Infrastructure connectivity tests
+- Kubernetes cluster status
+- External HTTPS endpoint checks
+- TLS certificate validation
+- Pod health monitoring
+
+**Re-run check:**
+```bash
+python3 scripts/health-check-comprehensive.py
+```
+
+---
+
+**Report File**: `{report_filename}`
+**Location**: `scripts/system-wide-hc-reports/`
+"""
+
+    # Write report to file
+    report_path.write_text(report)
+
+    return report, report_path
+
 def main():
     console.print(Panel.fit(
         "[bold blue]Homelab Comprehensive Health Check[/bold blue]\n"
@@ -337,6 +496,11 @@ def main():
 
     # Service checks
     services_ok, results = check_services()
+
+    # Generate markdown report
+    report_content, report_path = generate_markdown_report(infra_ok, services_ok, results)
+
+    console.print(f"\n[bold cyan]📄 Report saved to:[/bold cyan] {report_path}")
 
     # Print failed services details
     failed = [r for r in results if not r['healthy']]

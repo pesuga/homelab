@@ -1,0 +1,5 @@
+# Ignore all health check reports
+*.md
+
+# Keep the .gitignore file itself
+!.gitignore
