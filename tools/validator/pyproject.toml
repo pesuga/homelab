@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "homelab-validator"
+version = "0.1.0"
+description = "Deterministic validation system for homelab sessions"
+authors = [
+    {name = "Homelab Project", email = "homelab@pesulabs.net"}
+]
+dependencies = [
+    "click>=8.1.0",
+    "pydantic>=2.0.0",
+    "httpx>=0.25.0",
+    "kubernetes>=28.0.0",
+    "pyyaml>=6.0.0",
+    "rich>=13.0.0",
+    "loguru>=0.7.0",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+homelab-validator = "validator.cli:main"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=validator --cov-report=term-missing"

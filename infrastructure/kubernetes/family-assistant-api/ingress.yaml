@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: family-assistant-api
+  namespace: family-assistant-api
+  labels:
+    app.kubernetes.io/name: family-assistant-api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: family-assistant
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.middlewares: family-assistant-api-rate-limit@kubernetescrd,family-assistant-api-cors@kubernetescrd
+    traefik.ingress.kubernetes.io/router.headers.customrequestheaders.X-Forwarded-Proto: "https"
+    traefik.ingress.kubernetes.io/router.headers.stsSeconds: "31536000"
+    traefik.ingress.kubernetes.io/router.headers.stsIncludeSubdomains: "true"
+    traefik.ingress.kubernetes.io/router.headers.stsPreload: "true"
+spec:
+  tls:
+  - hosts:
+    - api.fa.pesulabs.net
+    secretName: family-assistant-api-tls
+  rules:
+  - host: api.fa.pesulabs.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: family-assistant-api
+            port:
+              number: 8001

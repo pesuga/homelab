@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: family-assistant
+  namespace: family-assistant
+  labels:
+    app.kubernetes.io/name: family-assistant
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: homelab
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.middlewares: "family-assistant-https-redirect@kubernetescrd"
+    # Security headers
+    traefik.ingress.kubernetes.io/router.headers.customrequestheaders.X-Forwarded-Proto: "https"
+    traefik.ingress.kubernetes.io/router.headers.stsSeconds: "31536000"
+    traefik.ingress.kubernetes.io/router.headers.stsIncludeSubdomains: "true"
+    traefik.ingress.kubernetes.io/router.headers.stsPreload: "true"
+    # Rate limiting
+    traefik.ingress.kubernetes.io/router.middlewares: "family-assistant-rate-limit@kubernetescrd"
+    # PWA support
+    traefik.ingress.kubernetes.io/router.headers.customresponseheaders.Service-Worker-Allowed: "/"
+    # CORS for API
+    traefik.ingress.kubernetes.io/router.middlewares: "family-assistant-cors@kubernetescrd"
+spec:
+  tls:
+  - hosts:
+    - family-assistant.homelab.pesulabs.net
+    secretName: family-assistant-tls
+  rules:
+  - host: family-assistant.homelab.pesulabs.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: family-assistant
+            port:
+              number: 80

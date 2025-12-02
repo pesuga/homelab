@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: net-debug
+  namespace: default
+spec:
+  nodeName: pesubuntu
+  hostNetwork: true
+  containers:
+    - name: debug
+      image: nicolaka/netshoot
+      command: ["sleep", "3600"]
+      securityContext:
+        privileged: true

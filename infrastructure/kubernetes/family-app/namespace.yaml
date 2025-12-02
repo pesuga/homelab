@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: family-assistant
+  labels:
+    name: family-assistant
+    app.kubernetes.io/name: family-assistant
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: homelab

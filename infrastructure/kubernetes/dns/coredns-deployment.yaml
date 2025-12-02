@@ -17,16 +17,16 @@ data:
         # Homelab domain resolution
         template IN A homelab.local {
             match "^(.+)\\.homelab\\.local\\.$"
-            answer "{{ .Name }} 60 IN A 100.81.76.55"
+            answer "{{ .Name }} 60 IN A 100.75.194.1"
             fallthrough
         }
 
         # Specific service records (higher priority)
         hosts {
-            100.81.76.55 grafana.homelab.local
-            100.81.76.55 prometheus.homelab.local
-            100.81.76.55 n8n.homelab.local
-            100.81.76.55 webui.homelab.local
+            100.75.194.1 grafana.homelab.local
+            100.75.194.1 prometheus.homelab.local
+            100.75.194.1 n8n.homelab.local
+            100.75.194.1 webui.homelab.local
             fallthrough
         }
 
@@ -108,7 +108,7 @@ metadata:
     app: coredns-homelab
 spec:
   type: LoadBalancer
-  loadBalancerIP: 100.81.76.55
+  loadBalancerIP: 100.75.194.1
   ports:
     - port: 53
       targetPort: 53

@@ -44,6 +44,7 @@ kubeconfig
 *.safetensors
 models/
 !services/family-assistant/api/models/
+!services/family-api/src/api/models/
 *.model
 
 # Logs
@@ -127,13 +128,19 @@ backup/
 
 # Temporary files
 tmp/
+!tmp/.gitkeep
+!tmp/session-notes/.gitkeep
+!tmp/analysis/.gitkeep
+!tmp/scripts/.gitkeep
+!tmp/validation-reports/.gitkeep
+!tmp/logs/.gitkeep
+!tmp/archive/.gitkeep
 temp/
 *.tmp
 *.temp
 
-# Claude Code
-.claude/
-.claude.json
+# Claude Code (keep project-specific config)
+.claude/settings.local.json
 
 # N8n
 .n8n/

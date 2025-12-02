@@ -1,0 +1,48 @@
+/**
+ * Server-side proxy for Phase 2 stats endpoint
+ * Prevents mixed content errors by keeping HTTP requests server-side
+ * Transforms backend response to match frontend expectations
+ */
+
+import { NextResponse } from 'next/server';
+
+const FAMILY_API_URL = process.env.FAMILY_API_URL || 'http://family-assistant-backend.homelab.svc:8001';
+
+export async function GET() {
+  try {
+    const response = await fetch(`${FAMILY_API_URL}/api/phase2/stats`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return NextResponse.json(
+        { error: `Backend error: ${response.status}`, details: error },
+        { status: response.status }
+      );
+    }
+
+    const data = await response.json();
+
+    // Transform backend response to match frontend SystemStats interface
+    const transformed = {
+      total_memories: data.total_memories || 0,
+      memories_by_layer: data.memories_by_layer || {},
+      total_users: data.total_users || data.users_active_today || 0,
+      active_conversations: data.active_conversations || data.total_conversations || 0,
+      storage_usage_mb: data.storage_usage_mb || data.storage_used_mb || 0,
+      cache_hit_rate: data.cache_hit_rate || 0
+    };
+
+    return NextResponse.json(transformed);
+  } catch (error) {
+    console.error('Error proxying to Phase 2 stats endpoint:', error);
+    return NextResponse.json(
+      { error: 'Failed to connect to backend', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
+  }
+}
