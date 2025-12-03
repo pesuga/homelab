@@ -36,19 +36,6 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: pesubuntu
-      initContainers:
-        - name: init-prompts
-          image: nginx:alpine
-          imagePullPolicy: Always
-          command:
-            [
-              "/bin/sh",
-              "-c",
-              "mkdir -p /app/prompts-data && cp -r /app/src/prompts/* /app/prompts-data/",
-            ]
-          volumeMounts:
-            - name: prompts-volume
-              mountPath: "/app/prompts-data"
       containers:
         - name: backend
           image: ghcr.io/pesuga/homelab/family-api:latest
@@ -64,8 +51,6 @@ spec:
               containerPort: 8008
               protocol: TCP
           env:
-            - name: PROMPTS_DIR
-              value: "/app/prompts-data"
             - name: POSTGRES_HOST
               value: postgres.homelab.svc.cluster.local
             - name: POSTGRES_PORT
@@ -144,9 +129,3 @@ spec:
             capabilities:
               drop:
                 - ALL
-          volumeMounts:
-            - name: prompts-volume
-              mountPath: "/app/prompts-data"
-      volumes:
-        - name: prompts-volume
-          emptyDir: {}
