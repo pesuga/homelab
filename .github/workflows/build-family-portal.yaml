@@ -46,6 +46,9 @@ jobs:
         working-directory: apps/family-portal
         run: |
           npm ci
+          # Debug: Check if lib/auth.ts exists
+          echo "Checking for lib/auth.ts..."
+          ls -la src/lib/
           # Skip tsc typecheck in CI - vite handles type checking during build
           npx vite build
 
