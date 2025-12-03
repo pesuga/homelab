@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: admin
-          image: 100.81.76.55:30500/family-admin:latest
+          image: ghcr.io/pesuga/homelab/family-admin:latest
           imagePullPolicy: Always
           ports:
             - name: http

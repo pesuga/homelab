@@ -51,7 +51,7 @@ spec:
               mountPath: "/app/prompts-data"
       containers:
         - name: backend
-          image: nginx:alpine
+          image: ghcr.io/pesuga/homelab/family-api:latest
           imagePullPolicy: Always
           ports:
             - name: http-api
@@ -147,12 +147,6 @@ spec:
           volumeMounts:
             - name: prompts-volume
               mountPath: "/app/prompts-data"
-            - name: source-code
-              mountPath: "/app/src"
       volumes:
         - name: prompts-volume
           emptyDir: {}
-        - name: source-code
-          hostPath:
-            path: /home/pesu/Rakuflow/systems/homelab/services/family-api/src
-            type: Directory
