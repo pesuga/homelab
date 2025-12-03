@@ -129,3 +129,9 @@ spec:
             capabilities:
               drop:
                 - ALL
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/family-assistant
+      volumes:
+        - name: logs
+          emptyDir: {}
