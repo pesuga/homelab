@@ -1,7 +1,7 @@
 # Homelab Architecture
 
-**Last Updated**: 2025-11-26
-**Architecture Version**: 2.0 (Phase 2 Clean)
+**Last Updated**: 2025-12-03
+**Architecture Version**: 2.1 (GitOps + CI/CD)
 
 ---
 
@@ -297,19 +297,67 @@ gpu-workloads     # GPU-accelerated services (planned)
 
 ### GitOps Approach
 
-**Current**: Manual kubectl apply
-**Future Consideration**: FluxCD or ArgoCD for automated deployments
+**Current**: Flux CD (Implemented 2025-12-01) [VERIFIED 2025-12-03]
+
+**Configuration**:
+- GitOps tool: Flux CD v2.x
+- Git repository: github.com/pesuga/homelab
+- Branch: main
+- Sync interval: 1 minute
+- Kustomization paths:
+  - `flux-system`: Core Flux components
+  - `infrastructure`: All Kubernetes manifests
+
+**How It Works**:
+1. Changes committed to Git repository
+2. Flux detects changes within 1 minute
+3. Flux applies updated manifests to Kubernetes
+4. Kubernetes reconciles to desired state
+
+**Benefits**:
+- Declarative infrastructure as code
+- Automatic drift detection and correction
+- Git as single source of truth
+- Audit trail via Git history
 
 ### CI/CD
 
-**Current**: Manual builds and deployments
-**Future**: GitHub Actions for automated builds
+**Current**: GitHub Actions (Implemented 2025-12-03) [VERIFIED 2025-12-03]
+
+**Family Portal Pipeline**:
+- **Trigger**: Push to `main` with changes in `apps/family-portal/**`
+- **Build**: npm ci → vite build → Docker build
+- **Registry**: GitHub Container Registry (ghcr.io)
+- **Image**: ghcr.io/pesuga/homelab/family-portal:latest
+- **Security**: Trivy vulnerability scanning
+- **Duration**: ~2-5 minutes
+
+**Workflow**:
+```
+Code Push → GitHub Actions → Build & Push Image → Flux CD → Kubernetes Deploy
+```
+
+**Authentication**: GitHub Actions uses built-in GITHUB_TOKEN
+
+**Additional Services**:
+- Family Assistant API: Manual builds (future automation planned)
+- Admin UI: Manual builds (future automation planned)
 
 ### Rollout Strategy
 
-- Rolling updates for stateless services
-- Manual coordination for stateful services
-- No automated canary or blue-green yet
+**Automated Rolling Updates**:
+- Family Portal: RollingUpdate with zero downtime
+  - `maxUnavailable: 0` (no downtime)
+  - `maxSurge: 1` (one extra pod during rollout)
+  - `imagePullPolicy: Always` (always pull latest image)
+
+**Manual Coordination**:
+- Stateful services (PostgreSQL, Redis)
+- Services requiring schema migrations
+
+**Rollback**:
+- Kubernetes: `kubectl rollout undo`
+- Git: Revert commit and Flux auto-applies
 
 ---
 
@@ -335,23 +383,29 @@ gpu-workloads     # GPU-accelerated services (planned)
 
 ## Future Architecture Plans
 
+### Completed
+- [✅] GitOps with FluxCD (2025-12-01)
+- [✅] GitHub Actions CI/CD for Family Portal (2025-12-03)
+
 ### Short Term
 - [ ] Implement automated backups
 - [ ] Add alerting with Alertmanager
 - [ ] Document disaster recovery procedures
 - [ ] Add GPU workload namespace
+- [ ] Extend GitHub Actions to Family Assistant API and Admin
+- [ ] Automated security scanning alerts
 
 ### Medium Term
-- [ ] GitOps with FluxCD
-- [ ] External secrets management
-- [ ] NFS or distributed storage
-- [ ] Service mesh (Linkerd)
+- [ ] External secrets management (sealed-secrets or external-secrets operator)
+- [ ] NFS or distributed storage for shared volumes
+- [ ] Service mesh (Linkerd) for advanced traffic management
+- [ ] Multi-environment deployments (staging, production)
 
 ### Long Term
 - [ ] Multi-cluster federation
-- [ ] Advanced traffic management
-- [ ] Automated scaling
-- [ ] Cost optimization
+- [ ] Advanced traffic management (canary, blue-green)
+- [ ] Automated scaling based on metrics
+- [ ] Cost optimization and resource efficiency
 
 ---
 
@@ -377,6 +431,26 @@ gpu-workloads     # GPU-accelerated services (planned)
 **Decision**: PostgreSQL for production data
 **Rationale**: Better concurrent access, production-ready, backup tools
 **Trade-offs**: More resource usage but necessary for multi-user apps
+
+### ADR-005: Flux CD for GitOps
+**Decision**: Flux CD for GitOps deployments
+**Rationale**: Automatic reconciliation, drift detection, declarative infrastructure
+**Trade-offs**: Learning curve but better than manual kubectl apply
+**Date**: 2025-12-01
+
+### ADR-006: GitHub Container Registry vs Local Registry
+**Decision**: GitHub Container Registry (ghcr.io) for image storage
+**Rationale**: Integrated with GitHub Actions, no maintenance overhead, free for public repos, multi-arch support
+**Trade-offs**: Requires internet access but more reliable than local registry
+**Date**: 2025-12-03
+**Context**: Local registry had IP address changes and reliability issues. Migrated to ghcr.io for better integration with CI/CD pipeline.
+
+### ADR-007: imagePullPolicy Always for Latest Tag
+**Decision**: Use `imagePullPolicy: Always` with `:latest` tag for automated deployments
+**Rationale**: Ensures Kubernetes always pulls newest image from registry after CI/CD builds
+**Trade-offs**: Slightly slower pod startup but necessary for automated deployments to work correctly
+**Date**: 2025-12-03
+**Context**: Without this, Kubernetes caches images and doesn't pull updates even when new builds are pushed.
 
 ---
 
