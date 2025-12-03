@@ -2,13 +2,15 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yaml
-  # frontend resources removed - using family-assistant-app-working deployment instead
-  # - frontend/deployment.yaml
-  # - frontend/service.yaml
-  # - frontend/ingress.yaml
+  # App (frontend) resources - properly managed by Flux
+  - app/deployment.yaml
+  - app/service.yaml
+  - app/ingress.yaml
+  # Backend API resources
   - backend/deployment.yaml
   - backend/service.yaml
   - backend/ingress.yaml
+  # Admin UI resources
   - admin/deployment.yaml
   - admin/service.yaml
   - admin/ingress.yaml
