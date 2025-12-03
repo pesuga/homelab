@@ -10,7 +10,7 @@ export default function AuthCallback() {
             .then(() => {
                 navigate('/');
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 console.error('Auth callback error:', error);
                 navigate('/login?error=callback_failed');
             });

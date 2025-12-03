@@ -18,13 +18,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         // Check for existing session
-        getUser().then((user) => {
+        getUser().then((user: User | null) => {
             setUser(user);
             setLoading(false);
         });
 
         // Listen for token renewal
-        userManager.events.addUserLoaded((user) => {
+        userManager.events.addUserLoaded((user: User) => {
             setUser(user);
         });
 
