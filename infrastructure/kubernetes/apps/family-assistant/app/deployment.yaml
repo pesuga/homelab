@@ -26,12 +26,8 @@ spec:
     spec:
       containers:
         - name: app
-          image: nginx:alpine
+          image: 100.81.76.55:30500/family-portal:latest
           imagePullPolicy: IfNotPresent
-          command:
-            - nginx
-            - -g
-            - daemon off;
           ports:
             - name: http
               containerPort: 80
