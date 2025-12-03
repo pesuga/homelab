@@ -2,7 +2,7 @@
 Sub-Agent Analytics API Routes
 
 Endpoints for querying sub-agent execution traces, performance metrics,
-and historical analytics data.
+and historical analytics data, plus chat session analytics from Loki.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Query
@@ -13,6 +13,7 @@ import asyncpg
 
 from api.dependencies import get_current_admin_user
 from api.models.user_management import FamilyMember
+from api.services.loki_service import get_loki_service, ChatOverviewMetrics, TokenStats, ChatLogEntry
 
 
 # Pydantic models for API responses
@@ -80,8 +81,9 @@ class ExecutionTrace(BaseModel):
 
 
 class OverviewResponse(BaseModel):
-    """Response model for overview endpoint."""
-    overview: ExecutionOverview
+    """Response model for overview endpoint - matches frontend expectations."""
+    metrics: Dict[str, Any]
+    agent_popularity: List[Dict[str, Any]]
     recent_executions: List[Dict[str, Any]]
 
 
@@ -186,21 +188,21 @@ async def get_overview(
                 for row in recent
             ]
 
-            overview = ExecutionOverview(
-                total_executions=total,
-                successful_executions=successful,
-                failed_executions=stats['failed_executions'] or 0,
-                success_rate=round(success_rate, 2),
-                avg_response_time_ms=int(stats['avg_response_time_ms'] or 0),
-                total_tokens=int(stats['total_tokens'] or 0),
-                total_prompt_tokens=int(stats['total_prompt_tokens'] or 0),
-                total_completion_tokens=int(stats['total_completion_tokens'] or 0),
-                agent_breakdown=agent_breakdown,
-                time_range_hours=hours
-            )
+            # Build agent popularity list
+            agent_popularity = [
+                {"agent": agent_id, "count": count}
+                for agent_id, count in agent_breakdown.items()
+            ]
 
+            # Return response matching frontend expectations
             return OverviewResponse(
-                overview=overview,
+                metrics={
+                    "total_executions_24h": total,
+                    "success_rate": success_rate / 100.0,  # Convert to decimal
+                    "avg_response_time_ms": float(stats['avg_response_time_ms'] or 0),
+                    "total_tokens": int(stats['total_tokens'] or 0),
+                },
+                agent_popularity=agent_popularity,
                 recent_executions=recent_executions
             )
 
@@ -315,4 +317,82 @@ async def get_execution_trace(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to fetch trace: {str(e)}"
+        )
+
+
+# ==============================================================================
+# Chat Analytics Endpoints (Loki-based)
+# ==============================================================================
+
+@router.get("/chat/overview", response_model=ChatOverviewMetrics)
+async def get_chat_overview(
+    range: str = Query("24h", description="Time range (24h, 7d, 30d)"),
+    current_user: FamilyMember = Depends(get_current_admin_user)
+):
+    """
+    Get chat analytics overview from Loki logs.
+
+    Returns:
+        - Total requests
+        - Total tokens consumed
+        - Estimated cost
+        - Error rate
+        - Average and P95 latency
+    """
+    try:
+        loki = await get_loki_service()
+        overview = await loki.get_chat_overview(time_range=range)
+        return overview
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch chat overview: {str(e)}"
+        )
+
+
+@router.get("/chat/logs", response_model=List[ChatLogEntry])
+async def get_chat_logs(
+    limit: int = Query(50, ge=1, le=500, description="Number of logs to return"),
+    range: str = Query("24h", description="Time range (24h, 7d, 30d)"),
+    current_user: FamilyMember = Depends(get_current_admin_user)
+):
+    """
+    Get raw chat session logs from Loki.
+
+    Returns:
+        List of recent chat log entries with timestamp, user, tokens, latency, cost
+    """
+    try:
+        loki = await get_loki_service()
+        logs = await loki.get_chat_logs(limit=limit, time_range=range)
+        return logs
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch chat logs: {str(e)}"
+        )
+
+
+@router.get("/chat/tokens", response_model=TokenStats)
+async def get_chat_tokens(
+    range: str = Query("7d", description="Time range (24h, 7d, 30d)"),
+    current_user: FamilyMember = Depends(get_current_admin_user)
+):
+    """
+    Get token usage statistics by model from Loki logs.
+
+    Returns:
+        Token usage broken down by model
+    """
+    try:
+        loki = await get_loki_service()
+        stats = await loki.get_token_stats(time_range=range)
+        return stats
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch token stats: {str(e)}"
         )

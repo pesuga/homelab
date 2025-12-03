@@ -148,8 +148,14 @@ class ChatLogger:
                 system_info=self._get_system_info()
             )
 
-            # Add to queue for async processing
-            await self.log_queue.put(asdict(session_entry))
+            # Convert to dict for processing
+            entry_dict = asdict(session_entry)
+
+            # Emit to stdout for Promtail (Loki integration)
+            self._emit_to_stdout(entry_dict)
+
+            # Add to queue for async file processing
+            await self.log_queue.put(entry_dict)
 
             logger.debug(f"Chat session logged: session_id={session_id}, user_id={user_id}")
 
@@ -234,6 +240,22 @@ class ChatLogger:
             performance["total_latency_ms"] = total_latency_ms
 
         return performance
+
+    def _emit_to_stdout(self, entry: Dict[str, Any]):
+        """Emit structured log entry to stdout for Promtail/Loki collection."""
+        try:
+            # Add type field for easy LogQL filtering
+            log_entry = {
+                "type": "chat_session_log",
+                **entry
+            }
+
+            # Output as single-line JSON to stdout
+            log_line = json.dumps(log_entry, ensure_ascii=False, default=str)
+            print(log_line, flush=True)
+
+        except Exception as e:
+            logger.error(f"Failed to emit log to stdout: {e}", exc_info=True)
 
     def _get_system_info(self) -> Dict[str, Any]:
         """Get current system information."""

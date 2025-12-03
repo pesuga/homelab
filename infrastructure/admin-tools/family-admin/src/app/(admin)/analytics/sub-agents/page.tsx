@@ -14,9 +14,23 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 
 export default function SubAgentAnalytics() {
   const { isAuthenticated } = useAuth();
-  const { overview, traceData, loading, error, fetchTrace, refreshOverview } = useAnalytics();
-  const [activeTab, setActiveTab] = useState<"overview">("overview");
+  const {
+    overview,
+    traceData,
+    chatOverview,
+    chatLogs,
+    tokenStats,
+    loading,
+    error,
+    fetchTrace,
+    refreshOverview,
+    refreshChatAnalytics,
+    refreshChatLogs,
+    refreshTokenStats
+  } = useAnalytics();
+  const [activeTab, setActiveTab] = useState<"overview" | "chatlogs">("overview");
   const [selectedExecutionId, setSelectedExecutionId] = useState<string | null>(null);
+  const [chatTimeRange, setChatTimeRange] = useState<string>("24h");
 
   // Handle execution row click
   const handleExecutionClick = async (executionId: string) => {
@@ -155,9 +169,23 @@ export default function SubAgentAnalytics() {
                 : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
             }`}
           >
-            Overview
+            Sub-Agent Analytics
           </button>
-          {/* Future tabs can be added here */}
+          <button
+            onClick={() => {
+              setActiveTab("chatlogs");
+              refreshChatAnalytics(chatTimeRange);
+              refreshChatLogs(50, chatTimeRange);
+              refreshTokenStats("7d");
+            }}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === "chatlogs"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            }`}
+          >
+            Chat Logs
+          </button>
         </nav>
       </div>
 
@@ -269,6 +297,160 @@ export default function SubAgentAnalytics() {
               </table>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Chat Logs Tab Content */}
+      {activeTab === "chatlogs" && (
+        <div className="space-y-6">
+          {/* Chat Overview Metrics */}
+          {chatOverview && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <MetricCard
+                title="Total Requests"
+                value={chatOverview.total_requests.toLocaleString()}
+                icon="💬"
+              />
+              <MetricCard
+                title="Total Tokens"
+                value={chatOverview.total_tokens.toLocaleString()}
+                icon="🎯"
+              />
+              <MetricCard
+                title="Estimated Cost"
+                value={`$${chatOverview.estimated_cost_usd.toFixed(4)}`}
+                icon="💰"
+              />
+              <MetricCard
+                title="Avg Latency"
+                value={`${chatOverview.avg_latency_ms.toFixed(0)}ms`}
+                icon="⚡"
+              />
+            </div>
+          )}
+
+          {/* Token Usage by Model */}
+          {tokenStats && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                Token Usage by Model (7d)
+              </h2>
+              <div className="space-y-3">
+                {Object.entries(tokenStats.by_model).map(([model, tokens]) => (
+                  <div key={model} className="flex items-center justify-between">
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                      {model}
+                    </span>
+                    <div className="flex items-center gap-4">
+                      <div className="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{
+                            width: `${(tokens / tokenStats.total) * 100}%`,
+                          }}
+                        ></div>
+                      </div>
+                      <span className="text-gray-600 dark:text-gray-400 w-24 text-right">
+                        {tokens.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Chat Logs Table */}
+          {chatLogs && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                  Recent Chat Sessions ({chatTimeRange})
+                </h2>
+                <select
+                  value={chatTimeRange}
+                  onChange={(e) => {
+                    const newRange = e.target.value;
+                    setChatTimeRange(newRange);
+                    refreshChatAnalytics(newRange);
+                    refreshChatLogs(50, newRange);
+                  }}
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded border border-gray-300 dark:border-gray-600"
+                >
+                  <option value="24h">Last 24 hours</option>
+                  <option value="7d">Last 7 days</option>
+                  <option value="30d">Last 30 days</option>
+                </select>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Timestamp
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        User
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Model
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Tokens
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Latency
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Cost
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {chatLogs.map((log, index) => (
+                      <tr
+                        key={`${log.session_id}-${index}`}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                          {new Date(log.timestamp).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                          {log.user_id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-white">
+                          {log.model_used.split("/").pop()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                          {log.tokens.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                          {log.latency_ms.toFixed(0)}ms
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                          ${log.cost_usd.toFixed(6)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded ${
+                              !log.error
+                                ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                                : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
+                            }`}
+                          >
+                            {!log.error ? "Success" : "Error"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

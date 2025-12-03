@@ -23,6 +23,38 @@ export interface AnalyticsOverview {
   }>;
 }
 
+/**
+ * Chat Analytics Types (from Loki)
+ */
+
+export interface ChatLogEntry {
+  timestamp: string;
+  user_id: string;
+  thread_id: string;
+  session_id: string;
+  tokens: number;
+  latency_ms: number;
+  cost_usd: number;
+  model_used: string;
+  error: boolean;
+}
+
+export interface ChatOverviewMetrics {
+  total_requests: number;
+  total_tokens: number;
+  estimated_cost_usd: number;
+  error_rate: number;
+  avg_latency_ms: number;
+  p95_latency_ms: number;
+  time_range: string;
+}
+
+export interface TokenStats {
+  by_model: Record<string, number>;
+  total: number;
+  time_range: string;
+}
+
 export interface ExecutionTrace {
   execution_id: string;
   timestamp: string;

@@ -587,6 +587,31 @@ class ApiClient {
   async getExecutionTrace(executionId: string): Promise<any> {
     return this.request<any>(`/api/v1/analytics/sub-agents/traces/${executionId}`);
   }
+
+  // ==============================================================================
+  // Chat Analytics (Loki-based)
+  // ==============================================================================
+
+  /**
+   * Get chat analytics overview from Loki logs
+   */
+  async getChatAnalyticsOverview(timeRange: string = '24h'): Promise<any> {
+    return this.request<any>(`/api/v1/analytics/chat/overview?range=${timeRange}`);
+  }
+
+  /**
+   * Get raw chat session logs from Loki
+   */
+  async getChatLogs(limit: number = 50, timeRange: string = '24h'): Promise<any> {
+    return this.request<any>(`/api/v1/analytics/chat/logs?limit=${limit}&range=${timeRange}`);
+  }
+
+  /**
+   * Get token usage statistics by model from Loki
+   */
+  async getChatTokenStats(timeRange: string = '7d'): Promise<any> {
+    return this.request<any>(`/api/v1/analytics/chat/tokens?range=${timeRange}`);
+  }
 }
 
 // Singleton instance
