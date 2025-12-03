@@ -73,6 +73,14 @@ Reusable patterns and learnings:
 - Best practices
 - Lessons learned
 
+### PRD.md
+Product Requirements Document:
+- Complete product vision and strategy
+- User personas and stories
+- Functional and non-functional requirements
+- Development roadmap and success metrics
+- Use as definitive reference for all development work
+
 ---
 
 ## Key Technologies

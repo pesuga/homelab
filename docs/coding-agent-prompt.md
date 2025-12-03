@@ -1,10 +1,7 @@
-# Prompt for a Coding Agent to Implement Sub‑Agent Architecture
+Task a backend expert agent with turning the design documents into a working implementation inside the **Family Assistant** codebase.  Use the two source documents as the authoritative specifications:
 
-## Overview
-You are a **coding agent** tasked with turning the design documents into a working implementation inside the **Family Assistant** codebase.  Use the two source documents as the authoritative specifications:
-
-1. **`sub-agent-critique-and-proposal.md`** – contains the architectural critique, the revised orchestrator‑worker proposal, and high‑level component definitions.
-2. **`sub-agent-addition-guide.md`** – provides the concrete step‑by‑step guide for adding a new sub‑agent, its skill prompt, and MCP tools.
+1. **`@docs/sub-agent-critique-and-proposal.md`** – contains the architectural critique, the revised orchestrator‑worker proposal, and high‑level component definitions.
+2. **`@docs/sub-agent-addition-guide.md`** – provides the concrete step‑by‑step guide for adding a new sub‑agent, its skill prompt, and MCP tools.
 
 Your job is to **generate the necessary code, configuration, and documentation** so that a new sub‑agent (e.g., a *calendar* skill) can be added without breaking existing functionality.
 
@@ -18,10 +15,10 @@ Your job is to **generate the necessary code, configuration, and documentation**
 ---
 ## Reference Documents (embed as context)
 ```
-{{FILE:/home/pesu/Rakuflow/systems/homelab/docs/sub-agent-critique-and-proposal.md}}
+{{FILE:@docs/sub-agent-critique-and-proposal.md}}
 ```
 ```
-{{FILE:/home/pesu/Rakuflow/systems/homelab/docs/sub-agent-addition-guide.md}}
+{{FILE:@docs/sub-agent-addition-guide.md}}
 ```
 *(The coding agent should read the full contents of these files when generating code.)*
 
@@ -83,6 +80,3 @@ Your job is to **generate the necessary code, configuration, and documentation**
 ---
 ## Deliverable
 Produce a **pull‑request‑ready set of files** matching the tasks above.  The coding agent should output the full diff for each new/modified file, ready to be applied with `git apply`.
-
----
-*End of Prompt*

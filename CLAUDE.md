@@ -14,4 +14,6 @@ ALWAYS READ THE FOLLOWING FILES FOR PROJECT CONTEXT:
 - When running commands in the compute node, verify where you are, most likely you are already there.
 - For any kubectl command you need to run, there is no need to ssh.
 - After working on any of the apps (dashboard, family assistant or any other) remember to commit and push.
+- We are now using FluxCD for our deployments, so remember to commit and push to the git repository.
+- During development we can run apps locally.
 
