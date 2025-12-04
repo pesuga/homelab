@@ -82,7 +82,7 @@ spec:
 
             # Application settings
             - name: NODE_ENV
-              value: "production"
+              value: "development"
             - name: ENVIRONMENT
               value: "production"
             - name: LOG_LEVEL
