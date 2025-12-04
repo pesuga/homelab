@@ -66,6 +66,8 @@ jobs:
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_API_URL=/api/backend
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
