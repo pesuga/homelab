@@ -74,9 +74,9 @@ spec:
             - name: QDRANT_GRPC_URL
               value: http://qdrant.homelab.svc.cluster.local:6334
             - name: LLAMACPP_BASE_URL
-              value: "http://llamacpp-service.default.svc.cluster.local:8081"
+              value: "http://100.72.98.106:11434"
             - name: OLLAMA_BASE_URL
-              value: "http://llamacpp-service.default.svc.cluster.local:8081"
+              value: "http://100.72.98.106:11434"
             - name: MEM0_API_URL
               value: "http://mem0.homelab.svc.cluster.local:8080"
             - name: N8N_BASE_URL

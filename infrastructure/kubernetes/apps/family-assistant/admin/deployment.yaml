@@ -50,7 +50,9 @@ spec:
             - name: NEXT_PUBLIC_APP_URL
               value: "https://app.fa.pesulabs.net"
             - name: NEXT_PUBLIC_API_URL
-              value: "https://admin.fa.pesulabs.net/api"
+              value: "https://api.fa.pesulabs.net"
+            - name: NEXT_PUBLIC_DEV_BYPASS_AUTH
+              value: "false"
 
             # Authentication - NextAuth
             - name: NEXTAUTH_SECRET

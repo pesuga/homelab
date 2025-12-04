@@ -2,10 +2,11 @@
  * API Client for Family Assistant Backend
  *
  * Handles authentication, token management, and API calls to the FastAPI backend.
+ * Updated to make direct API calls to the backend, removing proxy dependencies.
  */
 
-// Use Next.js API routes as proxy to avoid CORS and SSL certificate issues
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api/backend';
+// Use direct backend URL with environment variable override
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.fa.pesulabs.net';
 
 export interface LoginCredentials {
   email: string;
@@ -213,6 +214,12 @@ class ApiClient {
 
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    // Development authentication bypass (configurable)
+    if (!this.token && process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === 'true') {
+      headers['X-User-Id'] = 'a0000000-0000-0000-0000-000000000001';
+      console.log('[API Client] Using development authentication bypass with X-User-Id');
     }
 
     const response = await fetch(url, {

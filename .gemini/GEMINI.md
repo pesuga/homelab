@@ -8,6 +8,8 @@
 
 ## 2. Development Workflow
 - Always develop and test locally before deploying to the cluster.
+- Test builds locally before deploying to the cluster.
+- We use Flux deployments for GitOps.
 - Use `kubectl port-forward` to test services.
 - Use `kubectl exec` to test commands.
 
@@ -17,5 +19,5 @@
 
 ## 4. Node Separation
 - **Compute Node (pesubuntu):** GPU workloads (llama.cpp, Whisper) ONLY.
-- **Service Node (asuna):** Apps, DBs, and Orchestration ONLY.
+- **Service Node (asuna):** Apps, DBs and Orchestration.
 
