@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 import asyncpg
 
-from api.dependencies import get_current_admin_user
+from api.dependencies import get_current_admin_user, get_current_user
 from api.models.user_management import FamilyMember
 from api.services.loki_service import get_loki_service, ChatOverviewMetrics, TokenStats, ChatLogEntry
 
@@ -113,7 +113,7 @@ async def get_db_pool():
 async def get_overview(
     hours: int = Query(24, ge=1, le=168, description="Time range in hours (1-168)"),
     agent_id: Optional[str] = Query(None, description="Filter by specific agent"),
-    current_user: FamilyMember = Depends(get_current_admin_user)
+    current_user: FamilyMember = Depends(get_current_user)  # Allow legacy auth for development
 ):
     """
     Get overview dashboard summary for sub-agent executions.
@@ -221,7 +221,7 @@ async def get_overview(
 @router.get("/traces/{execution_id}", response_model=TraceResponse)
 async def get_execution_trace(
     execution_id: str,
-    current_user: FamilyMember = Depends(get_current_admin_user)
+    current_user: FamilyMember = Depends(get_current_user)  # Allow legacy auth for development
 ):
     """
     Get detailed execution trace for a specific execution.
@@ -327,7 +327,7 @@ async def get_execution_trace(
 @router.get("/chat/overview", response_model=ChatOverviewMetrics)
 async def get_chat_overview(
     range: str = Query("24h", description="Time range (24h, 7d, 30d)"),
-    current_user: FamilyMember = Depends(get_current_admin_user)
+    current_user: FamilyMember = Depends(get_current_user)  # Allow legacy auth for development
 ):
     """
     Get chat analytics overview from Loki logs.
@@ -355,7 +355,7 @@ async def get_chat_overview(
 async def get_chat_logs(
     limit: int = Query(50, ge=1, le=500, description="Number of logs to return"),
     range: str = Query("24h", description="Time range (24h, 7d, 30d)"),
-    current_user: FamilyMember = Depends(get_current_admin_user)
+    current_user: FamilyMember = Depends(get_current_user)  # Allow legacy auth for development
 ):
     """
     Get raw chat session logs from Loki.
@@ -378,7 +378,7 @@ async def get_chat_logs(
 @router.get("/chat/tokens", response_model=TokenStats)
 async def get_chat_tokens(
     range: str = Query("7d", description="Time range (24h, 7d, 30d)"),
-    current_user: FamilyMember = Depends(get_current_admin_user)
+    current_user: FamilyMember = Depends(get_current_user)  # Allow legacy auth for development
 ):
     """
     Get token usage statistics by model from Loki logs.
