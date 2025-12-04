@@ -13,8 +13,6 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED 1
-# Force webpack instead of Turbopack (Turbopack doesn't support @svgr/webpack)
-ENV TURBOPACK=0
 RUN npm run build
 
 # Stage 3: Runner
