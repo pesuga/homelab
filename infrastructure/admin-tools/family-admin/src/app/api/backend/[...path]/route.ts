@@ -75,6 +75,14 @@ async function proxyRequest(
       }
     });
 
+    // DEVELOPMENT MODE: If no Authorization header is present, add legacy headers for development
+    // This allows the admin interface to work without full Authentik OIDC integration
+    if (!headers['authorization'] && !headers['Authorization']) {
+      // Use legacy X-User-Id header with demo admin ID
+      headers['X-User-Id'] = 'a0000000-0000-0000-0000-000000000001';
+      console.log('[Backend Proxy] No auth header found, using development mode with legacy X-User-Id');
+    }
+
     // Prepare request options
     const options: RequestInit = {
       method,
