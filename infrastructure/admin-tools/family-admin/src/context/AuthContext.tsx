@@ -16,40 +16,35 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const refreshProfile = async () => {
     try {
-      const profile = await apiClient.getProfile();
-      setUser(profile);
+      const response = await fetch('/api/auth/me');
+      if (response.ok) {
+        const profile = await response.json();
+        setUser(profile);
+      } else {
+        setUser(null);
+      }
     } catch (error) {
       console.error('Failed to load profile:', error);
       setUser(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Initialize with mock user for development/demo purposes
+  // Check authentication status on mount
   useEffect(() => {
-    // TEMPORARY: Always use mock user to prevent redirect loops
-    setIsLoading(true);
-    const mockUser: UserProfile = {
-      id: 'demo-user-123',
-      email: 'admin@demo.local',
-      role: 'admin',
-      is_admin: true,
-      display_name: 'Demo Admin',
-      first_name: 'Demo',
-      last_name: 'Admin'
-    };
-    setUser(mockUser);
-    setIsLoading(false);
+    refreshProfile();
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
-    // In OIDC mode, redirect to Authentik for authentication
-    // This method is kept for backward compatibility and development
+    // In production with Authentik, login is handled by SSO
+    // This method is only used for development with bypass enabled
 
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === 'true') {
       console.log('🚀 Development mode: Simulating login');
       setUser({
         id: 'dev-admin',
@@ -67,8 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    // For demo purposes, just clear the user
+    // Clear user state - in production, this would redirect to Authentik logout
     setUser(null);
+    window.location.href = 'https://auth.pesulabs.net/application/o/authorize?redirect_uri=' + encodeURIComponent(window.location.origin);
   };
 
   const value: AuthContextType = {
@@ -84,25 +80,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAuth() {
-  // BYPASS ALL AUTHENTICATION: Always return authenticated state
-  // This completely eliminates any authentication-related redirects
-
-  const mockUser: UserProfile = {
-    id: 'demo-user-123',
-    email: 'admin@demo.local',
-    role: 'admin',
-    is_admin: true,
-    display_name: 'Demo Admin',
-    first_name: 'Demo',
-    last_name: 'Admin'
-  };
-
-  return {
-    user: mockUser,
-    isAuthenticated: true,
-    isLoading: false,
-    login: async (credentials?: any) => {},
-    logout: () => {},
-    refreshProfile: async () => {}
-  };
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }

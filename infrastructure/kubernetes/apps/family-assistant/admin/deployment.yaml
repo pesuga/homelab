@@ -52,7 +52,7 @@ spec:
             - name: NEXT_PUBLIC_API_URL
               value: "https://api.fa.pesulabs.net"
             - name: NEXT_PUBLIC_DEV_BYPASS_AUTH
-              value: "true"
+              value: "false"
 
             # Authentication - NextAuth
             - name: NEXTAUTH_SECRET
