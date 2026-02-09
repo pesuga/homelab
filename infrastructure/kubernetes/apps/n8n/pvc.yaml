@@ -3,12 +3,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: n8n-pvc
   namespace: homelab
-  labels:
-    app: n8n
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 5Gi
-  storageClassName: local-path
