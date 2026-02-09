@@ -8,6 +8,10 @@ K3s cluster on Asuna — managed via FluxCD.
 - **n8n** — Workflow automation
 - **Redis** — Cache
 
+## Managed by
+- **FluxCD** — GitOps continuous delivery
+- **Claw 🐾** — AI assistant
+
 ## Structure
 ```
 clusters/          — Flux bootstrap
